@@ -2,11 +2,11 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth-context";
 
 function LoginForm() {
-  const { signIn, continueAsDemo, demoMode } = useAuth();
+  const { signIn, user, loading } = useAuth();
   const router = useRouter();
   const params = useSearchParams();
   const next = params.get("next") || "/home";
@@ -15,14 +15,9 @@ function LoginForm() {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  const go = async (fn: () => Promise<string | null> | void) => {
-    setBusy(true);
-    setError(null);
-    const message = await fn();
-    setBusy(false);
-    if (message) setError(message);
-    else router.push(next);
-  };
+  useEffect(() => {
+    if (!loading && user) router.replace(next);
+  }, [loading, user, next, router]);
 
   return (
     <div className="min-h-screen bg-surface flex items-center justify-center px-container-margin-mobile py-section-gap relative overflow-hidden">
@@ -37,14 +32,20 @@ function LoginForm() {
         </p>
         <form
           className="flex flex-col gap-4"
-          onSubmit={(e) => {
+          onSubmit={async (e) => {
             e.preventDefault();
-            void go(() => signIn(email, password));
+            setBusy(true);
+            setError(null);
+            const message = await signIn(email, password);
+            setBusy(false);
+            if (message) setError(message);
+            else router.replace(next);
           }}
         >
           <input
             type="email"
             required
+            autoComplete="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="Email"
@@ -53,6 +54,7 @@ function LoginForm() {
           <input
             type="password"
             required
+            autoComplete="current-password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="Password"
@@ -67,16 +69,6 @@ function LoginForm() {
             {busy ? "Signing in..." : "Sign In"}
           </button>
         </form>
-        <button
-          type="button"
-          onClick={() => {
-            continueAsDemo();
-            router.push(next);
-          }}
-          className="mt-4 w-full h-[56px] border-2 border-outline rounded-full font-label-lg hover:bg-soft-off-white"
-        >
-          {demoMode ? "Continue as Demo Rider" : "Preview with demo profile"}
-        </button>
         <p className="mt-6 font-body-sm text-secondary">
           New to SheRides?{" "}
           <Link href="/signup" className="text-accent-magenta font-label-lg">

@@ -171,6 +171,40 @@ alter table public.follows enable row level security;
 alter table public.stories enable row level security;
 alter table public.verifications enable row level security;
 
+drop policy if exists "Public profiles are viewable" on public.profiles;
+drop policy if exists "Users update own profile" on public.profiles;
+drop policy if exists "Users insert own profile" on public.profiles;
+drop policy if exists "Posts are viewable" on public.posts;
+drop policy if exists "Users create own posts" on public.posts;
+drop policy if exists "Users update own posts" on public.posts;
+drop policy if exists "Users delete own posts" on public.posts;
+drop policy if exists "Likes are viewable" on public.post_likes;
+drop policy if exists "Users manage own likes" on public.post_likes;
+drop policy if exists "Comments are viewable" on public.comments;
+drop policy if exists "Users create comments" on public.comments;
+drop policy if exists "Users delete own comments" on public.comments;
+drop policy if exists "Users view own saved" on public.saved_posts;
+drop policy if exists "Users manage own saved" on public.saved_posts;
+drop policy if exists "Communities are viewable" on public.communities;
+drop policy if exists "Members viewable" on public.community_members;
+drop policy if exists "Users join communities" on public.community_members;
+drop policy if exists "Events are viewable" on public.events;
+drop policy if exists "Users rsvp events" on public.event_rsvps;
+drop policy if exists "RSVPs are viewable" on public.event_rsvps;
+drop policy if exists "Members view conversations" on public.conversations;
+drop policy if exists "Members view conversation members" on public.conversation_members;
+drop policy if exists "Members view messages" on public.messages;
+drop policy if exists "Members send messages" on public.messages;
+drop policy if exists "Users view own notifications" on public.notifications;
+drop policy if exists "Users update own notifications" on public.notifications;
+drop policy if exists "Follows are viewable" on public.follows;
+drop policy if exists "Users manage own follows" on public.follows;
+drop policy if exists "Stories are viewable" on public.stories;
+drop policy if exists "Users create own stories" on public.stories;
+drop policy if exists "Users view own verifications" on public.verifications;
+drop policy if exists "Admins view all verifications" on public.verifications;
+drop policy if exists "Admins update verifications" on public.verifications;
+
 create policy "Public profiles are viewable" on public.profiles for select using (true);
 create policy "Users update own profile" on public.profiles for update using (auth.uid() = id);
 create policy "Users insert own profile" on public.profiles for insert with check (auth.uid() = id);
@@ -207,19 +241,19 @@ create policy "Members view conversations" on public.conversations for select us
 create policy "Members view conversation members" on public.conversation_members for select using (
   exists (
     select 1 from public.conversation_members m
-    where m.conversation_id = conversation_id and m.user_id = auth.uid()
+    where m.conversation_id = conversation_members.conversation_id and m.user_id = auth.uid()
   )
 );
 create policy "Members view messages" on public.messages for select using (
   exists (
     select 1 from public.conversation_members m
-    where m.conversation_id = conversation_id and m.user_id = auth.uid()
+    where m.conversation_id = messages.conversation_id and m.user_id = auth.uid()
   )
 );
 create policy "Members send messages" on public.messages for insert with check (
   auth.uid() = sender_id and exists (
     select 1 from public.conversation_members m
-    where m.conversation_id = conversation_id and m.user_id = auth.uid()
+    where m.conversation_id = messages.conversation_id and m.user_id = auth.uid()
   )
 );
 
@@ -252,7 +286,8 @@ begin
     coalesce(new.raw_user_meta_data->>'full_name', split_part(new.email, '@', 1)),
     coalesce(new.raw_user_meta_data->>'username', split_part(new.email, '@', 1)),
     new.raw_user_meta_data->>'avatar_url'
-  );
+  )
+  on conflict (id) do nothing;
   return new;
 end;
 $$;

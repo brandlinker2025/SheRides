@@ -14,6 +14,7 @@ node_modules
 # env files
 .env
 .env*.local
+!.env.example
 
 # debug / logs
 npm-debug.log*
@@ -36,3 +37,6 @@ next-env.d.ts
 .DS_Store
 *.pem
 Thumbs.db
+
+.vercel
+supabase/.temp

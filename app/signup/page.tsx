@@ -2,17 +2,22 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth-context";
 
 export default function SignupPage() {
-  const { signUp, continueAsDemo, demoMode } = useAuth();
+  const { signUp, user, loading } = useAuth();
   const router = useRouter();
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [info, setInfo] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    if (!loading && user) router.replace("/home");
+  }, [loading, user, router]);
 
   return (
     <div className="min-h-screen bg-surface flex items-center justify-center px-container-margin-mobile py-section-gap relative overflow-hidden">
@@ -31,14 +36,20 @@ export default function SignupPage() {
             e.preventDefault();
             setBusy(true);
             setError(null);
+            setInfo(null);
             const message = await signUp(fullName, email, password);
             setBusy(false);
+            if (message?.toLowerCase().includes("check your email")) {
+              setInfo(message);
+              return;
+            }
             if (message) setError(message);
-            else router.push("/home");
+            else router.replace("/home");
           }}
         >
           <input
             required
+            autoComplete="name"
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
             placeholder="Full name"
@@ -47,6 +58,7 @@ export default function SignupPage() {
           <input
             type="email"
             required
+            autoComplete="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="Email"
@@ -56,12 +68,14 @@ export default function SignupPage() {
             type="password"
             required
             minLength={6}
+            autoComplete="new-password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="Password"
             className="w-full bg-soft-off-white border border-surface-border rounded-lg px-4 py-3 focus:outline-none focus:border-accent-magenta"
           />
           {error && <p className="text-error font-body-sm">{error}</p>}
+          {info && <p className="text-accent-magenta font-body-sm">{info}</p>}
           <button
             type="submit"
             disabled={busy}
@@ -70,16 +84,6 @@ export default function SignupPage() {
             {busy ? "Creating account..." : "Create account"}
           </button>
         </form>
-        <button
-          type="button"
-          onClick={() => {
-            continueAsDemo();
-            router.push("/home");
-          }}
-          className="mt-4 w-full h-[56px] border-2 border-outline rounded-full font-label-lg hover:bg-soft-off-white"
-        >
-          {demoMode ? "Continue as Demo Rider" : "Preview with demo profile"}
-        </button>
         <p className="mt-6 font-body-sm text-secondary">
           Already a member?{" "}
           <Link href="/login" className="text-accent-magenta font-label-lg">
