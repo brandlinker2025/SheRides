@@ -1,0 +1,19 @@
+import { UsersTable } from "@/components/admin/UsersTable";
+import { loadAdminUsers } from "@/lib/admin/queries";
+import { requireAdmin } from "@/lib/supabase/require-admin";
+
+export default async function AdminUsersPage() {
+  const { supabase } = await requireAdmin();
+  const { users, error } = await loadAdminUsers(supabase);
+
+  return (
+    <div>
+      <div className="mb-section-gap">
+        <h1 className="font-headline-xl text-headline-xl mb-2">Users</h1>
+        <p className="font-body-lg text-secondary">View registered riders and grant or remove the verified badge.</p>
+      </div>
+      {error && <p className="mb-4 text-error font-body-sm">{error}</p>}
+      <UsersTable users={users} />
+    </div>
+  );
+}

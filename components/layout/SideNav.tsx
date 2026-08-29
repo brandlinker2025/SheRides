@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useAuth } from "@/lib/auth-context";
 import { sidebarCommunities } from "@/lib/data";
 import { img } from "@/lib/images";
 import { useUI } from "@/lib/ui-context";
@@ -22,6 +23,7 @@ const items = [
 export function SideNav() {
   const pathname = usePathname();
   const { setCreateOpen } = useUI();
+  const { user } = useAuth();
 
   return (
     <nav className="hidden lg:flex flex-col h-screen fixed left-0 top-0 w-64 bg-deep-charcoal shadow-xl z-40 border-r border-white/5 pt-[96px] pb-6">
@@ -55,6 +57,19 @@ export function SideNav() {
             </Link>
           );
         })}
+        {user?.role === "admin" && (
+          <Link
+            href="/admin"
+            className={
+              pathname.startsWith("/admin")
+                ? "flex items-center gap-4 px-4 py-3 rounded-lg text-accent-magenta font-bold border-r-4 border-accent-magenta bg-white/5 hover:bg-white/10 transition-all"
+                : "flex items-center gap-4 px-4 py-3 rounded-lg text-on-primary opacity-70 hover:opacity-100 hover:bg-white/10 hover:text-white transition-all"
+            }
+          >
+            <Icon name="admin_panel_settings" filled={pathname.startsWith("/admin")} />
+            <span className="font-label-lg text-label-lg">Admin</span>
+          </Link>
+        )}
       </div>
 
       <div className="mt-auto px-4">

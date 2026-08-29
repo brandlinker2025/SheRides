@@ -54,6 +54,15 @@ export function ProfileView({ rider, isSelf, onSignOut }: ProfileViewProps) {
             <div className="flex items-center gap-3 w-full md:w-auto">
               {isSelf ? (
                 <>
+                  {rider.role === "admin" && (
+                    <button
+                      type="button"
+                      onClick={() => router.push("/admin")}
+                      className="flex-1 md:flex-none px-8 py-3 border border-outline rounded-lg font-label-lg"
+                    >
+                      Admin panel
+                    </button>
+                  )}
                   <button
                     type="button"
                     className="flex-1 md:flex-none px-8 py-3 bg-accent-magenta text-white rounded-lg font-label-lg"

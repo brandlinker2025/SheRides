@@ -8,6 +8,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { promoteFirstAdmin } from "./admin/promote-first-admin";
 import { currentUser } from "./data";
 import { createClient } from "./supabase/client";
 import type { Rider } from "./types";
@@ -64,11 +65,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           full_name: fullName ?? "",
           username: fullName?.toLowerCase().replace(/\s+/g, "") || id.slice(0, 8),
         });
-        const retry = await supabase.from("profiles").select("*").eq("id", id).maybeSingle();
-        setUser(riderFromProfile(id, retry.data, fullName));
-        return;
       }
-      setUser(riderFromProfile(id, data, fullName));
+      await promoteFirstAdmin(supabase, id);
+      const latest = await supabase.from("profiles").select("*").eq("id", id).maybeSingle();
+      setUser(riderFromProfile(id, latest.data, fullName));
     };
 
     supabase.auth.getUser().then(({ data }) => {

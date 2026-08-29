@@ -24,6 +24,16 @@ export function TopNav() {
         </div>
       </div>
       <div className="flex items-center gap-4">
+        {user?.role === "admin" && (
+          <Link
+            href="/admin"
+            className="hidden sm:flex items-center gap-1 px-3 h-10 rounded-full text-on-primary hover:bg-white/10 transition-colors font-label-lg"
+            aria-label="Admin panel"
+          >
+            <Icon name="admin_panel_settings" />
+            <span className="hidden md:inline">Admin</span>
+          </Link>
+        )}
         <Link
           href="/notifications"
           className="w-10 h-10 rounded-full flex items-center justify-center text-on-primary hover:bg-white/10 transition-colors relative"
