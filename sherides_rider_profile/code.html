@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>FBC Rider Profile</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&amp;family=Inter:wght@400;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "on-tertiary": "#ffffff",
+                      "tertiary": "#5a5c5d",
+                      "surface-dim": "#dadada",
+                      "on-background": "#1a1c1c",
+                      "error-container": "#ffdad6",
+                      "primary-fixed": "#ffd9de",
+                      "soft-off-white": "#F8F9FA",
+                      "deep-charcoal": "#1A1C1E",
+                      "primary-fixed-dim": "#ffb2be",
+                      "background": "#f9f9f9",
+                      "surface-container": "#eeeeee",
+                      "inverse-primary": "#ffb2be",
+                      "inverse-on-surface": "#f0f1f1",
+                      "on-primary-container": "#fffbff",
+                      "on-tertiary-fixed-variant": "#454748",
+                      "surface-variant": "#e2e2e2",
+                      "surface-container-low": "#f3f3f4",
+                      "tertiary-fixed": "#e1e3e4",
+                      "surface": "#f9f9f9",
+                      "secondary-fixed-dim": "#c6c6c9",
+                      "primary": "#b80049",
+                      "on-tertiary-container": "#fcfdfe",
+                      "accent-magenta": "#E91E63",
+                      "surface-container-high": "#e8e8e8",
+                      "on-tertiary-fixed": "#191c1d",
+                      "on-surface": "#1a1c1c",
+                      "on-secondary-fixed": "#1a1c1e",
+                      "on-surface-variant": "#5b3f43",
+                      "on-error": "#ffffff",
+                      "on-secondary-fixed-variant": "#454749",
+                      "on-secondary": "#ffffff",
+                      "error": "#ba1a1a",
+                      "surface-container-lowest": "#ffffff",
+                      "inverse-surface": "#2f3131",
+                      "outline-variant": "#e4bdc2",
+                      "on-secondary-container": "#636467",
+                      "tertiary-fixed-dim": "#c5c7c8",
+                      "surface-bright": "#f9f9f9",
+                      "secondary": "#5d5e61",
+                      "secondary-container": "#e2e2e5",
+                      "on-primary-fixed": "#400014",
+                      "on-primary": "#ffffff",
+                      "tertiary-container": "#737576",
+                      "surface-container-highest": "#e2e2e2",
+                      "surface-border": "#E9ECEF",
+                      "primary-container": "#e2165f",
+                      "on-error-container": "#93000a",
+                      "secondary-fixed": "#e2e2e5",
+                      "on-primary-fixed-variant": "#900038",
+                      "surface-tint": "#bc004b",
+                      "outline": "#8f6f73"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "section-gap": "64px",
+                      "gutter": "24px",
+                      "container-margin-mobile": "24px",
+                      "component-gap": "16px",
+                      "base": "8px",
+                      "container-margin-desktop": "80px"
+              },
+              "fontFamily": {
+                      "body-lg": [
+                              "Inter"
+                      ],
+                      "display-lg": [
+                              "Montserrat"
+                      ],
+                      "headline-xl": [
+                              "Montserrat"
+                      ],
+                      "label-lg": [
+                              "Inter"
+                      ],
+                      "display-lg-mobile": [
+                              "Montserrat"
+                      ],
+                      "body-sm": [
+                              "Inter"
+                      ],
+                      "label-caps": [
+                              "Inter"
+                      ],
+                      "headline-md": [
+                              "Montserrat"
+                      ],
+                      "body-md": [
+                              "Inter"
+                      ]
+              },
+              "fontSize": {
+                      "body-lg": [
+                              "18px",
+                              {
+                                      "lineHeight": "1.6",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "display-lg": [
+                              "48px",
+                              {
+                                      "lineHeight": "1.1",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "headline-xl": [
+                              "32px",
+                              {
+                                      "lineHeight": "1.2",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "label-lg": [
+                              "14px",
+                              {
+                                      "lineHeight": "1.2",
+                                      "letterSpacing": "0.01em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "display-lg-mobile": [
+                              "34px",
+                              {
+                                      "lineHeight": "1.2",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "body-sm": [
+                              "14px",
+                              {
+                                      "lineHeight": "1.5",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "label-caps": [
+                              "12px",
+                              {
+                                      "lineHeight": "1.0",
+                                      "letterSpacing": "0.08em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "headline-md": [
+                              "24px",
+                              {
+                                      "lineHeight": "1.3",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "body-md": [
+                              "16px",
+                              {
+                                      "lineHeight": "1.6",
+                                      "fontWeight": "400"
+                              }
+                      ]
+              }
+      },
+          },
+        }
+      </script>
+<style>
+        body {
+            background-color: theme('colors.background');
+            color: theme('colors.on-background');
+        }
+      </style>
+</head>
+<body class="antialiased min-h-screen pb-24 md:pb-0 pt-[88px] md:pt-0 md:pl-64">
+<!-- TopNavBar (Mobile Only) -->
+<header class="fixed top-0 w-full z-50 flex justify-between items-center px-gutter py-base bg-deep-charcoal shadow-md md:hidden">
+<div class="flex items-center gap-component-gap">
+<span class="font-display-lg-mobile font-bold text-accent-magenta">SheRides</span>
+</div>
+<div class="flex items-center gap-component-gap">
+<button class="text-on-primary font-label-lg hover:text-accent-magenta transition-colors duration-200">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="w-8 h-8 rounded-full overflow-hidden border border-surface-border">
+<img alt="Rider profile" class="w-full h-full object-cover" data-alt="A close-up portrait of a female motorcycle rider wearing a stylish, modern helmet and a leather jacket. The lighting is soft and cinematic, highlighting her confident expression. The background is a slightly blurred out urban landscape, fitting the premium social club aesthetic of the platform. High-key lighting, bright mode." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBOmPbuafYD8BKjf1_j0eR6v-_a0XH6SViD1tZUcXgY6vnG9YFQlfeT_YzTBdFkBMABRTrI2bupszVYpVslQ_z_SIFUR_MIiBRf7igjQ-q6271KS7KU8E8ZiVAS53xszX_3sG-hbW-nohKQ-Yb3oAaUX7U8Kq7rlteqke9DkRsxnZkic0SSlJgx9V_yyopmR_yVWt6rsXExNcC2WAvoVdfGQMwiByDh6DH3lbXY_2eI7BouimaftWsh3w"/>
+</button>
+</div>
+</header>
+<!-- SideNavBar (Desktop Only) -->
+<nav class="hidden lg:flex flex-col h-screen fixed left-0 top-0 py-section-gap bg-deep-charcoal w-64 shadow-xl z-50">
+<div class="font-display-lg text-accent-magenta px-base mb-8">SheRides<p class="text-label-caps text-white/60 mt-1 font-normal">Bangladesh Women Riders Community</p></div>
+<div class="flex-1 overflow-y-auto px-4 flex flex-col gap-2">
+<a class="flex items-center gap-4 px-4 py-3 rounded-lg text-on-primary opacity-70 hover:opacity-100 hover:bg-white/10 hover:text-white transition-all font-label-lg" href="#">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+                Home
+            </a>
+<a class="flex items-center gap-4 px-4 py-3 rounded-lg text-on-primary opacity-70 hover:opacity-100 hover:bg-white/10 hover:text-white transition-all font-label-lg" href="#">
+<span class="material-symbols-outlined" data-icon="explore">explore</span>
+                Explore
+            </a>
+<a class="flex items-center gap-4 px-4 py-3 rounded-lg text-on-primary opacity-70 hover:opacity-100 hover:bg-white/10 hover:text-white transition-all font-label-lg" href="#">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+                Groups
+            </a>
+<a class="flex items-center gap-4 px-4 py-3 rounded-lg text-on-primary opacity-70 hover:opacity-100 hover:bg-white/10 hover:text-white transition-all font-label-lg" href="#">
+<span class="material-symbols-outlined" data-icon="event">event</span>
+                Events
+            </a>
+<a class="flex items-center gap-4 px-4 py-3 rounded-lg text-on-primary opacity-70 hover:opacity-100 hover:bg-white/10 hover:text-white transition-all font-label-lg" href="#">
+<span class="material-symbols-outlined" data-icon="motorcycle">motorcycle</span>
+                Rides
+            </a>
+<a class="flex items-center gap-4 px-4 py-3 rounded-lg text-on-primary opacity-70 hover:opacity-100 hover:bg-white/10 hover:text-white transition-all font-label-lg" href="#">
+<span class="material-symbols-outlined" data-icon="chat">chat</span>
+                Messages
+            </a>
+<a class="flex items-center gap-4 px-4 py-3 rounded-lg text-on-primary opacity-70 hover:opacity-100 hover:bg-white/10 hover:text-white transition-all font-label-lg" href="#">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+                Notifications
+            </a>
+<a class="flex items-center gap-4 px-4 py-3 rounded-lg text-on-primary opacity-70 hover:opacity-100 hover:bg-white/10 hover:text-white transition-all font-label-lg" href="#">
+<span class="material-symbols-outlined" data-icon="bookmark">bookmark</span>
+                Saved
+            </a>
+<a class="flex items-center gap-4 px-4 py-3 rounded-lg text-on-primary opacity-70 hover:opacity-100 hover:bg-white/10 hover:text-white transition-all font-label-lg" href="#">
+<span class="material-symbols-outlined" data-icon="shield">shield</span>
+                Safety Center
+            </a>
+</div>
+<div class="px-4 mt-auto pt-4 border-t border-white/10">
+<button class="w-full bg-accent-magenta text-white font-label-lg py-3 rounded-lg hover:opacity-90 transition-opacity">Start a Ride</button>
+</div>
+</nav>
+<!-- Main Content Canvas -->
+<main class="max-w-[1280px] mx-auto px-container-margin-mobile md:px-container-margin-desktop w-full pb-section-gap">
+<!-- Profile Header -->
+<div class="relative w-full bg-white rounded-xl shadow-[0px_10px_30px_rgba(26,28,30,0.05)] overflow-hidden mt-6">
+<!-- Cover Photo -->
+<div class="w-full h-48 md:h-80 bg-soft-off-white relative">
+<img alt="Cover Photo" class="w-full h-full object-cover" data-alt="A wide cinematic shot of a scenic mountain road during golden hour, with a sleek modern motorcycle parked on the side. The lighting is warm and inviting, highlighting the freedom of the open road. Premium aesthetic, bright and airy." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD8YeCOf1FArkHpNnrRaMmUkrNhkvulCZYn3Q47IPaF0hMqOApQgg5Rvmldhdlb8TszQkFvjjMO8OiGLwK67hczm1N65jL7RUBC9mqznaFyzumHsFoFtPX_SON1p5h1SphEA7JNdE9rZ6wgZrKbUHa0iW6l_XPKYgKM7mFLUSg4XAtaKz8qIBEqG8JuJwc28h8OUwwyE8gfxMhHmNFZJj5BuS2loWA0ty1_yJ1OyxwQcVJR3xtWxUtbfQ"/>
+</div>
+<!-- Profile Info Container -->
+<div class="px-6 md:px-12 pb-8 relative">
+<!-- Avatar Overlap -->
+<div class="absolute -top-16 md:-top-24 left-6 md:left-12">
+<div class="w-32 h-32 md:w-48 md:h-48 rounded-full border-4 border-white bg-soft-off-white overflow-hidden shadow-md">
+<img alt="Profile Photo" class="w-full h-full object-cover" data-alt="A high-quality portrait of a female rider, smiling confidently. She is wearing a modern, tailored leather jacket. The background is a soft, blurred garage setting. Bright, professional lighting, premium social network profile style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAB1DSS3vmIquG0fy-xkj6knDP1dSp56YC695YritRjDNcUHvw8_OaQzwi6bnKQhpJiypMqo6n9bf4zXeNLztgGkpP-L1f9sJ-N19RiSvBM1smAcRMPyItTuqrSN4fTEhDGPKglcr40DgsEsuE_Yyna75pTi6HpdOp8gVMMZp8OJz9rx2Z4NBCT237P6a2feScGCXN1SFhE65ZNxwhzBVJ-qohyOYJJyhYDW_YSKsb_XOs4PeLYXerzvQ"/>
+</div>
+</div>
+<!-- Info & Actions Grid -->
+<div class="pt-20 md:pt-4 flex flex-col md:flex-row justify-between items-start md:items-end gap-6 md:pl-56">
+<div class="flex-1">
+<div class="flex items-center gap-2 mb-1">
+<h1 class="font-headline-xl text-headline-xl text-on-background">Elena Rossi</h1>
+<span class="material-symbols-outlined text-accent-magenta" data-icon="verified" data-weight="fill" style="font-variation-settings: 'FILL' 1;">verified</span>
+</div>
+<p class="font-body-lg text-body-lg text-secondary mb-2">Adventure Touring Enthusiast | Weekend Explorer</p>
+<div class="flex items-center gap-4 font-body-sm text-body-sm text-tertiary">
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-sm" data-icon="location_on">location_on</span>
+                                Northern District
+                            </div>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-sm" data-icon="two_wheeler">two_wheeler</span>
+                                Ducati DesertX
+                            </div>
+</div>
+</div>
+<!-- Action Buttons -->
+<div class="flex items-center gap-3 w-full md:w-auto">
+<button class="flex-1 md:flex-none px-8 py-3 bg-accent-magenta text-white rounded-lg font-label-lg shadow-sm hover:shadow-md transition-shadow flex items-center justify-center gap-2">
+                            Follow
+                        </button>
+<button class="flex-1 md:flex-none px-8 py-3 bg-deep-charcoal text-white rounded-lg font-label-lg shadow-sm hover:shadow-md transition-shadow flex items-center justify-center gap-2">
+                            Message
+                        </button>
+</div>
+</div>
+<!-- Stats Row -->
+<div class="flex gap-8 mt-8 pt-6 border-t border-surface-border">
+<div class="flex flex-col">
+<span class="font-headline-md text-headline-md text-on-background">1.2k</span>
+<span class="font-label-caps text-label-caps text-secondary">Followers</span>
+</div>
+<div class="flex flex-col">
+<span class="font-headline-md text-headline-md text-on-background">342</span>
+<span class="font-label-caps text-label-caps text-secondary">Following</span>
+</div>
+<div class="flex flex-col">
+<span class="font-headline-md text-headline-md text-on-background">89</span>
+<span class="font-label-caps text-label-caps text-secondary">Posts</span>
+</div>
+<div class="flex flex-col">
+<span class="font-headline-md text-headline-md text-on-background">45</span>
+<span class="font-label-caps text-label-caps text-secondary">Rides</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Tabs Navigation -->
+<div class="mt-8 mb-6 flex overflow-x-auto gap-8 border-b border-surface-border pb-1 no-scrollbar">
+<button class="font-label-lg text-label-lg text-accent-magenta border-b-2 border-accent-magenta pb-2 whitespace-nowrap">Posts</button>
+<button class="font-label-lg text-label-lg text-secondary hover:text-on-background transition-colors pb-2 whitespace-nowrap">Photos</button>
+<button class="font-label-lg text-label-lg text-secondary hover:text-on-background transition-colors pb-2 whitespace-nowrap">Videos</button>
+<button class="font-label-lg text-label-lg text-secondary hover:text-on-background transition-colors pb-2 whitespace-nowrap">Rides</button>
+<button class="font-label-lg text-label-lg text-secondary hover:text-on-background transition-colors pb-2 whitespace-nowrap">Achievements</button>
+</div>
+<!-- Bento Grid Content (Posts Tab) -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<!-- Large Featured Post -->
+<div class="md:col-span-2 bg-white rounded-xl p-6 shadow-[0px_10px_30px_rgba(26,28,30,0.05)] hover:shadow-[0px_15px_40px_rgba(26,28,30,0.08)] transition-shadow">
+<div class="flex items-center justify-between mb-4">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full overflow-hidden bg-soft-off-white">
+<img alt="Author" class="w-full h-full object-cover" data-alt="Small avatar of a female rider." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCvx2aSUEhlMbWtHI0sx_g26M5Cvscud6q6-Hy6PdTF5hx-_rLTItq17Mq5mklulMCyNQEI-u80T0s2VgkV6zwIRS5bIjIy4sVqAaxsdvPzw1MjHKiCDIKQ3l-jSq13SOER3bz8jtf4vFAQoO2SYao6l8FM7kfYu7wPsgkYUwNvoBeWVhwCI6Cwg2rHzZQ0CQYOCROppikYxscCN0ytP4NZzRcAMEOnImJGLGurW8cNe998iLTdAuO4Kg"/>
+</div>
+<div>
+<p class="font-label-lg text-on-background">Elena Rossi</p>
+<p class="font-body-sm text-secondary">2 hours ago</p>
+</div>
+</div>
+<button class="text-tertiary hover:text-on-background"><span class="material-symbols-outlined" data-icon="more_horiz">more_horiz</span></button>
+</div>
+<p class="font-body-md text-body-md text-on-background mb-4">Incredible morning ride through the coastal canyons. The fog lifted just as we hit the peak. Highly recommend this route to anyone looking for smooth curves and minimal traffic! 🏍️💨 #SundayRide #CoastalCruising</p>
+<div class="w-full aspect-[16/9] rounded-lg overflow-hidden bg-soft-off-white mb-4">
+<img alt="Ride Photo" class="w-full h-full object-cover" data-alt="A dynamic, high-quality photo taken from the perspective of a rider following another motorcycle on a winding coastal road. Crisp morning light, clear blue sky over the ocean. Premium, clean aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAhbWu1awtDZDAOb5rUtrY9KUno2Ux_DujVKncoJSSx_xocjXFnxXXbAwBiJ84xMktyLNl7oJbMAuv4nARFxEAWaImcWHw2mj2SjOyij0D80tl-fEO5fJBITAE3wjtLLMFUUMS86yRRPCKIwBgtiqFYbu9WFjvGungmCjnaII8vuWFYNrT_r8_w7eLIKJjF0mcEAfa-8wHlck9ukJwXCxJX9ErrH5LmX2d-1T7MBrqEuN1MkzspwSCv_g"/>
+</div>
+<div class="flex gap-4 border-t border-surface-border pt-4">
+<button class="flex items-center gap-1 font-label-lg text-secondary hover:text-accent-magenta transition-colors">
+<span class="material-symbols-outlined" data-icon="favorite">favorite</span> 245
+                    </button>
+<button class="flex items-center gap-1 font-label-lg text-secondary hover:text-accent-magenta transition-colors">
+<span class="material-symbols-outlined" data-icon="chat_bubble">chat_bubble</span> 18
+                    </button>
+<button class="flex items-center gap-1 font-label-lg text-secondary hover:text-accent-magenta transition-colors ml-auto">
+<span class="material-symbols-outlined" data-icon="share">share</span>
+</button>
+</div>
+</div>
+<!-- Smaller Posts / Cards -->
+<div class="flex flex-col gap-6">
+<!-- Upcoming Ride Card -->
+<div class="bg-white rounded-xl p-6 shadow-[0px_10px_30px_rgba(26,28,30,0.05)]">
+<div class="flex items-center gap-2 mb-4">
+<span class="material-symbols-outlined text-accent-magenta" data-icon="event">event</span>
+<h3 class="font-headline-md text-headline-md text-on-background">Upcoming Ride</h3>
+</div>
+<p class="font-label-lg text-on-background mb-1">Valley Loop Meetup</p>
+<p class="font-body-sm text-secondary mb-4">Saturday, 9:00 AM • 45 miles</p>
+<button class="w-full py-2 bg-soft-off-white text-on-background font-label-lg rounded-lg border border-surface-border hover:border-accent-magenta transition-colors">View Details</button>
+</div>
+<!-- Recent Photo Grid -->
+<div class="bg-white rounded-xl p-6 shadow-[0px_10px_30px_rgba(26,28,30,0.05)]">
+<h3 class="font-headline-md text-headline-md text-on-background mb-4">Recent Snaps</h3>
+<div class="grid grid-cols-2 gap-2">
+<div class="aspect-square rounded-lg overflow-hidden bg-soft-off-white">
+<img alt="Snap 1" class="w-full h-full object-cover" data-alt="Close up of a motorcycle dashboard and handlebars, shallow depth of field, premium look." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBDkSkPoffIjPyLG-3-HBTAV591Kj-rrXtOxw9uCKfp3fvl97BNLpOU2AMiNQ4LvZDK52M60_vlea77BmOnd2pJpye2vUO8cjjEmcH28ERk-5e7jSPysK4d_MXU-aMNuv3ATFyey-HUJbSyziv5QngtXHIL0f6EhXhHnQMK0VtZKNVHB8UhHPyMjQg_FxBmhmPBuQFZ17M-M68yS4x47s49yB3cTcCPbg1mTFPOJ_aKdziX00jHcV3bfg"/>
+</div>
+<div class="aspect-square rounded-lg overflow-hidden bg-soft-off-white">
+<img alt="Snap 2" class="w-full h-full object-cover" data-alt="Group of three female riders standing next to their bikes, laughing. Natural light, candid feel." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDKXxWhYjNuOhrFmPaJCzvPAPA1PXk__xT0ZQsrvTKeu3Bv3H9bl-3K-rg7XgOKXq9v1CHXEoXkpZF1gFh0jFTDbmX3VVG2okZrUyRS8_MBZ6AcIsL1CInm7JSAVUx0CcIG6Cjj7aysfwMHmsctbdKesoxpI4p5yKoiSlKqSwojn327Pw3GQnmwFHYtWYIh0dRiMz6lEp0NJp9mKZgtynKFnRaW4GCXaMqDhNGdCJWNHyI-nFlwLkggkQ"/>
+</div>
+<div class="aspect-square rounded-lg overflow-hidden bg-soft-off-white">
+<img alt="Snap 3" class="w-full h-full object-cover" data-alt="A stylish motorcycle helmet resting on a cafe table next to a cup of coffee. Cozy, premium lifestyle aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC6RzozfOubSXr26ZbS3vfuqXNXuvECTCUHeoXxT40WPL5VrmWNosNj7YKZpSe2Iv2XAJnSOCjSbFjXva_NBjpTlqc07FmgzN9uJN2lGAQk4kHf56UEZofA--RiUQSGTwAwRorYX8VPFJHUnfVgVyPuttH5XS0XCOGj5FXyU3600kYAGORsr3Aw85k_9LNIsAVmqE0Ynb5sTEbJykMvqAjjlpDTEwRBbSi-PkTucD4Dok3aMnM-6oss_g"/>
+</div>
+<div class="aspect-square rounded-lg overflow-hidden bg-soft-off-white relative flex items-center justify-center cursor-pointer hover:bg-black/10 transition-colors group">
+<img alt="Snap 4" class="w-full h-full object-cover opacity-80" data-alt="Sunset over a mountain range viewed from a roadside overlook." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCB-_k-1q_ZOQVSJEX2h17LqIWXV-UzQ1-XwK4GrYs42xg6KgfCLPrRa8_m4U6mnllpegpbMD2yg66LluP0Lp6OBoZweY1dKV2vlwhBnyjBwVBOP8iXxD6J7CcLlObJUACpErTOIWp35Xceus_IAWd-tnfeBV0VsPl1dmzFVzBXgy6pD1MhKKU1kTTFxGAobThtW-JM2SM1-Dw4vC-Fr1m7cjG3iQyHbQu27gRGeYLPLY0Uw9OhIs93VA"/>
+<span class="absolute text-white font-label-lg z-10 drop-shadow-md">+12 more</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="lg:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center bg-surface px-4 py-3 rounded-t-xl border-t border-surface-border shadow-[0px_-4px_16px_rgba(0,0,0,0.05)]">
+<a class="flex flex-col items-center justify-center text-secondary hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="font-label-caps text-label-caps mt-1">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center text-secondary hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="explore">explore</span>
+<span class="font-label-caps text-label-caps mt-1">Explore</span>
+</a>
+<a class="flex flex-col items-center justify-center text-secondary hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="add_circle">add_circle</span>
+<span class="font-label-caps text-label-caps mt-1">Create</span>
+</a>
+<a class="flex flex-col items-center justify-center text-secondary hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="chat">chat</span>
+<span class="font-label-caps text-label-caps mt-1">Messages</span>
+</a>
+<a class="flex flex-col items-center justify-center text-accent-magenta" href="#">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-label-caps text-label-caps mt-1">Profile</span>
+</a>
+</nav>
+</body></html>

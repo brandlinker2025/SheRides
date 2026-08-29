@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>FBC Safety Center</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-tertiary": "#ffffff",
+                    "tertiary": "#5a5c5d",
+                    "surface-dim": "#dadada",
+                    "on-background": "#1a1c1c",
+                    "error-container": "#ffdad6",
+                    "primary-fixed": "#ffd9de",
+                    "soft-off-white": "#F8F9FA",
+                    "deep-charcoal": "#1A1C1E",
+                    "primary-fixed-dim": "#ffb2be",
+                    "background": "#f9f9f9",
+                    "surface-container": "#eeeeee",
+                    "inverse-primary": "#ffb2be",
+                    "inverse-on-surface": "#f0f1f1",
+                    "on-primary-container": "#fffbff",
+                    "on-tertiary-fixed-variant": "#454748",
+                    "surface-variant": "#e2e2e2",
+                    "surface-container-low": "#f3f3f4",
+                    "tertiary-fixed": "#e1e3e4",
+                    "surface": "#f9f9f9",
+                    "secondary-fixed-dim": "#c6c6c9",
+                    "primary": "#b80049",
+                    "on-tertiary-container": "#fcfdfe",
+                    "accent-magenta": "#E91E63",
+                    "surface-container-high": "#e8e8e8",
+                    "on-tertiary-fixed": "#191c1d",
+                    "on-surface": "#1a1c1c",
+                    "on-secondary-fixed": "#1a1c1e",
+                    "on-surface-variant": "#5b3f43",
+                    "on-error": "#ffffff",
+                    "on-secondary-fixed-variant": "#454749",
+                    "on-secondary": "#ffffff",
+                    "error": "#ba1a1a",
+                    "surface-container-lowest": "#ffffff",
+                    "inverse-surface": "#2f3131",
+                    "outline-variant": "#e4bdc2",
+                    "on-secondary-container": "#636467",
+                    "tertiary-fixed-dim": "#c5c7c8",
+                    "surface-bright": "#f9f9f9",
+                    "secondary": "#5d5e61",
+                    "secondary-container": "#e2e2e5",
+                    "on-primary-fixed": "#400014",
+                    "on-primary": "#ffffff",
+                    "tertiary-container": "#737576",
+                    "surface-container-highest": "#e2e2e2",
+                    "surface-border": "#E9ECEF",
+                    "primary-container": "#e2165f",
+                    "on-error-container": "#93000a",
+                    "secondary-fixed": "#e2e2e5",
+                    "on-primary-fixed-variant": "#900038",
+                    "surface-tint": "#bc004b",
+                    "outline": "#8f6f73"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "section-gap": "64px",
+                    "gutter": "24px",
+                    "container-margin-mobile": "24px",
+                    "component-gap": "16px",
+                    "base": "8px",
+                    "container-margin-desktop": "80px"
+            },
+            "fontFamily": {
+                    "body-lg": [
+                            "Inter"
+                    ],
+                    "display-lg": [
+                            "Montserrat"
+                    ],
+                    "headline-xl": [
+                            "Montserrat"
+                    ],
+                    "label-lg": [
+                            "Inter"
+                    ],
+                    "display-lg-mobile": [
+                            "Montserrat"
+                    ],
+                    "body-sm": [
+                            "Inter"
+                    ],
+                    "label-caps": [
+                            "Inter"
+                    ],
+                    "headline-md": [
+                            "Montserrat"
+                    ],
+                    "body-md": [
+                            "Inter"
+                    ]
+            },
+            "fontSize": {
+                    "body-lg": [
+                            "18px",
+                            {
+                                    "lineHeight": "1.6",
+                                    "fontWeight": "400"
+                            }
+                    ],
+                    "display-lg": [
+                            "48px",
+                            {
+                                    "lineHeight": "1.1",
+                                    "letterSpacing": "-0.02em",
+                                    "fontWeight": "700"
+                            }
+                    ],
+                    "headline-xl": [
+                            "32px",
+                            {
+                                    "lineHeight": "1.2",
+                                    "fontWeight": "600"
+                            }
+                    ],
+                    "label-lg": [
+                            "14px",
+                            {
+                                    "lineHeight": "1.2",
+                                    "letterSpacing": "0.01em",
+                                    "fontWeight": "600"
+                            }
+                    ],
+                    "display-lg-mobile": [
+                            "34px",
+                            {
+                                    "lineHeight": "1.2",
+                                    "letterSpacing": "-0.02em",
+                                    "fontWeight": "700"
+                            }
+                    ],
+                    "body-sm": [
+                            "14px",
+                            {
+                                    "lineHeight": "1.5",
+                                    "fontWeight": "400"
+                            }
+                    ],
+                    "label-caps": [
+                            "12px",
+                            {
+                                    "lineHeight": "1.0",
+                                    "letterSpacing": "0.08em",
+                                    "fontWeight": "700"
+                            }
+                    ],
+                    "headline-md": [
+                            "24px",
+                            {
+                                    "lineHeight": "1.3",
+                                    "fontWeight": "600"
+                            }
+                    ],
+                    "body-md": [
+                            "16px",
+                            {
+                                    "lineHeight": "1.6",
+                                    "fontWeight": "400"
+                            }
+                    ]
+            }
+    },
+        },
+      }
+    </script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Montserrat:wght@600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .icon-fill {
+            font-variation-settings: 'FILL' 1;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-md antialiased min-h-screen flex flex-col">
+<!-- TopNavBar -->
+<nav class="fixed top-0 w-full z-40 flex justify-between items-center px-gutter py-base bg-deep-charcoal shadow-lg shadow-md lg:pl-[calc(16rem+1.5rem)]">
+<div class="flex items-center gap-4">
+<span class="font-display-lg text-display-lg-mobile font-bold text-accent-magenta">SheRides</span>
+<div class="hidden md:flex items-center bg-white/10 rounded-full px-4 py-2 ml-4">
+<span class="material-symbols-outlined text-on-primary opacity-70 mr-2" data-icon="search">search</span>
+<input class="bg-transparent border-none text-on-primary focus:ring-0 placeholder:text-on-primary/50 text-body-sm w-48" placeholder="Search communities..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<button class="text-on-primary hover:text-accent-magenta transition-colors duration-200">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<img alt="Rider profile" class="w-10 h-10 rounded-full object-cover border-2 border-transparent hover:border-accent-magenta transition-all" data-alt="A highly detailed close-up portrait of a female motorcycle rider wearing a premium matte black helmet, bathed in soft studio lighting. The aesthetic is modern, professional, and elegant, reflecting a high-end social club vibe." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBSmsao0XFetyUuHSRENECP_qeuj3fUke4ID_EwArF1YHOMwoCt_AqOTIgKMoaNUc7TDJpe_G2QnaQLAr1PeVYJ-dQZv_rYbgk-2DajrRGSyEMe3OeI2APQ1bDUKZn66zhwxM1wQEzrG06SwFL2xo5ky51ICrjr8XZToHl_Nja355fNCx5FIeuucRTIUpjjPRm5pyZcBtOpGzHYMH1acsak9vPdYpmGgd4g4wQubdwZ-PIg81v512_zIA"/>
+</div>
+</nav>
+<!-- SideNavBar -->
+<aside class="hidden lg:flex flex-col h-screen fixed left-0 top-0 py-section-gap w-64 bg-deep-charcoal shadow-xl z-50">
+<div class="px-base mb-8 flex items-center gap-4">
+<img alt="FBC Official Logo" class="w-12 h-12 rounded-lg object-cover" data-alt="A sleek, minimalist logo emblem for a premium female motorcycle club, featuring elegant geometric lines and a subtle magenta accent on a dark charcoal background. High resolution, professional branding." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDkS1T5kal0U79Bk-XeriKI6vRS_-Jfldg2mjXfG6N0j6GeBlaY2JvNdIPXRdHMB4dt1CuBKsmTj1YeL-2MjKvF7nSsOQQcruYa86oR-Md5pLI230M3xR-o2L1QRyAV6XkjpKEyl3Qcp1881s9OMyMKR3v0ltgJ1ZSeq0peEGVp7BICX5B9i88GXDx2Xz3wUWr24TahHX2q1vL972P03An3e05R6KmGxJJHsPtwxzR7voxH7WCIz9qMaQ"/>
+<div>
+<h2 class="font-headline-md text-on-primary">SheRides Community</h2>
+<p class="font-body-sm text-on-primary opacity-70">Premium Female Riders</p>
+</div>
+</div>
+<nav class="flex-1 overflow-y-auto px-4 flex flex-col gap-2">
+<a class="flex items-center gap-4 px-4 py-3 rounded-lg text-on-primary opacity-70 hover:opacity-100 hover:bg-white/10 hover:text-white transition-all font-label-lg" href="#">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+                Home
+            </a>
+<a class="flex items-center gap-4 px-4 py-3 rounded-lg text-on-primary opacity-70 hover:opacity-100 hover:bg-white/10 hover:text-white transition-all font-label-lg" href="#">
+<span class="material-symbols-outlined" data-icon="explore">explore</span>
+                Explore
+            </a>
+<a class="flex items-center gap-4 px-4 py-3 rounded-lg text-on-primary opacity-70 hover:opacity-100 hover:bg-white/10 hover:text-white transition-all font-label-lg" href="#">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+                Groups
+            </a>
+<a class="flex items-center gap-4 px-4 py-3 rounded-lg text-on-primary opacity-70 hover:opacity-100 hover:bg-white/10 hover:text-white transition-all font-label-lg" href="#">
+<span class="material-symbols-outlined" data-icon="event">event</span>
+                Events
+            </a>
+<a class="flex items-center gap-4 px-4 py-3 rounded-lg text-on-primary opacity-70 hover:opacity-100 hover:bg-white/10 hover:text-white transition-all font-label-lg" href="#">
+<span class="material-symbols-outlined" data-icon="motorcycle">motorcycle</span>
+                Rides
+            </a>
+<a class="flex items-center gap-4 px-4 py-3 rounded-lg text-on-primary opacity-70 hover:opacity-100 hover:bg-white/10 hover:text-white transition-all font-label-lg" href="#">
+<span class="material-symbols-outlined" data-icon="chat">chat</span>
+                Messages
+            </a>
+<a class="flex items-center gap-4 px-4 py-3 rounded-lg text-on-primary opacity-70 hover:opacity-100 hover:bg-white/10 hover:text-white transition-all font-label-lg" href="#">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+                Notifications
+            </a>
+<a class="flex items-center gap-4 px-4 py-3 rounded-lg text-on-primary opacity-70 hover:opacity-100 hover:bg-white/10 hover:text-white transition-all font-label-lg" href="#">
+<span class="material-symbols-outlined" data-icon="bookmark">bookmark</span>
+                Saved
+            </a>
+<a class="flex items-center gap-4 px-4 py-3 rounded-lg text-accent-magenta font-bold border-r-4 border-accent-magenta bg-white/5 font-label-lg transition-all translate-x-1 duration-200" href="#">
+<span class="material-symbols-outlined icon-fill" data-icon="shield">shield</span>
+                Safety Center
+            </a>
+</nav>
+<div class="px-6 mt-8">
+<button class="w-full bg-accent-magenta text-on-primary font-label-lg py-3 rounded-lg hover:bg-primary-container transition-colors shadow-md">
+                Start a Ride
+            </button>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="flex-1 pt-[88px] lg:pl-64 pb-24 lg:pb-8 flex flex-col">
+<div class="w-full max-w-[1280px] mx-auto px-container-margin-mobile lg:px-container-margin-desktop py-12">
+<!-- Page Header -->
+<div class="mb-12">
+<h1 class="font-headline-xl text-headline-xl text-on-background mb-2">Safety Center</h1>
+<p class="font-body-lg text-secondary max-w-2xl">Your well-being is our priority. Access immediate assistance, manage your ride visibility, and control your community experience with these essential tools.</p>
+</div>
+<!-- Safety Bento Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+<!-- SOS Tile -->
+<button class="col-span-1 md:col-span-2 lg:col-span-1 bg-accent-magenta text-on-primary rounded-xl p-8 flex flex-col items-center justify-center gap-4 shadow-lg hover:-translate-y-1 hover:shadow-xl transition-all duration-300 group relative overflow-hidden">
+<div class="absolute inset-0 bg-white opacity-0 group-hover:opacity-10 transition-opacity"></div>
+<span class="material-symbols-outlined text-[64px] icon-fill drop-shadow-md" data-icon="emergency">emergency</span>
+<div class="text-center">
+<h3 class="font-headline-md text-headline-md font-bold mb-1">SOS Alert</h3>
+<p class="font-body-sm opacity-90">Send immediate distress signal with live location to emergency contacts and authorities.</p>
+</div>
+</button>
+<!-- Share My Ride Tile -->
+<button class="bg-surface-container-lowest text-on-background rounded-xl p-6 flex flex-col items-start gap-4 shadow-[0px_10px_30px_rgba(26,28,30,0.05)] border border-surface-border hover:-translate-y-1 hover:shadow-[0px_15px_40px_rgba(26,28,30,0.08)] transition-all duration-300 group text-left">
+<div class="w-12 h-12 rounded-full bg-soft-off-white flex items-center justify-center text-accent-magenta group-hover:bg-accent-magenta group-hover:text-on-primary transition-colors">
+<span class="material-symbols-outlined icon-fill" data-icon="share_location">share_location</span>
+</div>
+<div>
+<h3 class="font-label-lg text-label-lg mb-1">Share My Ride</h3>
+<p class="font-body-sm text-secondary">Broadcast your live route and estimated arrival time to trusted friends or family.</p>
+</div>
+</button>
+<!-- Emergency Contacts Tile -->
+<button class="bg-surface-container-lowest text-on-background rounded-xl p-6 flex flex-col items-start gap-4 shadow-[0px_10px_30px_rgba(26,28,30,0.05)] border border-surface-border hover:-translate-y-1 hover:shadow-[0px_15px_40px_rgba(26,28,30,0.08)] transition-all duration-300 group text-left">
+<div class="w-12 h-12 rounded-full bg-soft-off-white flex items-center justify-center text-accent-magenta group-hover:bg-accent-magenta group-hover:text-on-primary transition-colors">
+<span class="material-symbols-outlined icon-fill" data-icon="contacts">contacts</span>
+</div>
+<div>
+<h3 class="font-label-lg text-label-lg mb-1">Emergency Contacts</h3>
+<p class="font-body-sm text-secondary">Manage the priority list of people to notify in case of an incident during your ride.</p>
+</div>
+</button>
+<!-- Roadside Help Tile -->
+<button class="bg-surface-container-lowest text-on-background rounded-xl p-6 flex flex-col items-start gap-4 shadow-[0px_10px_30px_rgba(26,28,30,0.05)] border border-surface-border hover:-translate-y-1 hover:shadow-[0px_15px_40px_rgba(26,28,30,0.08)] transition-all duration-300 group text-left">
+<div class="w-12 h-12 rounded-full bg-soft-off-white flex items-center justify-center text-accent-magenta group-hover:bg-accent-magenta group-hover:text-on-primary transition-colors">
+<span class="material-symbols-outlined icon-fill" data-icon="car_repair">car_repair</span>
+</div>
+<div>
+<h3 class="font-label-lg text-label-lg mb-1">Roadside Help</h3>
+<p class="font-body-sm text-secondary">Request immediate mechanical assistance or a tow from verified partners nearby.</p>
+</div>
+</button>
+<!-- Report User Tile -->
+<button class="bg-surface-container-lowest text-on-background rounded-xl p-6 flex flex-col items-start gap-4 shadow-[0px_10px_30px_rgba(26,28,30,0.05)] border border-surface-border hover:-translate-y-1 hover:shadow-[0px_15px_40px_rgba(26,28,30,0.08)] transition-all duration-300 group text-left">
+<div class="w-12 h-12 rounded-full bg-soft-off-white flex items-center justify-center text-secondary group-hover:text-error transition-colors">
+<span class="material-symbols-outlined icon-fill" data-icon="flag">flag</span>
+</div>
+<div>
+<h3 class="font-label-lg text-label-lg mb-1">Report User</h3>
+<p class="font-body-sm text-secondary">Anonymously report inappropriate behavior to maintain our premium community standards.</p>
+</div>
+</button>
+<!-- Block User Tile -->
+<button class="bg-surface-container-lowest text-on-background rounded-xl p-6 flex flex-col items-start gap-4 shadow-[0px_10px_30px_rgba(26,28,30,0.05)] border border-surface-border hover:-translate-y-1 hover:shadow-[0px_15px_40px_rgba(26,28,30,0.08)] transition-all duration-300 group text-left">
+<div class="w-12 h-12 rounded-full bg-soft-off-white flex items-center justify-center text-secondary group-hover:text-error transition-colors">
+<span class="material-symbols-outlined icon-fill" data-icon="block">block</span>
+</div>
+<div>
+<h3 class="font-label-lg text-label-lg mb-1">Block User</h3>
+<p class="font-body-sm text-secondary">Prevent specific members from viewing your profile, routes, or contacting you.</p>
+</div>
+</button>
+</div>
+</div>
+</main>
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="lg:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center bg-surface dark:bg-surface-container-highest px-4 py-3 rounded-t-xl border-t border-surface-border shadow-[0px_-4px_16px_rgba(0,0,0,0.05)]">
+<a class="flex flex-col items-center justify-center text-secondary hover:text-primary transition-colors font-label-caps text-label-caps gap-1" href="#">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+            Home
+        </a>
+<a class="flex flex-col items-center justify-center text-secondary hover:text-primary transition-colors font-label-caps text-label-caps gap-1" href="#">
+<span class="material-symbols-outlined" data-icon="explore">explore</span>
+            Explore
+        </a>
+<a class="flex flex-col items-center justify-center text-secondary hover:text-primary transition-colors font-label-caps text-label-caps gap-1" href="#">
+<span class="material-symbols-outlined" data-icon="add_circle">add_circle</span>
+            Create
+        </a>
+<a class="flex flex-col items-center justify-center text-secondary hover:text-primary transition-colors font-label-caps text-label-caps gap-1" href="#">
+<span class="material-symbols-outlined" data-icon="chat">chat</span>
+            Messages
+        </a>
+<a class="flex flex-col items-center justify-center text-secondary hover:text-primary transition-colors font-label-caps text-label-caps gap-1" href="#">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+            Profile
+        </a>
+</nav>
+</body></html>

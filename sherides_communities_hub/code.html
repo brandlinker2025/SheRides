@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>FBC Communities Hub</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Montserrat:wght@600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "on-tertiary": "#ffffff",
+                      "tertiary": "#5a5c5d",
+                      "surface-dim": "#dadada",
+                      "on-background": "#1a1c1c",
+                      "error-container": "#ffdad6",
+                      "primary-fixed": "#ffd9de",
+                      "soft-off-white": "#F8F9FA",
+                      "deep-charcoal": "#1A1C1E",
+                      "primary-fixed-dim": "#ffb2be",
+                      "background": "#f9f9f9",
+                      "surface-container": "#eeeeee",
+                      "inverse-primary": "#ffb2be",
+                      "inverse-on-surface": "#f0f1f1",
+                      "on-primary-container": "#fffbff",
+                      "on-tertiary-fixed-variant": "#454748",
+                      "surface-variant": "#e2e2e2",
+                      "surface-container-low": "#f3f3f4",
+                      "tertiary-fixed": "#e1e3e4",
+                      "surface": "#f9f9f9",
+                      "secondary-fixed-dim": "#c6c6c9",
+                      "primary": "#b80049",
+                      "on-tertiary-container": "#fcfdfe",
+                      "accent-magenta": "#E91E63",
+                      "surface-container-high": "#e8e8e8",
+                      "on-tertiary-fixed": "#191c1d",
+                      "on-surface": "#1a1c1c",
+                      "on-secondary-fixed": "#1a1c1e",
+                      "on-surface-variant": "#5b3f43",
+                      "on-error": "#ffffff",
+                      "on-secondary-fixed-variant": "#454749",
+                      "on-secondary": "#ffffff",
+                      "error": "#ba1a1a",
+                      "surface-container-lowest": "#ffffff",
+                      "inverse-surface": "#2f3131",
+                      "outline-variant": "#e4bdc2",
+                      "on-secondary-container": "#636467",
+                      "tertiary-fixed-dim": "#c5c7c8",
+                      "surface-bright": "#f9f9f9",
+                      "secondary": "#5d5e61",
+                      "secondary-container": "#e2e2e5",
+                      "on-primary-fixed": "#400014",
+                      "on-primary": "#ffffff",
+                      "tertiary-container": "#737576",
+                      "surface-container-highest": "#e2e2e2",
+                      "surface-border": "#E9ECEF",
+                      "primary-container": "#e2165f",
+                      "on-error-container": "#93000a",
+                      "secondary-fixed": "#e2e2e5",
+                      "on-primary-fixed-variant": "#900038",
+                      "surface-tint": "#bc004b",
+                      "outline": "#8f6f73"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "section-gap": "64px",
+                      "gutter": "24px",
+                      "container-margin-mobile": "24px",
+                      "component-gap": "16px",
+                      "base": "8px",
+                      "container-margin-desktop": "80px"
+              },
+              "fontFamily": {
+                      "body-lg": [
+                              "Inter"
+                      ],
+                      "display-lg": [
+                              "Montserrat"
+                      ],
+                      "headline-xl": [
+                              "Montserrat"
+                      ],
+                      "label-lg": [
+                              "Inter"
+                      ],
+                      "display-lg-mobile": [
+                              "Montserrat"
+                      ],
+                      "body-sm": [
+                              "Inter"
+                      ],
+                      "label-caps": [
+                              "Inter"
+                      ],
+                      "headline-md": [
+                              "Montserrat"
+                      ],
+                      "body-md": [
+                              "Inter"
+                      ]
+              },
+              "fontSize": {
+                      "body-lg": [
+                              "18px",
+                              {
+                                      "lineHeight": "1.6",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "display-lg": [
+                              "48px",
+                              {
+                                      "lineHeight": "1.1",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "headline-xl": [
+                              "32px",
+                              {
+                                      "lineHeight": "1.2",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "label-lg": [
+                              "14px",
+                              {
+                                      "lineHeight": "1.2",
+                                      "letterSpacing": "0.01em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "display-lg-mobile": [
+                              "34px",
+                              {
+                                      "lineHeight": "1.2",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "body-sm": [
+                              "14px",
+                              {
+                                      "lineHeight": "1.5",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "label-caps": [
+                              "12px",
+                              {
+                                      "lineHeight": "1.0",
+                                      "letterSpacing": "0.08em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "headline-md": [
+                              "24px",
+                              {
+                                      "lineHeight": "1.3",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "body-md": [
+                              "16px",
+                              {
+                                      "lineHeight": "1.6",
+                                      "fontWeight": "400"
+                              }
+                      ]
+              }
+            },
+          },
+        }
+      </script>
+<style>
+        body {
+            background-color: #f9f9f9;
+            color: #1a1c1c;
+        }
+        .premium-card-shadow {
+            box-shadow: 0px 10px 30px rgba(26, 28, 30, 0.05);
+        }
+        .premium-card-hover:hover {
+            box-shadow: 0px 15px 40px rgba(26, 28, 30, 0.08);
+            transform: translateY(-2px);
+        }
+      </style>
+</head>
+<body class="min-h-screen bg-background text-on-background font-body-md flex flex-col md:flex-row">
+<!-- SideNavBar (Desktop) -->
+<nav class="hidden lg:flex flex-col h-screen fixed left-0 top-0 py-section-gap bg-deep-charcoal w-64 shadow-xl z-40">
+<div class="font-display-lg text-display-lg text-accent-magenta px-base mb-12">SheRides</div>
+<div class="px-base mb-8">
+<h2 class="font-headline-md text-headline-md text-on-tertiary">SheRides Community</h2>
+<p class="font-body-sm text-body-sm text-surface-dim opacity-70">Premium Female Riders</p>
+<button class="mt-4 w-full bg-accent-magenta text-on-primary font-label-lg text-label-lg py-3 rounded-lg hover:bg-primary transition-colors">Start a Ride</button>
+</div>
+<div class="flex-1 overflow-y-auto space-y-2 px-2">
+<a class="flex items-center gap-4 px-4 py-3 rounded-lg text-on-primary opacity-70 hover:opacity-100 hover:bg-white/10 transition-all font-label-lg text-label-lg" href="#">
+<span class="material-symbols-outlined">home</span>Home
+            </a>
+<a class="flex items-center gap-4 px-4 py-3 rounded-lg text-on-primary opacity-70 hover:opacity-100 hover:bg-white/10 transition-all font-label-lg text-label-lg" href="#">
+<span class="material-symbols-outlined">explore</span>Explore
+            </a>
+<a class="flex items-center gap-4 px-4 py-3 rounded-lg text-accent-magenta font-bold border-r-4 border-accent-magenta bg-white/5 transition-all font-label-lg text-label-lg active" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">group</span>Groups
+            </a>
+<a class="flex items-center gap-4 px-4 py-3 rounded-lg text-on-primary opacity-70 hover:opacity-100 hover:bg-white/10 transition-all font-label-lg text-label-lg" href="#">
+<span class="material-symbols-outlined">event</span>Events
+            </a>
+<a class="flex items-center gap-4 px-4 py-3 rounded-lg text-on-primary opacity-70 hover:opacity-100 hover:bg-white/10 transition-all font-label-lg text-label-lg" href="#">
+<span class="material-symbols-outlined">motorcycle</span>Rides
+            </a>
+<a class="flex items-center gap-4 px-4 py-3 rounded-lg text-on-primary opacity-70 hover:opacity-100 hover:bg-white/10 transition-all font-label-lg text-label-lg" href="#">
+<span class="material-symbols-outlined">chat</span>Messages
+            </a>
+<a class="flex items-center gap-4 px-4 py-3 rounded-lg text-on-primary opacity-70 hover:opacity-100 hover:bg-white/10 transition-all font-label-lg text-label-lg" href="#">
+<span class="material-symbols-outlined">notifications</span>Notifications
+            </a>
+<a class="flex items-center gap-4 px-4 py-3 rounded-lg text-on-primary opacity-70 hover:opacity-100 hover:bg-white/10 transition-all font-label-lg text-label-lg" href="#">
+<span class="material-symbols-outlined">bookmark</span>Saved
+            </a>
+<a class="flex items-center gap-4 px-4 py-3 rounded-lg text-on-primary opacity-70 hover:opacity-100 hover:bg-white/10 transition-all font-label-lg text-label-lg" href="#">
+<span class="material-symbols-outlined">shield</span>Safety Center
+            </a>
+</div>
+<div class="mt-auto px-2 pb-4">
+<div class="px-4 py-2 text-surface-dim font-label-caps text-label-caps opacity-50 uppercase tracking-wider mb-2">Popular Communities</div>
+<a class="flex items-center gap-4 px-4 py-3 rounded-lg text-on-primary opacity-70 hover:opacity-100 hover:bg-white/10 transition-all font-label-lg text-label-lg" href="#">
+<span class="material-symbols-outlined">star</span>Popular Communities
+            </a>
+</div>
+</nav>
+<!-- TopNavBar (Mobile) -->
+<header class="fixed top-0 w-full z-50 flex justify-between items-center px-gutter py-base bg-deep-charcoal shadow-lg lg:hidden">
+<div class="font-display-lg-mobile text-display-lg-mobile font-bold text-accent-magenta">SheRides</div>
+<div class="flex items-center gap-4 text-accent-magenta">
+<span class="material-symbols-outlined cursor-pointer hover:text-white transition-colors">notifications</span>
+<img alt="Rider profile" class="w-8 h-8 rounded-full object-cover" data-alt="A small circular profile image of a stylish female motorcycle rider wearing a high-end leather jacket and a sleek helmet, set against a blurred urban background with soft white lighting to match a bright luxury mode aesthetic. The mood is confident and modern." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBu_v0_hGKhkCoKE6LmG8duEdHRvFAKgN76lkLCeYd_ZpcEp5wqOBH-d4z-iMOWV4oiHJEtiEFIxyTuotQY3uMz4QV8Wo9O7tv4RQLPR1oHZGN5IcQbWczjJZdLGWraZUEQDWz6n73pSw730ykoFfwCTt2AAUeVxILO8tiZ6a08Ys5R9xwfa6RmRzu1vW6sv9ggQjN_zepsB46XVLz5JW_2HIN1-f-K9t9BqIPJpJR5REjEGokEY_WgcA"/>
+</div>
+</header>
+<!-- Main Content Area -->
+<main class="flex-1 w-full lg:ml-64 pt-20 lg:pt-0 pb-24 lg:pb-0 min-h-screen relative">
+<div class="absolute inset-0 bg-soft-off-white -z-10"></div>
+<div class="max-w-[1280px] mx-auto px-container-margin-mobile md:px-container-margin-desktop py-section-gap">
+<!-- Header & Search -->
+<div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-section-gap gap-6">
+<div>
+<h1 class="font-headline-xl text-headline-xl text-on-background mb-2">Communities</h1>
+<p class="font-body-md text-body-md text-secondary">Discover and join local female rider groups.</p>
+</div>
+<div class="w-full md:w-96 relative">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-tertiary">search</span>
+<input class="w-full bg-surface border border-surface-border rounded-full py-3 pl-12 pr-4 font-body-md text-body-md focus:outline-none focus:border-accent-magenta focus:ring-1 focus:ring-accent-magenta transition-all bg-soft-off-white text-on-background placeholder:text-tertiary" placeholder="Search communities..." type="text"/>
+</div>
+</div>
+<!-- Category Chips -->
+<div class="flex gap-3 mb-8 overflow-x-auto pb-4 hide-scrollbar">
+<button class="px-6 py-2 rounded-full bg-accent-magenta/10 text-accent-magenta font-label-lg text-label-lg whitespace-nowrap border border-accent-magenta/20">All Regions</button>
+<button class="px-6 py-2 rounded-full bg-surface border border-surface-border text-secondary hover:bg-surface-variant transition-colors font-label-lg text-label-lg whitespace-nowrap">Touring</button>
+<button class="px-6 py-2 rounded-full bg-surface border border-surface-border text-secondary hover:bg-surface-variant transition-colors font-label-lg text-label-lg whitespace-nowrap">Technical</button>
+<button class="px-6 py-2 rounded-full bg-surface border border-surface-border text-secondary hover:bg-surface-variant transition-colors font-label-lg text-label-lg whitespace-nowrap">Meetup</button>
+</div>
+<!-- Grid Layout -->
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+<!-- Card 1: Dhaka -->
+<article class="bg-surface-container-lowest rounded-xl premium-card-shadow premium-card-hover transition-all duration-300 overflow-hidden flex flex-col relative group">
+<div class="relative w-full aspect-video overflow-hidden bg-surface-variant">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="A high-quality, wide-angle shot of a group of female motorcycle riders gathered at a modern cafe in Dhaka. The scene is bathed in soft, bright daytime light, reflecting a premium, clean, luxury lifestyle aesthetic. The riders are diverse, wearing stylish gear, with their sleek motorcycles parked in the background. The colors are muted whites, deep blacks, and subtle warm tones, perfectly aligning with a sophisticated light-mode UI." src="https://lh3.googleusercontent.com/aida-public/AB6AXuArbYLdJ_F9GFNCjgp3d1_2RTfD-Z6aXmYQLpwdYsXYdB5w6kSZbyAuFON4rVLtvsxXtNIUsL2538IB-8w9JE2euFZTEn3c4wN89w5FdPLv0PX3okkc0dvvVbLmix2_Hs9mg7W9eioOGt26feJcjHu6jbmkRHkgaKvGN9aZSWok6FVgeqzI3fuop16azKjl0CQPSWQZ7KPZt_7jwD1jeuyPYW5rQAyaSzB6qNBOQ9NRlYtdp5C0xI5QTw"/>
+<div class="absolute top-4 left-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full flex items-center gap-1">
+<div class="w-2 h-2 rounded-full bg-accent-magenta animate-pulse"></div>
+<span class="font-label-caps text-label-caps text-on-background">Very Active</span>
+</div>
+</div>
+<div class="p-6 flex flex-col flex-1">
+<div class="flex justify-between items-start mb-4">
+<div>
+<h3 class="font-headline-md text-headline-md text-on-background mb-1">Dhaka Riders</h3>
+<p class="font-body-sm text-body-sm text-secondary flex items-center gap-1">
+<span class="material-symbols-outlined text-sm">location_on</span> Dhaka, Central
+                                </p>
+</div>
+</div>
+<p class="font-body-sm text-body-sm text-tertiary mb-6 line-clamp-2">The premier community for female riders in the capital. We focus on city meetups, weekend escapes, and technical workshops.</p>
+<div class="mt-auto flex items-center justify-between border-t border-surface-border pt-4">
+<div class="flex -space-x-2">
+<img class="w-8 h-8 rounded-full border-2 border-white object-cover" data-alt="Close up portrait of a confident female rider with subtle smile, soft white background lighting, luxury editorial style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuChJibcZow6Gdy4Vx5ExoFzFS5Wx5jUKqZH2zvqofLqsUdkuf9m_wbN5sjiW6wInYHcjvjhnElwNS_K2qW966Fuk6wZLLD7xnwojwIuxU58FH7Hlwq47Xi6gIUKAG__GcEw-DtrRLz2RIwGuxU99zMkn7GgWhOqF705yEiEqaATIj_3zRhi0gSMELhyZ9DGP4BMaBaKwsYnMXiDVYwTQ1j6jCNgn2jash8MwD3ZhbVxDTaRnkFxS84OTg"/>
+<img class="w-8 h-8 rounded-full border-2 border-white object-cover" data-alt="Profile photo of a female motorcyclist with stylish sunglasses looking away, bright clean lighting, premium look." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCXjTduEXfYdHmwT4cmrk5UtGaeDxVqonwVgrJvQjATb3gUDLGV-zHz-myvUd7RBeqrk7oPfNefP9jReah3wZmHbZD1kWngy3qRkUcmDSBCD5WgaE7q-UTvFMG9obaR3weTg_xB01HdYiR8XtWvoU-d8WNUH_5snGsj_fnOKZo412IfbBQfs7hZ1E1Odd2vXPx0H5yjz9nUUmqEC7rXNhtg57YWSaEtd2Vo_UCF9Lym-Osez1GVeWBKzA"/>
+<div class="w-8 h-8 rounded-full border-2 border-white bg-surface-variant flex items-center justify-center font-label-caps text-label-caps text-secondary text-xs">+1.2k</div>
+</div>
+<button class="bg-accent-magenta text-on-primary font-label-lg text-label-lg px-6 py-2 rounded-lg hover:bg-primary transition-colors">Join</button>
+</div>
+</div>
+</article>
+<!-- Card 2: Chattogram -->
+<article class="bg-surface-container-lowest rounded-xl premium-card-shadow premium-card-hover transition-all duration-300 overflow-hidden flex flex-col relative group">
+<div class="relative w-full aspect-video overflow-hidden bg-surface-variant">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="A scenic, premium photograph of female motorcyclists riding along a coastal road in Chattogram. The ocean is visible in the background under a bright, clear sky. The image has a clean, high-end editorial feel with bright white lighting and deep contrast, emphasizing a sophisticated, adventurous lifestyle suitable for a luxury light-mode interface." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCOoX9Zs2_MJw5O506h-Vj8EE3iY1J46bjAIyw0eNQ7uTH5PvurVw8ndQlKm4Ep1-Tj6gV3teCKcxlaezEtOmNXU08_jbs749jMmaI9bLMb-jBQEcPdwA_Xn-pcLS8SUKCBeJmSPkFoZ3VGZp_wC2QLV1tTsGxMOBWQSroEqXWHWKfja6Km9vLNUST7XjQpgeZYaVQBqAAvVuACmjfENIBy7bmPKVSqukVF95cMFQoVoQ1PE8EsWGjp0w"/>
+<div class="absolute top-4 left-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full flex items-center gap-1">
+<div class="w-2 h-2 rounded-full bg-accent-magenta animate-pulse"></div>
+<span class="font-label-caps text-label-caps text-on-background">Active</span>
+</div>
+</div>
+<div class="p-6 flex flex-col flex-1">
+<div class="flex justify-between items-start mb-4">
+<div>
+<h3 class="font-headline-md text-headline-md text-on-background mb-1">Chattogram Coastal</h3>
+<p class="font-body-sm text-body-sm text-secondary flex items-center gap-1">
+<span class="material-symbols-outlined text-sm">location_on</span> Chattogram Division
+                                </p>
+</div>
+</div>
+<p class="font-body-sm text-body-sm text-tertiary mb-6 line-clamp-2">Embrace the sea breeze. This group specializes in scenic coastal routes, long-distance touring, and building strong sisterhood.</p>
+<div class="mt-auto flex items-center justify-between border-t border-surface-border pt-4">
+<div class="flex -space-x-2">
+<img class="w-8 h-8 rounded-full border-2 border-white object-cover" data-alt="Portrait of a young woman with a motorcycle helmet under her arm, bright studio lighting, sophisticated professional headshot style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDgTvijg7MPVHFr0G7LPIXoso95e0hjt94UIThULNjYiASS2srrY9K86RMEZI-urGH1ebTj3e27RRYEcEspSk7J3YnYqkGFPl4mHTGJmNwgNR9bbwZgSp3s9Ca7yvV0MuutyszZGFgSrkddzVKcbARqJ0HDecV_BfrrOrLFRnDMpRLEuzojf2Re7hje00ucW46pWbqoR5ZKJ551dA4cUHHKYUFGbOiHLUqXCYCrD0bbu9kPjs4X4Aeutg"/>
+<img class="w-8 h-8 rounded-full border-2 border-white object-cover" data-alt="Close up of a female rider wearing premium leather gear, soft off-white background, high-end lifestyle photography." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAEIBWDZtcOVvpBfGKLVloz8ZfdK07eGzN1UI7PJefgmq9Y4n8XrIhCWSA7KLbCq0jk2Jp_JADJIPdfdnOn6wBeBAt071AcXB7Kf5q96rvkfY4twG5LbwTJv2RWnrHWSGL4WtJFhIIDcBQ2GMOzp3lsG9X6E8yqoJMlF7Yl4edBEGaq-nnyvm-4ICaDjppvGS7NrN0OC_OSdqFpM8AIa3OM4t0238fyLhxwSn-am0JRp_j3ySlxdcGc0Q"/>
+<div class="w-8 h-8 rounded-full border-2 border-white bg-surface-variant flex items-center justify-center font-label-caps text-label-caps text-secondary text-xs">+850</div>
+</div>
+<button class="bg-surface border border-surface-border text-on-background font-label-lg text-label-lg px-6 py-2 rounded-lg hover:bg-surface-variant transition-colors">Requested</button>
+</div>
+</div>
+</article>
+<!-- Card 3: Sylhet -->
+<article class="bg-surface-container-lowest rounded-xl premium-card-shadow premium-card-hover transition-all duration-300 overflow-hidden flex flex-col relative group">
+<div class="relative w-full aspect-video overflow-hidden bg-surface-variant">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="A lush, high-resolution photograph of a female rider navigating a winding road through the green tea gardens of Sylhet. The lighting is soft, diffused sunlight creating a bright, ethereal atmosphere. The aesthetic is extremely clean, modern, and high-end, utilizing soft whites and rich greens to fit perfectly into a premium luxury UI." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDnp01oo8VZnbFdA2cIdbSQyMquO6eZc9cEpkbBIpHv8JF_Jeq6g1XQH2h4NfqkztD1gZUi_D0I9568sQhp_xtAuUcXar2zNavvsDMOEOadR3tolkzHxNMAT1DhvVaDyT9j6mZiWK31FCewtZLE9qQhVFeU-7smTq1KII2ceJpoW4AAhxUL1vzujylK69YPOoYKsn1Esa6jvlUZKoAr5WXgGCbftNjHPASG89Jox6dgw8di1SayJZMSog"/>
+</div>
+<div class="p-6 flex flex-col flex-1">
+<div class="flex justify-between items-start mb-4">
+<div>
+<h3 class="font-headline-md text-headline-md text-on-background mb-1">Sylhet Explorers</h3>
+<p class="font-body-sm text-body-sm text-secondary flex items-center gap-1">
+<span class="material-symbols-outlined text-sm">location_on</span> Sylhet Region
+                                </p>
+</div>
+</div>
+<p class="font-body-sm text-body-sm text-tertiary mb-6 line-clamp-2">Navigating the beautiful hills and tea gardens. We organize monthly group tours and focus on safe mountain riding techniques.</p>
+<div class="mt-auto flex items-center justify-between border-t border-surface-border pt-4">
+<div class="flex -space-x-2">
+<img class="w-8 h-8 rounded-full border-2 border-white object-cover" data-alt="Professional headshot of a female motorcyclist with a clean, confident expression against a bright white background, luxury editorial style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC-teh_20Aii6w9KuoGGmhfcRmZi00kvC5xqkA1JIn6102EAj77PHvIGp2VOxMY7cNnYGnMh62NhZw_LbjF8VGne2Ks3Ac_H7fSjtUZ1cub3ly8ri4o82x1z29g_f7rNGWfyHtMnQKQCBfYzxchYvaNUCqx8TLf9fD_twBEwlfYF1EDDxfLymr8RwUcp48lk8-n5zG019GW-MOr-00kha66bsJHNsC78TosqabvlSwE0Eu6VESSomzceQ"/>
+<img class="w-8 h-8 rounded-full border-2 border-white object-cover" data-alt="Candid portrait of a female rider laughing, well-lit soft background, premium lifestyle aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA9-ynkLublmaqDPP5F8Rl9KgnU1V_osm5FcYxu4jwCJhp_ROmuXYDPCfrIa8z8rga4S4aTRO38EGTP5OJ0DOotb_DtV54sZ_ZfY85G5qlTb5WR5DY4ZauH4TIMMj5cudTf8ucinsMuB_2TNEOPUrDeZkSIm868O4UwET5FjSFX-zJIrS6qDWJsBmZFM4rUFJ403JDW1vG0TZ0e2FPOxIHiPU69VAv4-iMpw5TJbMTTUBVFfKteKKx4eg"/>
+<div class="w-8 h-8 rounded-full border-2 border-white bg-surface-variant flex items-center justify-center font-label-caps text-label-caps text-secondary text-xs">+420</div>
+</div>
+<button class="bg-accent-magenta text-on-primary font-label-lg text-label-lg px-6 py-2 rounded-lg hover:bg-primary transition-colors">Join</button>
+</div>
+</div>
+</article>
+</div>
+</div>
+</main>
+<!-- BottomNavBar (Mobile) -->
+<nav class="lg:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center bg-surface dark:bg-surface-container-highest px-4 py-3 rounded-t-xl border-t border-surface-border shadow-[0px_-4px_16px_rgba(0,0,0,0.05)] pb-safe">
+<a class="flex flex-col items-center justify-center text-secondary hover:text-primary transition-colors w-16" href="#">
+<span class="material-symbols-outlined mb-1">home</span>
+<span class="font-label-caps text-label-caps">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center text-secondary hover:text-primary transition-colors w-16" href="#">
+<span class="material-symbols-outlined mb-1">explore</span>
+<span class="font-label-caps text-label-caps">Explore</span>
+</a>
+<a class="flex flex-col items-center justify-center text-accent-magenta scale-90 duration-150 w-16 active" href="#">
+<span class="material-symbols-outlined mb-1" style="font-variation-settings: 'FILL' 1;">add_circle</span>
+<span class="font-label-caps text-label-caps">Create</span>
+</a>
+<a class="flex flex-col items-center justify-center text-secondary hover:text-primary transition-colors w-16" href="#">
+<span class="material-symbols-outlined mb-1">chat</span>
+<span class="font-label-caps text-label-caps">Messages</span>
+</a>
+<a class="flex flex-col items-center justify-center text-secondary hover:text-primary transition-colors w-16" href="#">
+<span class="material-symbols-outlined mb-1">person</span>
+<span class="font-label-caps text-label-caps">Profile</span>
+</a>
+</nav>
+<style>
+        /* Mobile safe area padding for bottom nav */
+        @supports (padding-bottom: env(safe-area-inset-bottom)) {
+            .pb-safe {
+                padding-bottom: calc(0.75rem + env(safe-area-inset-bottom));
+            }
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</body></html>
