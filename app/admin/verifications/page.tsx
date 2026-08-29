@@ -4,7 +4,6 @@ import { useState } from "react";
 import Link from "next/link";
 import { img } from "@/lib/images";
 import { Icon } from "@/components/ui/Icon";
-import { RequireAuth } from "@/components/auth/RequireAuth";
 
 const applicants = [
   { id: "a1", name: "Sarah Jenkins", type: "ID & License Review", time: "2h ago", priority: true, location: "Dhaka", avatar: img.avatarSarah },
@@ -18,7 +17,6 @@ export default function AdminVerificationsPage() {
   const current = applicants.find((a) => a.id === active)!;
 
   return (
-    <RequireAuth>
       <div className="min-h-screen bg-background">
         <header className="fixed top-0 w-full z-50 flex justify-between items-center px-gutter py-base bg-deep-charcoal md:hidden">
           <span className="font-display-lg-mobile font-bold text-accent-magenta">SheRides</span>
@@ -143,6 +141,5 @@ export default function AdminVerificationsPage() {
           </div>
         </main>
       </div>
-    </RequireAuth>
   );
 }
