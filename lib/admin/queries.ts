@@ -47,11 +47,18 @@ function missingTable(error: { message?: string; code?: string } | null) {
 }
 
 export async function loadAdminStats(supabase: SupabaseClient) {
-  const [users, verified, posts, events] = await Promise.all([
+  const startOfDay = new Date();
+  startOfDay.setHours(0, 0, 0, 0);
+
+  const [users, verified, posts, events, signupsToday] = await Promise.all([
     supabase.from("profiles").select("*", { count: "exact", head: true }),
     supabase.from("profiles").select("*", { count: "exact", head: true }).eq("verified", true),
     supabase.from("posts").select("*", { count: "exact", head: true }),
     supabase.from("events").select("*", { count: "exact", head: true }),
+    supabase
+      .from("profiles")
+      .select("*", { count: "exact", head: true })
+      .gte("created_at", startOfDay.toISOString()),
   ]);
 
   const setupNeeded = [users, posts, events].some((r) => missingTable(r.error));
@@ -61,6 +68,7 @@ export async function loadAdminStats(supabase: SupabaseClient) {
     verified: verified.count ?? 0,
     posts: posts.count ?? 0,
     events: events.count ?? 0,
+    signupsToday: signupsToday.count ?? 0,
     setupNeeded,
     error: setupNeeded
       ? "Database tables are not set up yet. Run supabase/schema.sql (or supabase/admin.sql) in the Supabase SQL editor."

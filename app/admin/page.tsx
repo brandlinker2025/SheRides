@@ -14,9 +14,9 @@ export default async function AdminDashboardPage() {
 
   const cards = [
     { label: "Total users", value: stats.users, href: "/admin/users", icon: "group" },
-    { label: "Verified riders", value: stats.verified, href: "/admin/verifications", icon: "verified" },
-    { label: "Posts", value: stats.posts, href: "/admin/posts", icon: "article" },
-    { label: "Events", value: stats.events, href: "/admin/events", icon: "event" },
+    { label: "Total posts", value: stats.posts, href: "/admin/posts", icon: "article" },
+    { label: "Total events", value: stats.events, href: "/admin/events", icon: "event" },
+    { label: "New signups today", value: stats.signupsToday, href: "/admin/users", icon: "person_add" },
   ];
 
   return (

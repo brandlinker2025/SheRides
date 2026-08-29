@@ -10,6 +10,7 @@ import { Icon } from "../ui/Icon";
 import { Avatar } from "../ui/Avatar";
 import { FeedPost } from "../feed/FeedPost";
 import { EditProfileModal } from "./EditProfileModal";
+import { RoleBadge } from "./RoleBadge";
 
 const tabs = ["Posts", "Photos", "Rides", "Achievements"] as const;
 
@@ -50,9 +51,12 @@ export function ProfileView({ rider, isSelf, onSignOut }: ProfileViewProps) {
           </div>
           <div className="pt-20 md:pt-4 flex flex-col md:flex-row justify-between items-start md:items-end gap-6 md:pl-56">
             <div className="flex-1">
-              <div className="flex items-center gap-2 mb-1">
+              <div className="flex items-center gap-2 mb-2 flex-wrap">
                 <h1 className="font-headline-xl text-headline-xl text-on-background">{rider.fullName}</h1>
-                {rider.verified && <Icon name="verified" filled className="text-accent-magenta" />}
+                {rider.verified && <Icon name="verified" filled className="text-emerald-600" />}
+              </div>
+              <div className="mb-3">
+                <RoleBadge rider={rider} />
               </div>
               <p className="font-body-lg text-body-lg text-secondary mb-2">
                 {rider.bio || (isSelf ? "Add a short bio so other riders can find you." : "")}

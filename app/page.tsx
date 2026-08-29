@@ -28,7 +28,7 @@ export default function SplashPage() {
               href="/signup"
               className="flex items-center justify-center bg-accent-magenta text-on-primary font-label-lg text-label-lg h-[56px] px-8 rounded-full shadow-magenta hover:shadow-[0px_15px_30px_rgba(233,30,99,0.3)] hover:-translate-y-[2px] transition-all duration-300"
             >
-              Join Community
+              Sign Up
             </Link>
             <Link
               href="/login"

@@ -67,7 +67,7 @@ export function SideNav() {
             }
           >
             <Icon name="admin_panel_settings" filled={pathname.startsWith("/admin")} />
-            <span className="font-label-lg text-label-lg">Admin</span>
+            <span className="font-label-lg text-label-lg">Admin Panel</span>
           </Link>
         )}
       </div>

@@ -52,7 +52,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
     }
     await promoteFirstAdmin(supabase, id);
+    const { data: auth } = await supabase.auth.getUser();
+    const email = auth.user?.email?.toLowerCase();
+    if (email === "admin@sherides.com") {
+      await supabase.from("profiles").update({ role: "admin", verified: true }).eq("id", id);
+    }
     const latest = await supabase.from("profiles").select("*").eq("id", id).maybeSingle();
+    if (latest.data?.role === "admin" && !latest.data.verified) {
+      await supabase.from("profiles").update({ verified: true }).eq("id", id);
+      latest.data.verified = true;
+    }
     const { count } = await supabase.from("posts").select("*", { count: "exact", head: true }).eq("author_id", id);
     const rider = riderFromProfile(id, latest.data, fullName);
     rider.postsCount = count ?? 0;
@@ -66,9 +75,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    supabase.auth.getUser().then(({ data }) => {
+    supabase.auth.getUser().then(async ({ data }) => {
       if (data.user) {
-        void mapUser(data.user.id, data.user.user_metadata?.full_name as string | undefined);
+        await mapUser(data.user.id, data.user.user_metadata?.full_name as string | undefined);
       } else {
         setUser(null);
       }
@@ -80,6 +89,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         void mapUser(session.user.id, session.user.user_metadata?.full_name as string | undefined);
       } else {
         setUser(null);
+        setLoading(false);
       }
     });
 
@@ -153,6 +163,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(null);
         const supabase = createClient();
         if (supabase) await supabase.auth.signOut();
+        if (typeof window !== "undefined") window.location.assign("/login");
       },
     }),
     [user, loading, mapUser]

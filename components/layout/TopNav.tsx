@@ -42,8 +42,13 @@ export function TopNav() {
           <Icon name="notifications" />
           <span className="absolute top-2 right-2 w-2 h-2 bg-accent-magenta rounded-full" />
         </Link>
-        <Link href="/profile" className="w-10 h-10 rounded-full overflow-hidden border border-white/20">
-          <Avatar src={user?.avatar} alt={user?.fullName ?? "Profile"} size={40} className="w-full h-full" />
+        <Link href="/profile" className="flex items-center gap-2 min-w-0">
+          <span className="hidden sm:block text-on-primary font-label-lg text-label-lg truncate max-w-[160px]">
+            {user?.fullName || "Rider"}
+          </span>
+          <span className="w-10 h-10 rounded-full overflow-hidden border border-white/20 shrink-0">
+            <Avatar src={user?.avatar} alt={user?.fullName ?? "Profile"} size={40} className="w-full h-full" />
+          </span>
         </Link>
       </div>
     </header>

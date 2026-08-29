@@ -10,6 +10,10 @@ export async function requireAdmin() {
 
   await promoteFirstAdmin(supabase, user.id);
 
+  if (user.email?.toLowerCase() === "admin@sherides.com") {
+    await supabase.from("profiles").update({ role: "admin", verified: true }).eq("id", user.id);
+  }
+
   const { data: profile } = await supabase
     .from("profiles")
     .select("id, role, full_name, username, avatar_url")
