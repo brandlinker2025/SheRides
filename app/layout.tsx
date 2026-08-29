@@ -18,16 +18,42 @@ const montserrat = Montserrat({
   display: "swap",
 });
 
+const siteUrl = "https://sherides.online";
+const ogImage = "https://images.unsplash.com/photo-1558981806-ec527fa84c39?auto=format&fit=crop&w=1200&h=630&q=80";
+
 export const metadata: Metadata = {
-  title: "SheRides — Ride. Connect. Belong.",
-  description: "Bangladesh Women Riders Community",
+  metadataBase: new URL(siteUrl),
+  title: "SheRides - Bangladesh Women Riders Community",
+  description: "বাংলাদেশের নারী বাইকারদের কমিউনিটি। Ride. Connect. Belong.",
+  keywords: ["female biker bangladesh", "women motorcycle", "sherides", "নারী বাইকার"],
   applicationName: "SheRides",
   manifest: "/manifest.webmanifest",
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    title: "SheRides - Bangladesh Women Riders Community",
+    description: "বাংলাদেশের নারী বাইকারদের কমিউনিটি। Ride. Connect. Belong.",
+    url: siteUrl,
+    siteName: "SheRides",
+    images: [{ url: ogImage, width: 1200, height: 630, alt: "SheRides — Bangladesh Women Riders Community" }],
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "SheRides - Bangladesh Women Riders Community",
+    description: "বাংলাদেশের নারী বাইকারদের কমিউনিটি। Ride. Connect. Belong.",
+    images: [ogImage],
+  },
   appleWebApp: {
     capable: true,
     title: "SheRides",
     statusBarStyle: "black-translucent",
   },
+  ...(process.env.GOOGLE_SITE_VERIFICATION
+    ? { verification: { google: process.env.GOOGLE_SITE_VERIFICATION } }
+    : {}),
 };
 
 export const viewport: Viewport = {
