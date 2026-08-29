@@ -17,6 +17,10 @@ const nextConfig = {
           { key: "Service-Worker-Allowed", value: "/" },
         ],
       },
+      {
+        source: "/:path(home|explore|groups|events|rides|messages|notifications|saved|safety|profile|admin)/:sub*",
+        headers: [{ key: "Cache-Control", value: "no-store, must-revalidate" }],
+      },
     ];
   },
 };

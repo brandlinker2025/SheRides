@@ -7,13 +7,18 @@ export async function requireUser() {
     redirect("/login");
   }
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  try {
+    const {
+      data: { user },
+      error,
+    } = await supabase.auth.getUser();
 
-  if (!user) {
+    if (error || !user) {
+      redirect("/login");
+    }
+
+    return user;
+  } catch {
     redirect("/login");
   }
-
-  return user;
 }
