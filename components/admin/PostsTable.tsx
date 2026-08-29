@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { deletePost } from "@/app/admin/actions";
 import type { AdminPostRow } from "@/lib/admin/queries";
-import { currentUser } from "@/lib/data";
+import { Avatar } from "@/components/ui/Avatar";
 import { Icon } from "@/components/ui/Icon";
 
 function formatDate(value: string) {
@@ -43,11 +43,7 @@ export function PostsTable({ posts }: { posts: AdminPostRow[] }) {
         <article key={post.id} className="bg-white rounded-xl shadow-premium border border-surface-border p-5">
           <div className="flex items-start justify-between gap-4">
             <div className="flex items-center gap-3">
-              <img
-                src={post.author?.avatar_url || currentUser.avatar}
-                alt=""
-                className="w-10 h-10 rounded-full object-cover"
-              />
+              <Avatar src={post.author?.avatar_url} alt={post.author?.full_name || "Rider"} size={40} />
               <div>
                 <div className="flex items-center gap-1">
                   <p className="font-label-lg">{post.author?.full_name || "Unknown rider"}</p>

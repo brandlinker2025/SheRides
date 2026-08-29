@@ -92,7 +92,7 @@ export function FeedPost({ post, onToggleLike, onToggleSave }: FeedPostProps) {
         </div>
         <div className="flex items-center gap-3">
           <div className="flex -space-x-2">
-            {post.likerAvatars.slice(0, 3).map((src) => (
+            {post.likerAvatars.filter(Boolean).slice(0, 3).map((src) => (
               <img
                 key={src}
                 src={src}

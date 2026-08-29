@@ -1,14 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { img } from "@/lib/images";
 import type { Rider } from "@/lib/types";
 import { useFeed } from "@/lib/feed-context";
+import { createClient } from "@/lib/supabase/client";
+import { EmptyState } from "../ui/EmptyState";
 import { Icon } from "../ui/Icon";
+import { Avatar } from "../ui/Avatar";
 import { FeedPost } from "../feed/FeedPost";
+import { EditProfileModal } from "./EditProfileModal";
 
-const tabs = ["Posts", "Photos", "Videos", "Rides", "Achievements"] as const;
+const tabs = ["Posts", "Photos", "Rides", "Achievements"] as const;
 
 type ProfileViewProps = {
   rider: Rider;
@@ -18,21 +21,31 @@ type ProfileViewProps = {
 
 export function ProfileView({ rider, isSelf, onSignOut }: ProfileViewProps) {
   const [tab, setTab] = useState<(typeof tabs)[number]>("Posts");
+  const [editing, setEditing] = useState(false);
   const [following, setFollowing] = useState(false);
   const { posts, toggleLike, toggleSave } = useFeed();
   const router = useRouter();
-  const riderPosts = posts.filter((p) => p.author.id === rider.id || (isSelf && p.author.id === "me"));
+  const riderPosts = posts.filter((post) => post.author.id === rider.id);
+  const photos = riderPosts.filter((post) => post.image);
+  const rides = useMemo(
+    () => posts.filter((post) => post.author.id === rider.id && /ride|tour|meetup/i.test(post.content)),
+    [posts, rider.id]
+  );
 
   return (
     <div className="max-w-[1280px] mx-auto px-container-margin-mobile md:px-container-margin-desktop w-full pb-section-gap">
       <div className="relative w-full bg-white rounded-xl shadow-premium overflow-hidden mt-6">
         <div className="w-full h-48 md:h-80 bg-soft-off-white relative">
-          <img src={rider.cover} alt="" className="w-full h-full object-cover" />
+          {rider.cover ? (
+            <img src={rider.cover} alt="" className="w-full h-full object-cover" />
+          ) : (
+            <div className="w-full h-full bg-gradient-to-r from-accent-magenta/25 via-soft-off-white to-primary-fixed" />
+          )}
         </div>
         <div className="px-6 md:px-12 pb-8 relative">
           <div className="absolute -top-16 md:-top-24 left-6 md:left-12">
             <div className="w-32 h-32 md:w-48 md:h-48 rounded-full border-4 border-white bg-soft-off-white overflow-hidden shadow-md">
-              <img src={rider.avatar} alt={rider.fullName} className="w-full h-full object-cover" />
+              <Avatar src={rider.avatar} alt={rider.fullName} size={192} className="w-full h-full" />
             </div>
           </div>
           <div className="pt-20 md:pt-4 flex flex-col md:flex-row justify-between items-start md:items-end gap-6 md:pl-56">
@@ -41,17 +54,23 @@ export function ProfileView({ rider, isSelf, onSignOut }: ProfileViewProps) {
                 <h1 className="font-headline-xl text-headline-xl text-on-background">{rider.fullName}</h1>
                 {rider.verified && <Icon name="verified" filled className="text-accent-magenta" />}
               </div>
-              <p className="font-body-lg text-body-lg text-secondary mb-2">{rider.bio}</p>
+              <p className="font-body-lg text-body-lg text-secondary mb-2">
+                {rider.bio || (isSelf ? "Add a short bio so other riders can find you." : "")}
+              </p>
               <div className="flex items-center gap-4 font-body-sm text-body-sm text-tertiary flex-wrap">
-                <span className="flex items-center gap-1">
-                  <Icon name="location_on" size={16} /> {rider.location}
-                </span>
-                <span className="flex items-center gap-1">
-                  <Icon name="two_wheeler" size={16} /> {rider.bike}
-                </span>
+                {rider.location && (
+                  <span className="flex items-center gap-1">
+                    <Icon name="location_on" size={16} /> {rider.location}
+                  </span>
+                )}
+                {rider.bike && (
+                  <span className="flex items-center gap-1">
+                    <Icon name="two_wheeler" size={16} /> {rider.bike}
+                  </span>
+                )}
               </div>
             </div>
-            <div className="flex items-center gap-3 w-full md:w-auto">
+            <div className="flex items-center gap-3 w-full md:w-auto flex-wrap">
               {isSelf ? (
                 <>
                   {rider.role === "admin" && (
@@ -65,6 +84,7 @@ export function ProfileView({ rider, isSelf, onSignOut }: ProfileViewProps) {
                   )}
                   <button
                     type="button"
+                    onClick={() => setEditing(true)}
                     className="flex-1 md:flex-none px-8 py-3 bg-accent-magenta text-white rounded-lg font-label-lg"
                   >
                     Edit profile
@@ -88,7 +108,13 @@ export function ProfileView({ rider, isSelf, onSignOut }: ProfileViewProps) {
                   </button>
                   <button
                     type="button"
-                    onClick={() => router.push("/messages")}
+                    onClick={async () => {
+                      const supabase = createClient();
+                      if (!supabase) return;
+                      const { data, error } = await supabase.rpc("get_or_create_dm", { other_id: rider.id });
+                      if (!error) router.push(`/messages?c=${data ?? ""}`);
+                      else router.push("/messages");
+                    }}
                     className="flex-1 md:flex-none px-8 py-3 bg-deep-charcoal text-white rounded-lg font-label-lg"
                   >
                     Message
@@ -101,13 +127,11 @@ export function ProfileView({ rider, isSelf, onSignOut }: ProfileViewProps) {
             {[
               [rider.followers, "Followers"],
               [rider.following, "Following"],
-              [rider.postsCount, "Posts"],
+              [riderPosts.length || rider.postsCount, "Posts"],
               [rider.ridesCount, "Rides"],
             ].map(([n, label]) => (
               <div key={String(label)} className="flex flex-col">
-                <span className="font-headline-md text-headline-md text-on-background">
-                  {typeof n === "number" && n >= 1000 ? `${(n / 1000).toFixed(1)}k` : n}
-                </span>
+                <span className="font-headline-md text-headline-md text-on-background">{n}</span>
                 <span className="font-label-caps text-label-caps text-secondary">{label}</span>
               </div>
             ))}
@@ -130,59 +154,63 @@ export function ProfileView({ rider, isSelf, onSignOut }: ProfileViewProps) {
         ))}
       </div>
 
-      {tab === "Posts" && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="md:col-span-2 flex flex-col gap-6">
-            {riderPosts.length ? (
-              riderPosts.map((post) => (
-                <FeedPost key={post.id} post={post} onToggleLike={toggleLike} onToggleSave={toggleSave} />
-              ))
-            ) : (
-              <div className="bg-white rounded-xl p-8 shadow-premium font-body-md text-secondary">No posts yet.</div>
-            )}
+      {tab === "Posts" &&
+        (riderPosts.length ? (
+          <div className="flex flex-col gap-6 max-w-3xl">
+            {riderPosts.map((post) => (
+              <FeedPost key={post.id} post={post} onToggleLike={toggleLike} onToggleSave={toggleSave} />
+            ))}
           </div>
-          <div className="flex flex-col gap-6">
-            <div className="bg-white rounded-xl p-6 shadow-premium">
-              <div className="flex items-center gap-2 mb-4">
-                <Icon name="event" className="text-accent-magenta" />
-                <h3 className="font-headline-md text-headline-md">Upcoming Ride</h3>
-              </div>
-              <p className="font-label-lg mb-1">Valley Loop Meetup</p>
-              <p className="font-body-sm text-secondary mb-4">Saturday, 9:00 AM • 45 miles</p>
-              <button type="button" className="w-full py-2 bg-soft-off-white font-label-lg rounded-lg border border-surface-border hover:border-accent-magenta">
-                View Details
-              </button>
-            </div>
-            <div className="bg-white rounded-xl p-6 shadow-premium">
-              <h3 className="font-headline-md text-headline-md mb-4">Recent Snaps</h3>
-              <div className="grid grid-cols-2 gap-2">
-                {[img.dash, img.storyCrew, img.helmetCafe, img.sunset].map((src, i) => (
-                  <div key={src} className="aspect-square rounded-lg overflow-hidden relative">
-                    <img src={src} alt="" className={`w-full h-full object-cover ${i === 3 ? "opacity-80" : ""}`} />
-                    {i === 3 && (
-                      <span className="absolute inset-0 flex items-center justify-center text-white font-label-lg">+12 more</span>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
+        ) : (
+          <EmptyState title="এখনো কোনো পোস্ট নেই। প্রথম পোস্ট করুন! 🏍️" />
+        ))}
+
+      {tab === "Photos" &&
+        (photos.length ? (
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            {photos.map((post) => (
+              <img key={post.id} src={post.image} alt="" className="aspect-square object-cover rounded-xl" />
+            ))}
           </div>
+        ) : (
+          <EmptyState title="এখনো কোনো ছবি নেই।" body="Upload a photo with your next post." />
+        ))}
+
+      {tab === "Rides" &&
+        (rides.length ? (
+          <div className="flex flex-col gap-4 max-w-3xl">
+            {rides.map((post) => (
+              <FeedPost key={post.id} post={post} onToggleLike={toggleLike} onToggleSave={toggleSave} />
+            ))}
+          </div>
+        ) : (
+          <EmptyState title="No rides yet." body="RSVP to an event or share your first ride post." />
+        ))}
+
+      {tab === "Achievements" && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {(
+            [
+              rider.verified ? { icon: "verified", label: "Verified rider" } : null,
+              riderPosts.length > 0 ? { icon: "article", label: "First post" } : null,
+              rider.role === "admin" ? { icon: "admin_panel_settings", label: "Community admin" } : null,
+              rider.bike ? { icon: "two_wheeler", label: rider.bike } : null,
+            ] as Array<{ icon: string; label: string } | null>
+          )
+            .filter((item): item is { icon: string; label: string } => Boolean(item))
+            .map((item) => (
+              <div key={item.label} className="bg-white rounded-xl shadow-premium p-6 border border-surface-border">
+                <Icon name={item.icon} className="text-accent-magenta mb-2" />
+                <p className="font-label-lg">{item.label}</p>
+              </div>
+            ))}
+          {!rider.verified && riderPosts.length === 0 && !rider.bike && (
+            <EmptyState title="Achievements will appear as you ride and post." />
+          )}
         </div>
       )}
 
-      {tab === "Photos" && (
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-          {[img.pch, img.canyon, img.cover, img.coffee, img.gloves, img.dash].map((src) => (
-            <img key={src} src={src} alt="" className="aspect-square object-cover rounded-xl" />
-          ))}
-        </div>
-      )}
-
-      {tab !== "Posts" && tab !== "Photos" && (
-        <div className="bg-white rounded-xl shadow-premium p-10 text-center font-body-md text-secondary">
-          {tab} for {rider.fullName} will appear here.
-        </div>
-      )}
+      {editing && <EditProfileModal onClose={() => setEditing(false)} />}
     </div>
   );
 }

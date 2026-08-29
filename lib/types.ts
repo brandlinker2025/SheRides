@@ -5,6 +5,8 @@ export type Rider = {
   bio: string;
   location: string;
   bike: string;
+  bikeBrand?: string;
+  bikeModel?: string;
   avatar: string;
   cover: string;
   verified: boolean;

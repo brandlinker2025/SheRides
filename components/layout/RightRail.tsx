@@ -1,15 +1,41 @@
 "use client";
 
 import Link from "next/link";
-import { events, riders, trendingHashtags } from "@/lib/data";
+import { useEffect, useState } from "react";
+import { trendingHashtags } from "@/lib/data";
+import { useAuth } from "@/lib/auth-context";
+import { riderFromProfile } from "@/lib/profile";
+import { createClient } from "@/lib/supabase/client";
+import type { Rider } from "@/lib/types";
 import { Avatar } from "../ui/Avatar";
 import { Icon } from "../ui/Icon";
-import { useState } from "react";
+
+type RailEvent = { id: string; title: string; location: string; starts_at: string; attending_count: number };
 
 export function RightRail() {
-  const upcoming = events.filter((e) => !e.featured).slice(0, 3);
-  const suggested = riders.filter((r) => r.id !== "me").slice(0, 3);
-  const [following, setFollowing] = useState<string[]>([]);
+  const { user } = useAuth();
+  const [events, setEvents] = useState<RailEvent[]>([]);
+  const [suggested, setSuggested] = useState<Rider[]>([]);
+
+  useEffect(() => {
+    const supabase = createClient();
+    if (!supabase) return;
+    void supabase
+      .from("events")
+      .select("id, title, location, starts_at, attending_count")
+      .order("starts_at", { ascending: true })
+      .limit(3)
+      .then(({ data }) => setEvents((data ?? []) as RailEvent[]));
+    void supabase
+      .from("profiles")
+      .select("*")
+      .neq("id", user?.id ?? "")
+      .order("created_at", { ascending: false })
+      .limit(3)
+      .then(({ data }) =>
+        setSuggested((data ?? []).map((row) => riderFromProfile(row.id as string, row as Record<string, unknown>)))
+      );
+  }, [user?.id]);
 
   return (
     <div className="hidden lg:flex flex-col col-span-4 gap-component-gap">
@@ -19,9 +45,11 @@ export function RightRail() {
             <Icon name="workspace_premium" filled size={32} />
           </div>
           <div>
-            <h3 className="font-headline-md text-headline-md text-on-surface">Verified Rider</h3>
+            <h3 className="font-headline-md text-headline-md text-on-surface">
+              {user?.verified ? "Verified Rider" : "Welcome to SheRides"}
+            </h3>
             <p className="font-body-sm text-body-sm text-tertiary">
-              You are in the top 5% of active members this month.
+              {user?.verified ? "Your verified badge is visible on your profile." : "Complete your profile and join a city community."}
             </p>
           </div>
         </div>
@@ -29,7 +57,7 @@ export function RightRail() {
           href="/profile"
           className="block w-full text-center bg-soft-off-white text-accent-magenta font-label-lg text-label-lg py-2 rounded-lg hover:bg-accent-magenta/10 transition-colors"
         >
-          View Perks
+          View profile
         </Link>
       </div>
 
@@ -41,59 +69,44 @@ export function RightRail() {
           </Link>
         </div>
         <div className="flex flex-col gap-4">
-          {upcoming.map((event) => (
-            <Link key={event.id} href="/events" className="flex gap-4 items-start group">
-              <div className="bg-surface-container-low rounded-lg p-2 text-center min-w-[60px] group-hover:bg-accent-magenta group-hover:text-white transition-colors">
-                <span className="block font-label-caps text-label-caps text-accent-magenta group-hover:text-white">
-                  {event.month}
-                </span>
-                <span className="block font-headline-md text-[20px] font-bold">{event.day}</span>
-              </div>
-              <div>
-                <h4 className="font-label-lg text-label-lg text-on-surface group-hover:text-accent-magenta transition-colors">
-                  {event.title}
-                </h4>
-                <p className="font-body-sm text-body-sm text-tertiary">
-                  {event.location} • {event.attending} attending
-                </p>
-              </div>
-            </Link>
-          ))}
+          {events.length === 0 && <p className="font-body-sm text-tertiary">No events yet.</p>}
+          {events.map((event) => {
+            const date = new Date(event.starts_at);
+            return (
+              <Link key={event.id} href="/events" className="flex gap-4 items-start group">
+                <div className="bg-surface-container-low rounded-lg p-2 text-center min-w-[60px] group-hover:bg-accent-magenta group-hover:text-white transition-colors">
+                  <span className="block font-label-caps text-label-caps text-accent-magenta group-hover:text-white">
+                    {date.toLocaleString(undefined, { month: "short" }).toUpperCase()}
+                  </span>
+                  <span className="block font-headline-md text-[20px] font-bold">{date.getDate()}</span>
+                </div>
+                <div>
+                  <h4 className="font-label-lg text-label-lg text-on-surface group-hover:text-accent-magenta transition-colors">
+                    {event.title}
+                  </h4>
+                  <p className="font-body-sm text-body-sm text-tertiary">
+                    {event.location} • {event.attending_count} attending
+                  </p>
+                </div>
+              </Link>
+            );
+          })}
         </div>
       </div>
 
       <div className="bg-surface-container-lowest rounded-xl shadow-premium p-6">
         <h3 className="font-headline-md text-body-lg font-bold text-on-surface mb-4">Suggested Riders</h3>
         <div className="flex flex-col gap-4">
-          {suggested.map((rider) => {
-            const followed = following.includes(rider.id);
-            return (
-              <div key={rider.id} className="flex justify-between items-center">
-                <Link href={`/profile/${rider.id}`} className="flex gap-3 items-center min-w-0">
-                  <Avatar src={rider.avatar} alt={rider.fullName} size={40} />
-                  <div className="min-w-0">
-                    <h4 className="font-label-lg text-label-lg text-on-surface truncate">{rider.fullName}</h4>
-                    <p className="font-body-sm text-body-sm text-tertiary truncate">{rider.bio}</p>
-                  </div>
-                </Link>
-                <button
-                  type="button"
-                  onClick={() =>
-                    setFollowing((prev) =>
-                      prev.includes(rider.id) ? prev.filter((id) => id !== rider.id) : [...prev, rider.id]
-                    )
-                  }
-                  className={`px-3 py-1 rounded-full border font-label-lg text-label-lg transition-colors ${
-                    followed
-                      ? "border-accent-magenta text-accent-magenta bg-accent-magenta/10"
-                      : "border-surface-border text-on-surface hover:border-accent-magenta hover:text-accent-magenta"
-                  }`}
-                >
-                  {followed ? "Following" : "Follow"}
-                </button>
+          {suggested.length === 0 && <p className="font-body-sm text-tertiary">No other riders yet.</p>}
+          {suggested.map((rider) => (
+            <Link key={rider.id} href={`/profile/${rider.id}`} className="flex gap-3 items-center min-w-0">
+              <Avatar src={rider.avatar} alt={rider.fullName} size={40} />
+              <div className="min-w-0">
+                <h4 className="font-label-lg text-label-lg text-on-surface truncate">{rider.fullName}</h4>
+                <p className="font-body-sm text-body-sm text-tertiary truncate">{rider.location || rider.bike || "SheRides member"}</p>
               </div>
-            );
-          })}
+            </Link>
+          ))}
         </div>
       </div>
 
@@ -103,7 +116,7 @@ export function RightRail() {
           {trendingHashtags.map((h) => (
             <Link key={h.tag} href="/explore" className="flex justify-between items-center group">
               <span className="font-label-lg text-label-lg text-accent-magenta group-hover:underline">{h.tag}</span>
-              <span className="font-body-sm text-body-sm text-tertiary">{h.posts} posts</span>
+              <span className="font-body-sm text-body-sm text-tertiary">{h.posts}</span>
             </Link>
           ))}
         </div>

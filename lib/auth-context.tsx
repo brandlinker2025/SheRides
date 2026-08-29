@@ -2,6 +2,7 @@
 
 import {
   createContext,
+  useCallback,
   useContext,
   useEffect,
   useMemo,
@@ -9,13 +10,25 @@ import {
   type ReactNode,
 } from "react";
 import { promoteFirstAdmin } from "./admin/promote-first-admin";
-import { currentUser } from "./data";
+import { riderFromProfile } from "./profile";
 import { createClient } from "./supabase/client";
 import type { Rider } from "./types";
+
+export type ProfileUpdates = {
+  fullName?: string;
+  bio?: string;
+  location?: string;
+  bikeBrand?: string;
+  bikeModel?: string;
+  avatarUrl?: string;
+  coverUrl?: string;
+};
 
 type AuthContextValue = {
   user: Rider | null;
   loading: boolean;
+  refreshUser: () => Promise<void>;
+  updateProfile: (updates: ProfileUpdates) => Promise<string | null>;
   signIn: (email: string, password: string) => Promise<string | null>;
   signUp: (fullName: string, email: string, password: string) => Promise<string | null>;
   signOut: () => Promise<void>;
@@ -23,32 +36,28 @@ type AuthContextValue = {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-function riderFromProfile(
-  id: string,
-  data: Record<string, unknown> | null,
-  fallbackName?: string
-): Rider {
-  return {
-    id,
-    username: (data?.username as string) || currentUser.username,
-    fullName: (data?.full_name as string) || fallbackName || currentUser.fullName,
-    bio: (data?.bio as string) || "",
-    location: (data?.location as string) || "",
-    bike: (data?.bike as string) || "",
-    avatar: (data?.avatar_url as string) || currentUser.avatar,
-    cover: (data?.cover_url as string) || currentUser.cover,
-    verified: Boolean(data?.verified),
-    role: data?.role === "admin" ? "admin" : "rider",
-    followers: (data?.followers_count as number) ?? 0,
-    following: (data?.following_count as number) ?? 0,
-    postsCount: 0,
-    ridesCount: (data?.rides_count as number) ?? 0,
-  };
-}
-
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<Rider | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const mapUser = useCallback(async (id: string, fullName?: string) => {
+    const supabase = createClient();
+    if (!supabase) return;
+    const { data } = await supabase.from("profiles").select("*").eq("id", id).maybeSingle();
+    if (!data) {
+      await supabase.from("profiles").upsert({
+        id,
+        full_name: fullName ?? "",
+        username: fullName?.toLowerCase().replace(/\s+/g, "") || id.slice(0, 8),
+      });
+    }
+    await promoteFirstAdmin(supabase, id);
+    const latest = await supabase.from("profiles").select("*").eq("id", id).maybeSingle();
+    const { count } = await supabase.from("posts").select("*", { count: "exact", head: true }).eq("author_id", id);
+    const rider = riderFromProfile(id, latest.data, fullName);
+    rider.postsCount = count ?? 0;
+    setUser(rider);
+  }, []);
 
   useEffect(() => {
     const supabase = createClient();
@@ -56,20 +65,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLoading(false);
       return;
     }
-
-    const mapUser = async (id: string, fullName?: string) => {
-      const { data } = await supabase.from("profiles").select("*").eq("id", id).maybeSingle();
-      if (!data) {
-        await supabase.from("profiles").upsert({
-          id,
-          full_name: fullName ?? "",
-          username: fullName?.toLowerCase().replace(/\s+/g, "") || id.slice(0, 8),
-        });
-      }
-      await promoteFirstAdmin(supabase, id);
-      const latest = await supabase.from("profiles").select("*").eq("id", id).maybeSingle();
-      setUser(riderFromProfile(id, latest.data, fullName));
-    };
 
     supabase.auth.getUser().then(({ data }) => {
       if (data.user) {
@@ -89,12 +84,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     return () => sub.subscription.unsubscribe();
-  }, []);
+  }, [mapUser]);
 
   const value = useMemo<AuthContextValue>(
     () => ({
       user,
       loading,
+      async refreshUser() {
+        const supabase = createClient();
+        if (!supabase) return;
+        const { data } = await supabase.auth.getUser();
+        if (data.user) await mapUser(data.user.id, data.user.user_metadata?.full_name as string | undefined);
+      },
+      async updateProfile(updates) {
+        const supabase = createClient();
+        if (!supabase || !user) return "You need to sign in first.";
+        const bike = [updates.bikeBrand, updates.bikeModel].filter(Boolean).join(" ");
+        const { error } = await supabase
+          .from("profiles")
+          .update({
+            full_name: updates.fullName ?? user.fullName,
+            bio: updates.bio ?? user.bio,
+            location: updates.location ?? user.location,
+            bike_brand: updates.bikeBrand ?? user.bikeBrand ?? "",
+            bike_model: updates.bikeModel ?? user.bikeModel ?? "",
+            bike: bike || user.bike,
+            avatar_url: updates.avatarUrl ?? user.avatar ?? null,
+            cover_url: updates.coverUrl ?? user.cover ?? null,
+          })
+          .eq("id", user.id);
+        if (error) return error.message;
+        await mapUser(user.id, updates.fullName ?? user.fullName);
+        return null;
+      },
       async signIn(email, password) {
         const supabase = createClient();
         if (!supabase) return "Supabase is not configured.";
@@ -123,6 +145,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             full_name: fullName,
             username: email.split("@")[0],
           });
+          await supabase.rpc("send_welcome_message", { new_user_id: data.user.id });
         }
         return null;
       },
@@ -132,7 +155,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (supabase) await supabase.auth.signOut();
       },
     }),
-    [user, loading]
+    [user, loading, mapUser]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

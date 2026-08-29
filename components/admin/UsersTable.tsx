@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { setRiderVerified } from "@/app/admin/actions";
 import type { AdminUserRow } from "@/lib/admin/queries";
-import { currentUser } from "@/lib/data";
+import { Avatar } from "@/components/ui/Avatar";
 import { Icon } from "@/components/ui/Icon";
 
 function formatDate(value: string) {
@@ -68,11 +68,7 @@ export function UsersTable({ users }: { users: AdminUserRow[] }) {
               <tr key={user.id} className="border-t border-surface-border">
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-3">
-                    <img
-                      src={user.avatar_url || currentUser.avatar}
-                      alt=""
-                      className="w-10 h-10 rounded-full object-cover"
-                    />
+                    <Avatar src={user.avatar_url} alt={user.full_name} size={40} />
                     <div>
                       <div className="flex items-center gap-1">
                         <p className="font-label-lg">{user.full_name || "Unnamed rider"}</p>

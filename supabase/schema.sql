@@ -17,8 +17,13 @@ create table if not exists public.profiles (
   followers_count integer not null default 0,
   following_count integer not null default 0,
   rides_count integer not null default 0,
+  bike_brand text default '',
+  bike_model text default '',
   created_at timestamptz not null default now()
 );
+
+alter table public.profiles add column if not exists bike_brand text default '';
+alter table public.profiles add column if not exists bike_model text default '';
 
 create table if not exists public.posts (
   id uuid primary key default gen_random_uuid(),
@@ -207,6 +212,10 @@ drop policy if exists "Admins update verifications" on public.verifications;
 drop policy if exists "Admins update any profile" on public.profiles;
 drop policy if exists "Admins delete any post" on public.posts;
 drop policy if exists "Admins manage events" on public.events;
+drop policy if exists "Users leave communities" on public.community_members;
+drop policy if exists "Users create conversations" on public.conversations;
+drop policy if exists "Users add conversation members" on public.conversation_members;
+drop policy if exists "Users update conversations" on public.conversations;
 
 create policy "Public profiles are viewable" on public.profiles for select using (true);
 create policy "Users update own profile" on public.profiles for update using (auth.uid() = id);
@@ -230,6 +239,7 @@ create policy "Users manage own saved" on public.saved_posts for all using (auth
 create policy "Communities are viewable" on public.communities for select using (true);
 create policy "Members viewable" on public.community_members for select using (true);
 create policy "Users join communities" on public.community_members for insert with check (auth.uid() = user_id);
+create policy "Users leave communities" on public.community_members for delete using (auth.uid() = user_id);
 
 create policy "Events are viewable" on public.events for select using (true);
 create policy "Users rsvp events" on public.event_rsvps for all using (auth.uid() = user_id);
@@ -258,6 +268,16 @@ create policy "Members send messages" on public.messages for insert with check (
     select 1 from public.conversation_members m
     where m.conversation_id = messages.conversation_id and m.user_id = auth.uid()
   )
+);
+create policy "Users create conversations" on public.conversations for insert with check (true);
+create policy "Users update conversations" on public.conversations for update using (
+  exists (
+    select 1 from public.conversation_members m
+    where m.conversation_id = id and m.user_id = auth.uid()
+  )
+);
+create policy "Users add conversation members" on public.conversation_members for insert with check (
+  auth.uid() = user_id
 );
 
 create policy "Users view own notifications" on public.notifications for select using (auth.uid() = user_id);
@@ -342,6 +362,123 @@ create trigger protect_profile_role
   before update on public.profiles
   for each row execute procedure public.protect_profile_role();
 
+create or replace function public.send_welcome_message(new_user_id uuid)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  leader_id uuid;
+  conv_id uuid;
+  welcome text := $msg$স্বাগতম SheRides-এ! 🏍️❤️ আপনি একজন চমৎকার বাইকার! আমরা বাংলাদেশের সকল নারী বাইকারদের একত্রিত করতে এই কমিউনিটি তৈরি করেছি। যেকোনো সমস্যায় আমরা সবাই আপনার পাশে আছি। একসাথে আমরা শক্তিশালী! 💪 - Razia Sultana Lina, Community Leader$msg$;
+begin
+  if new_user_id is null then
+    return;
+  end if;
+
+  select p.id into leader_id
+  from public.profiles p
+  where p.username = 'razia' or p.full_name ilike 'Razia Sultana Lina'
+  order by case when p.username = 'razia' then 0 else 1 end
+  limit 1;
+
+  if leader_id is null or leader_id = new_user_id then
+    return;
+  end if;
+
+  if exists (
+    select 1
+    from public.conversation_members a
+    join public.conversation_members b on a.conversation_id = b.conversation_id
+    join public.conversations c on c.id = a.conversation_id
+    where a.user_id = leader_id
+      and b.user_id = new_user_id
+      and c.is_group = false
+  ) then
+    return;
+  end if;
+
+  insert into public.conversations (title, is_group, updated_at)
+  values ('Welcome to SheRides', false, now())
+  returning id into conv_id;
+
+  insert into public.conversation_members (conversation_id, user_id)
+  values (conv_id, leader_id), (conv_id, new_user_id);
+
+  insert into public.messages (conversation_id, sender_id, content)
+  values (conv_id, leader_id, welcome);
+
+  insert into public.notifications (user_id, actor_id, kind, body, href)
+  values (new_user_id, leader_id, 'welcome', 'Razia Sultana Lina sent you a welcome message', '/messages');
+end;
+$$;
+
+revoke all on function public.send_welcome_message(uuid) from public;
+grant execute on function public.send_welcome_message(uuid) to authenticated;
+
+create or replace function public.get_or_create_dm(other_id uuid)
+returns uuid
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  me uuid := auth.uid();
+  conv_id uuid;
+begin
+  if me is null or other_id is null or me = other_id then
+    raise exception 'Invalid conversation';
+  end if;
+
+  select a.conversation_id into conv_id
+  from public.conversation_members a
+  join public.conversation_members b on a.conversation_id = b.conversation_id
+  join public.conversations c on c.id = a.conversation_id
+  where a.user_id = me
+    and b.user_id = other_id
+    and c.is_group = false
+  limit 1;
+
+  if conv_id is not null then
+    return conv_id;
+  end if;
+
+  insert into public.conversations (is_group, updated_at)
+  values (false, now())
+  returning id into conv_id;
+
+  insert into public.conversation_members (conversation_id, user_id)
+  values (conv_id, me), (conv_id, other_id);
+
+  return conv_id;
+end;
+$$;
+
+revoke all on function public.get_or_create_dm(uuid) from public;
+grant execute on function public.get_or_create_dm(uuid) to authenticated;
+
+insert into storage.buckets (id, name, public)
+values ('avatars', 'avatars', true), ('posts', 'posts', true)
+on conflict (id) do update set public = excluded.public;
+
+drop policy if exists "Avatar images are public" on storage.objects;
+drop policy if exists "Users upload own avatars" on storage.objects;
+drop policy if exists "Users update own avatars" on storage.objects;
+drop policy if exists "Post images are public" on storage.objects;
+drop policy if exists "Users upload post images" on storage.objects;
+
+create policy "Avatar images are public" on storage.objects
+  for select using (bucket_id = 'avatars');
+create policy "Users upload own avatars" on storage.objects
+  for insert with check (bucket_id = 'avatars' and auth.uid()::text = (storage.foldername(name))[1]);
+create policy "Users update own avatars" on storage.objects
+  for update using (bucket_id = 'avatars' and auth.uid()::text = (storage.foldername(name))[1]);
+create policy "Post images are public" on storage.objects
+  for select using (bucket_id = 'posts');
+create policy "Users upload post images" on storage.objects
+  for insert with check (bucket_id = 'posts' and auth.uid()::text = (storage.foldername(name))[1]);
+
 create or replace function public.handle_new_user()
 returns trigger
 language plpgsql
@@ -365,6 +502,7 @@ begin
   on conflict (id) do nothing;
 
   perform public.ensure_first_admin();
+  perform public.send_welcome_message(new.id);
   return new;
 end;
 $$;
