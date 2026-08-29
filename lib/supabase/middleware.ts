@@ -1,4 +1,4 @@
-import { createServerClient, type CookieOptions } from "@supabase/ssr";
+import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 export async function updateSession(request: NextRequest) {
@@ -9,41 +9,24 @@ export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({ request });
   const supabase = createServerClient(url, key, {
     cookies: {
-      get(name: string) {
-        return request.cookies.get(name)?.value;
+      getAll() {
+        return request.cookies.getAll();
       },
-      set(name: string, value: string, options: CookieOptions) {
-        request.cookies.set({ name, value, ...options });
+      setAll(cookiesToSet, headers) {
+        cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
         response = NextResponse.next({ request });
-        response.cookies.set({ name, value, ...options });
-      },
-      remove(name: string, options: CookieOptions) {
-        request.cookies.set({ name, value: "", ...options });
-        response = NextResponse.next({ request });
-        response.cookies.set({ name, value: "", ...options });
+        cookiesToSet.forEach(({ name, value, options }) => {
+          response.cookies.set(name, value, options);
+        });
+        if (headers) {
+          Object.entries(headers).forEach(([headerName, headerValue]) => {
+            response.headers.set(headerName, headerValue);
+          });
+        }
       },
     },
   });
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  const path = request.nextUrl.pathname;
-  const isPublic =
-    path === "/" ||
-    path.startsWith("/login") ||
-    path.startsWith("/signup") ||
-    path.startsWith("/_next") ||
-    path === "/sw.js" ||
-    path === "/manifest.webmanifest";
-
-  if (!user && !isPublic) {
-    const redirect = request.nextUrl.clone();
-    redirect.pathname = "/login";
-    redirect.searchParams.set("next", path);
-    return NextResponse.redirect(redirect);
-  }
-
+  await supabase.auth.getUser();
   return response;
 }
