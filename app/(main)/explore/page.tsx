@@ -56,12 +56,12 @@ export default function ExplorePage() {
       <h2 className="font-headline-md text-headline-md mb-4">Trending posts</h2>
       {posts.length === 0 ? (
         <div className="mb-12">
-          <EmptyState title="এখনো কোনো পোস্ট নেই। প্রথম পোস্ট করুন! 🏍️" />
+          <EmptyState variant="feed" title="এখনো কোনো পোস্ট নেই। প্রথম পোস্ট করুন! 🏍️" />
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
           {posts.map((post) => (
-            <article key={post.id} className="bg-surface-container-lowest rounded-xl shadow-premium overflow-hidden">
+            <article key={post.id} className="card-surface card-hover overflow-hidden">
               {post.image && <img src={post.image} alt="" className="w-full aspect-video object-cover" />}
               <div className="p-5">
                 <p className="font-label-lg text-label-lg mb-1">{post.author.fullName}</p>
@@ -75,7 +75,7 @@ export default function ExplorePage() {
       <h2 className="font-headline-md text-headline-md mb-4">Communities</h2>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
         {communities.map((c) => (
-          <Link key={c.id} href="/groups" className="bg-white rounded-xl shadow-premium overflow-hidden hover:-translate-y-0.5 transition-transform">
+          <Link key={c.id} href="/groups" className="card-surface card-hover overflow-hidden">
             {c.cover && <img src={c.cover} alt="" className="w-full aspect-video object-cover" />}
             <div className="p-4">
               <h3 className="font-label-lg text-label-lg">{c.name}</h3>
@@ -88,7 +88,7 @@ export default function ExplorePage() {
       <h2 className="font-headline-md text-headline-md mb-4">Upcoming rides</h2>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {events.map((e) => (
-          <Link key={e.id} href="/events" className="bg-white rounded-xl shadow-premium p-5 hover:-translate-y-0.5 transition-transform">
+          <Link key={e.id} href="/events" className="card-surface card-hover p-5">
             <p className="font-label-caps text-label-caps text-accent-magenta mb-2">
               {new Date(e.starts_at).toLocaleDateString()}
             </p>

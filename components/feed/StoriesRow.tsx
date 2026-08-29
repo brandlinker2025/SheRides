@@ -38,21 +38,25 @@ export function StoriesRow() {
   }, []);
 
   return (
-    <div className="bg-surface-container-lowest rounded-xl shadow-premium p-4 flex gap-4 overflow-x-auto snap-x hide-scrollbar">
-      <div className="flex flex-col items-center gap-2 snap-start flex-shrink-0">
-        <div className="w-16 h-16 rounded-full border-2 border-dashed border-surface-dim flex items-center justify-center bg-soft-off-white overflow-hidden">
-          {user?.avatar ? (
-            <img src={user.avatar} alt={user.fullName} className="w-full h-full object-cover opacity-80" />
-          ) : (
-            <Icon name="add" className="text-accent-magenta" />
-          )}
+    <div className="card-surface p-4 flex gap-4 overflow-x-auto snap-x hide-scrollbar">
+      <div className="flex flex-col items-center gap-2 snap-start flex-shrink-0 group cursor-pointer">
+        <div className="relative w-16 h-16 transition-transform duration-300 group-hover:scale-105">
+          <div className="absolute inset-0 rounded-full border-2 border-dashed border-surface-dim animate-[ring-spin_10s_linear_infinite]" />
+          <div className="absolute inset-[3px] rounded-full flex items-center justify-center bg-soft-off-white overflow-hidden">
+            {user?.avatar ? (
+              <img src={user.avatar} alt={user.fullName} className="w-full h-full object-cover opacity-80" />
+            ) : (
+              <Icon name="add" className="text-accent-magenta" />
+            )}
+          </div>
         </div>
         <span className="font-label-caps text-label-caps text-secondary">You</span>
       </div>
       {stories.map((story) => (
-        <div key={story.id} className="flex flex-col items-center gap-2 snap-start flex-shrink-0">
-          <div className="w-16 h-16 rounded-full p-[2px] bg-gradient-to-tr from-accent-magenta to-primary-container">
-            <div className="w-full h-full rounded-full border-2 border-surface-container-lowest overflow-hidden">
+        <div key={story.id} className="flex flex-col items-center gap-2 snap-start flex-shrink-0 group cursor-pointer">
+          <div className="relative w-16 h-16 transition-transform duration-300 group-hover:scale-105">
+            <div className="absolute inset-0 rounded-full bg-[conic-gradient(from_0deg,#E91E63,#e2165f,#ffb2be,#E91E63)] animate-ring-spin-slow" />
+            <div className="absolute inset-[2px] rounded-full border-2 border-surface-container-lowest overflow-hidden bg-surface-container-lowest">
               <Avatar src={story.avatar} alt={story.name} size={60} className="w-full h-full" />
             </div>
           </div>

@@ -9,7 +9,7 @@ export default function SplashPage() {
         <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-primary-fixed-dim opacity-20 blur-[120px] rounded-full" />
       </div>
       <main className="min-h-screen flex flex-col md:flex-row relative z-10 w-full max-w-[1440px] mx-auto">
-        <section className="w-full md:w-[45%] lg:w-[40%] flex flex-col justify-center px-container-margin-mobile md:px-container-margin-desktop py-section-gap min-h-screen md:min-h-0 bg-surface md:bg-transparent">
+        <section className="w-full md:w-[45%] lg:w-[40%] flex flex-col justify-center px-container-margin-mobile md:px-container-margin-desktop py-section-gap min-h-screen md:min-h-0 bg-surface md:bg-transparent animate-fade-in-up">
           <div className="mb-section-gap">
             <span className="font-display-lg-mobile md:font-display-lg text-display-lg-mobile md:text-display-lg text-accent-magenta tracking-tight">
               SheRides

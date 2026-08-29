@@ -18,7 +18,7 @@ export function FeedPost({ post, onToggleLike, onToggleSave }: FeedPostProps) {
   const [localComments, setLocalComments] = useState<string[]>([]);
 
   return (
-    <article className="bg-surface-container-lowest rounded-xl shadow-premium p-6 transition-transform hover:-translate-y-1 duration-300">
+    <article className="card-surface card-hover p-6 animate-fade-in-up">
       <div className="flex justify-between items-start mb-4">
         <div className="flex gap-3 items-center">
           <Link href={`/profile/${post.author.id}`} className="w-12 h-12 rounded-full overflow-hidden">
@@ -75,7 +75,12 @@ export function FeedPost({ post, onToggleLike, onToggleSave }: FeedPostProps) {
               post.liked ? "text-accent-magenta" : "text-secondary hover:text-accent-magenta"
             }`}
           >
-            <Icon name="favorite" filled={post.liked} className="group-hover:scale-110 transition-transform" />
+            <Icon
+              name="favorite"
+              filled={post.liked}
+              className={`group-hover:scale-110 transition-transform ${post.liked ? "animate-heart-pop" : ""}`}
+              key={String(post.liked)}
+            />
             <span className="font-label-lg text-label-lg">{post.likes}</span>
           </button>
           <button

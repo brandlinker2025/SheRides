@@ -1,6 +1,7 @@
 "use client";
 
 import { FeedPost } from "@/components/feed/FeedPost";
+import { FeedPostSkeleton } from "@/components/feed/FeedPostSkeleton";
 import { PostComposer } from "@/components/feed/PostComposer";
 import { StoriesRow } from "@/components/feed/StoriesRow";
 import { RightRail } from "@/components/layout/RightRail";
@@ -18,14 +19,17 @@ export default function HomeFeedPage() {
         <div className="col-span-1 lg:col-span-8 flex flex-col gap-component-gap">
           <StoriesRow />
           <PostComposer onPost={addPost} />
+          {loading &&
+            Array.from({ length: 3 }).map((_, i) => <FeedPostSkeleton key={i} />)}
           {!loading && posts.length === 0 && (
             <EmptyState
+              variant="feed"
               title="এখনো কোনো পোস্ট নেই। প্রথম পোস্ট করুন! 🏍️"
               action={
                 <button
                   type="button"
                   onClick={() => setCreateOpen(true)}
-                  className="px-6 py-3 bg-accent-magenta text-white rounded-full font-label-lg"
+                  className="px-6 py-3 bg-accent-magenta text-white rounded-full font-label-lg transition-all duration-200 hover:shadow-magenta hover:-translate-y-0.5 active:scale-95"
                 >
                   Create post
                 </button>

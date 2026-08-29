@@ -46,13 +46,16 @@ export default function RidesPage() {
         </Link>
       </div>
       {rides.length === 0 ? (
-        <EmptyState title="No rides yet." body="Check Events after the community calendar is seeded." />
+        <EmptyState variant="rides" title="No rides yet." body="Check Events after the community calendar is seeded." />
       ) : (
         <div className="flex flex-col gap-4">
           {rides.map((ride) => {
             const date = new Date(ride.starts_at);
             return (
-              <article key={ride.id} className="bg-white rounded-xl shadow-premium overflow-hidden flex flex-col md:flex-row">
+              <article
+                key={ride.id}
+                className="card-surface card-hover overflow-hidden flex flex-col md:flex-row"
+              >
                 <img src={ride.cover_url || img.canyon} alt="" className="md:w-64 h-40 md:h-auto object-cover" />
                 <div className="p-6 flex-1 flex flex-col md:flex-row md:items-center gap-4">
                   <div className="bg-surface-container-low rounded-lg p-3 text-center min-w-[64px]">

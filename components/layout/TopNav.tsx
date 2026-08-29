@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
 import { Icon } from "../ui/Icon";
 import { Avatar } from "../ui/Avatar";
+import { ThemeToggle } from "../ui/ThemeToggle";
 
 export function TopNav() {
   const { user } = useAuth();
@@ -34,13 +35,17 @@ export function TopNav() {
             <span className="hidden md:inline">Admin</span>
           </Link>
         )}
+        <ThemeToggle />
         <Link
           href="/notifications"
           className="w-10 h-10 rounded-full flex items-center justify-center text-on-primary hover:bg-white/10 transition-colors relative"
           aria-label="Notifications"
         >
           <Icon name="notifications" />
-          <span className="absolute top-2 right-2 w-2 h-2 bg-accent-magenta rounded-full" />
+          <span className="absolute top-2 right-2 flex h-2.5 w-2.5">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent-magenta opacity-75" />
+            <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-accent-magenta" />
+          </span>
         </Link>
         <Link href="/profile" className="flex items-center gap-2 min-w-0">
           <span className="hidden sm:block text-on-primary font-label-lg text-label-lg truncate max-w-[160px]">

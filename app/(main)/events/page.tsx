@@ -101,21 +101,23 @@ export default function EventsPage() {
           <button
             type="button"
             onClick={() => setView("list")}
-            className={`px-6 py-2 rounded-md font-label-lg text-label-lg ${view === "list" ? "bg-white text-on-background shadow-premium" : "text-tertiary"}`}
+            className={`px-6 py-2 rounded-md font-label-lg text-label-lg transition-all duration-200 ${view === "list" ? "bg-surface-container-lowest text-on-background shadow-premium" : "text-tertiary"}`}
           >
             List
           </button>
           <button
             type="button"
             onClick={() => setView("calendar")}
-            className={`px-6 py-2 rounded-md font-label-lg text-label-lg ${view === "calendar" ? "bg-white text-on-background shadow-premium" : "text-tertiary"}`}
+            className={`px-6 py-2 rounded-md font-label-lg text-label-lg transition-all duration-200 ${view === "calendar" ? "bg-surface-container-lowest text-on-background shadow-premium" : "text-tertiary"}`}
           >
             Calendar
           </button>
         </div>
       </header>
 
-      {events.length === 0 && <EmptyState title="No events yet." body="Admins can add rides from the admin panel." />}
+      {events.length === 0 && (
+        <EmptyState variant="events" title="No events yet." body="Admins can add rides from the admin panel." />
+      )}
 
       {featured && (
         <section className="mb-section-gap">
@@ -146,12 +148,15 @@ export default function EventsPage() {
       )}
 
       {view === "calendar" ? (
-        <div className="bg-white rounded-xl shadow-premium p-8">
+        <div className="card-surface p-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {events.map((e) => {
               const parts = dateParts(e.starts_at);
               return (
-                <div key={e.id} className="flex gap-4 p-4 rounded-lg border border-surface-border">
+                <div
+                  key={e.id}
+                  className="flex gap-4 p-4 rounded-lg border border-surface-border transition-colors duration-200 hover:bg-soft-off-white"
+                >
                   <div className="min-w-[60px] text-center">
                     <p className="font-label-caps text-accent-magenta">{parts.month}</p>
                     <p className="font-headline-md">{parts.day}</p>
@@ -191,7 +196,7 @@ export default function EventsPage() {
               {rest.map((e) => {
                 const parts = dateParts(e.starts_at);
                 return (
-                  <div key={e.id} className="bg-surface-container-lowest rounded-xl shadow-premium overflow-hidden flex flex-col">
+                  <div key={e.id} className="card-surface card-hover overflow-hidden flex flex-col">
                     <div className="aspect-video relative">
                       <img src={e.cover_url || img.canyon} alt={e.title} className="w-full h-full object-cover" />
                       <div className="absolute top-3 left-3 bg-white/90 px-2 py-1 rounded text-center">

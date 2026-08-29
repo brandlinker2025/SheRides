@@ -12,7 +12,7 @@ export default function SavedPage() {
     <div className="max-w-2xl mx-auto px-container-margin-mobile py-section-gap flex flex-col gap-component-gap">
       <h1 className="font-headline-xl text-headline-xl">Saved</h1>
       {saved.length === 0 ? (
-        <EmptyState title="No saved posts yet." body="Bookmark a post from the feed and it will live here." />
+        <EmptyState variant="saved" title="No saved posts yet." body="Bookmark a post from the feed and it will live here." />
       ) : (
         saved.map((post) => (
           <FeedPost key={post.id} post={post} onToggleLike={toggleLike} onToggleSave={toggleSave} />

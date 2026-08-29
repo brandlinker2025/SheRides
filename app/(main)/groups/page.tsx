@@ -114,7 +114,7 @@ export default function CommunitiesPage() {
       </div>
 
       {list.length === 0 ? (
-        <EmptyState title="No communities yet." body="Run supabase/seed.sql to add the four city groups." />
+        <EmptyState variant="groups" title="No communities yet." body="Run supabase/seed.sql to add the four city groups." />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
           {list.map((c) => (

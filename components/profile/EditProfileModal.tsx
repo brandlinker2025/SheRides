@@ -44,10 +44,10 @@ export function EditProfileModal({ onClose }: { onClose: () => void }) {
   }
 
   return (
-    <div className="fixed inset-0 z-[80] flex items-end sm:items-center justify-center bg-deep-charcoal/40 p-0 sm:p-6">
+    <div className="fixed inset-0 z-[80] flex items-end sm:items-center justify-center bg-deep-charcoal/40 backdrop-blur-sm p-0 sm:p-6 animate-fade-in">
       <button type="button" className="absolute inset-0" aria-label="Close" onClick={onClose} />
       <form
-        className="relative w-full max-w-lg bg-white rounded-t-xl sm:rounded-xl shadow-premium-hover p-6 max-h-[90vh] overflow-y-auto"
+        className="relative w-full max-w-lg bg-surface-container-lowest rounded-t-xl sm:rounded-xl shadow-premium-hover p-6 max-h-[90vh] overflow-y-auto animate-scale-in"
         onSubmit={async (e) => {
           e.preventDefault();
           setBusy(true);
@@ -105,14 +105,14 @@ export function EditProfileModal({ onClose }: { onClose: () => void }) {
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
             placeholder="Full name"
-            className="w-full bg-soft-off-white border border-surface-border rounded-lg px-4 py-3 focus:outline-none focus:border-accent-magenta"
+            className="w-full bg-soft-off-white border border-surface-border rounded-lg px-4 py-3 focus:outline-none focus:border-accent-magenta focus:ring-2 focus:ring-accent-magenta/20 transition-all duration-300"
           />
           <textarea
             value={bio}
             onChange={(e) => setBio(e.target.value)}
             placeholder="Bio"
             rows={3}
-            className="w-full bg-soft-off-white border border-surface-border rounded-lg px-4 py-3 focus:outline-none focus:border-accent-magenta"
+            className="w-full bg-soft-off-white border border-surface-border rounded-lg px-4 py-3 focus:outline-none focus:border-accent-magenta focus:ring-2 focus:ring-accent-magenta/20 transition-all duration-300"
           />
           <select
             value={location}
@@ -131,7 +131,7 @@ export function EditProfileModal({ onClose }: { onClose: () => void }) {
         <button
           type="submit"
           disabled={busy}
-          className="mt-6 w-full h-12 bg-accent-magenta text-white rounded-lg font-label-lg"
+          className="mt-6 w-full h-12 bg-accent-magenta text-white rounded-lg font-label-lg transition-all duration-200 hover:shadow-magenta hover:-translate-y-0.5 active:scale-95 disabled:opacity-60 disabled:pointer-events-none"
         >
           {busy ? "Saving..." : "Save profile"}
         </button>

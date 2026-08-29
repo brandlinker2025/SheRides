@@ -178,7 +178,11 @@ export default function MessagesPage() {
         <div className={`${!activeId && "hidden"} md:flex flex-1 flex-col h-full bg-surface-container-lowest`}>
           {!active ? (
             <div className="flex-1 flex items-center justify-center p-8">
-              <EmptyState title="Your messages live here." body="Razia Sultana Lina will welcome every new rider." />
+              <EmptyState
+                variant="messages"
+                title="Your messages live here."
+                body="Razia Sultana Lina will welcome every new rider."
+              />
             </div>
           ) : (
             <>
@@ -186,12 +190,14 @@ export default function MessagesPage() {
                 <Avatar src={active.avatar} alt={active.name} size={40} />
                 <h2 className="font-label-lg text-label-lg">{active.name}</h2>
               </div>
-              <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-[#FAFAFA]">
+              <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-soft-off-white">
                 {messages.map((m) => (
-                  <div key={m.id} className={`flex ${m.fromMe ? "justify-end" : "justify-start"}`}>
+                  <div key={m.id} className={`flex ${m.fromMe ? "justify-end" : "justify-start"} animate-fade-in-up`}>
                     <div
                       className={`max-w-[85%] p-3 rounded-2xl ${
-                        m.fromMe ? "bg-primary-container text-on-primary-container rounded-br-none" : "bg-white border border-surface-border rounded-bl-none"
+                        m.fromMe
+                          ? "bg-primary-container text-on-primary-container rounded-br-none"
+                          : "bg-surface-container-lowest border border-surface-border rounded-bl-none"
                       }`}
                     >
                       <p className="font-body-md text-sm whitespace-pre-wrap">{m.text}</p>

@@ -67,14 +67,18 @@ export default function NotificationsPage() {
         </button>
       </div>
       {items.length === 0 ? (
-        <EmptyState title="No notifications yet." body="Welcome messages and community updates will show up here." />
+        <EmptyState
+          variant="notifications"
+          title="No notifications yet."
+          body="Welcome messages and community updates will show up here."
+        />
       ) : (
-        <div className="bg-white rounded-xl shadow-premium divide-y divide-surface-border">
+        <div className="card-surface divide-y divide-surface-border overflow-hidden">
           {items.map((n) => (
             <Link
               key={n.id}
               href={n.href}
-              className={`flex gap-4 p-4 hover:bg-soft-off-white ${n.unread ? "bg-accent-magenta/5" : ""}`}
+              className={`flex gap-4 p-4 transition-colors duration-200 hover:bg-soft-off-white ${n.unread ? "bg-accent-magenta/5" : ""}`}
             >
               <Avatar src={n.avatar} alt={n.actor} size={48} />
               <div className="flex-1 min-w-0">
@@ -83,7 +87,12 @@ export default function NotificationsPage() {
                 </p>
                 <p className="font-body-sm text-tertiary">{n.time}</p>
               </div>
-              {n.unread && <span className="w-2 h-2 rounded-full bg-accent-magenta mt-2" />}
+              {n.unread && (
+                <span className="relative flex h-2.5 w-2.5 mt-2 shrink-0">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent-magenta opacity-75" />
+                  <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-accent-magenta" />
+                </span>
+              )}
             </Link>
           ))}
         </div>

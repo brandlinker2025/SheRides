@@ -39,7 +39,7 @@ export function RightRail() {
 
   return (
     <div className="hidden lg:flex flex-col col-span-4 gap-component-gap">
-      <div className="bg-surface-container-lowest rounded-xl shadow-premium p-6 border-t-4 border-accent-magenta">
+      <div className="card-surface card-hover p-6 border-t-4 border-accent-magenta">
         <div className="flex items-center gap-4 mb-4">
           <div className="w-14 h-14 rounded-full bg-accent-magenta/10 flex items-center justify-center text-accent-magenta">
             <Icon name="workspace_premium" filled size={32} />
@@ -61,7 +61,7 @@ export function RightRail() {
         </Link>
       </div>
 
-      <div className="bg-surface-container-lowest rounded-xl shadow-premium p-6">
+      <div className="card-surface card-hover p-6">
         <div className="flex justify-between items-center mb-4">
           <h3 className="font-headline-md text-body-lg font-bold text-on-surface">Upcoming Events</h3>
           <Link href="/events" className="font-label-lg text-label-lg text-accent-magenta hover:underline">
@@ -94,7 +94,7 @@ export function RightRail() {
         </div>
       </div>
 
-      <div className="bg-surface-container-lowest rounded-xl shadow-premium p-6">
+      <div className="card-surface card-hover p-6">
         <h3 className="font-headline-md text-body-lg font-bold text-on-surface mb-4">Suggested Riders</h3>
         <div className="flex flex-col gap-4">
           {suggested.length === 0 && <p className="font-body-sm text-tertiary">No other riders yet.</p>}
@@ -110,7 +110,7 @@ export function RightRail() {
         </div>
       </div>
 
-      <div className="bg-surface-container-lowest rounded-xl shadow-premium p-6">
+      <div className="card-surface card-hover p-6">
         <h3 className="font-headline-md text-body-lg font-bold text-on-surface mb-4">Trending Hashtags</h3>
         <div className="flex flex-col gap-3">
           {trendingHashtags.map((h) => (

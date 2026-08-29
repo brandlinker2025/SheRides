@@ -35,7 +35,7 @@ export function ProfileView({ rider, isSelf, onSignOut }: ProfileViewProps) {
 
   return (
     <div className="max-w-[1280px] mx-auto px-container-margin-mobile md:px-container-margin-desktop w-full pb-section-gap">
-      <div className="relative w-full bg-white rounded-xl shadow-premium overflow-hidden mt-6">
+      <div className="relative w-full bg-surface-container-lowest rounded-xl shadow-premium overflow-hidden mt-6">
         <div className="w-full h-48 md:h-80 bg-soft-off-white relative">
           {rider.cover ? (
             <img src={rider.cover} alt="" className="w-full h-full object-cover" />
@@ -45,7 +45,7 @@ export function ProfileView({ rider, isSelf, onSignOut }: ProfileViewProps) {
         </div>
         <div className="px-6 md:px-12 pb-8 relative">
           <div className="absolute -top-16 md:-top-24 left-6 md:left-12">
-            <div className="w-32 h-32 md:w-48 md:h-48 rounded-full border-4 border-white bg-soft-off-white overflow-hidden shadow-md">
+            <div className="w-32 h-32 md:w-48 md:h-48 rounded-full border-4 border-surface-container-lowest bg-soft-off-white overflow-hidden shadow-md">
               <Avatar src={rider.avatar} alt={rider.fullName} size={192} className="w-full h-full" />
             </div>
           </div>
@@ -149,7 +149,7 @@ export function ProfileView({ rider, isSelf, onSignOut }: ProfileViewProps) {
             key={t}
             type="button"
             onClick={() => setTab(t)}
-            className={`font-label-lg text-label-lg pb-2 whitespace-nowrap ${
+            className={`font-label-lg text-label-lg pb-2 whitespace-nowrap transition-colors duration-200 ${
               tab === t ? "text-accent-magenta border-b-2 border-accent-magenta" : "text-secondary hover:text-on-background"
             }`}
           >
@@ -166,7 +166,7 @@ export function ProfileView({ rider, isSelf, onSignOut }: ProfileViewProps) {
             ))}
           </div>
         ) : (
-          <EmptyState title="এখনো কোনো পোস্ট নেই। প্রথম পোস্ট করুন! 🏍️" />
+          <EmptyState variant="feed" title="এখনো কোনো পোস্ট নেই। প্রথম পোস্ট করুন! 🏍️" />
         ))}
 
       {tab === "Photos" &&
@@ -203,7 +203,10 @@ export function ProfileView({ rider, isSelf, onSignOut }: ProfileViewProps) {
           )
             .filter((item): item is { icon: string; label: string } => Boolean(item))
             .map((item) => (
-              <div key={item.label} className="bg-white rounded-xl shadow-premium p-6 border border-surface-border">
+              <div
+                key={item.label}
+                className="card-surface card-hover p-6 border border-surface-border"
+              >
                 <Icon name={item.icon} className="text-accent-magenta mb-2" />
                 <p className="font-label-lg">{item.label}</p>
               </div>

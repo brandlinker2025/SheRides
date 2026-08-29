@@ -11,7 +11,7 @@ export function RoleBadge({ rider }: { rider: Pick<Rider, "role" | "verified"> }
   }
   if (rider.verified) {
     return (
-      <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 font-label-caps text-label-caps">
+      <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-600 font-label-caps text-label-caps">
         <Icon name="verified" filled size={16} /> Verified Rider
       </span>
     );

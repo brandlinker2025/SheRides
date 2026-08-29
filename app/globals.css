@@ -4,6 +4,58 @@
 
 :root {
   color-scheme: light;
+  --color-surface: 249 249 249;
+  --color-surface-dim: 218 218 218;
+  --color-surface-bright: 249 249 249;
+  --color-surface-container-lowest: 255 255 255;
+  --color-surface-container-low: 243 243 244;
+  --color-surface-container: 238 238 238;
+  --color-surface-container-high: 232 232 232;
+  --color-surface-variant: 226 226 226;
+  --color-surface-border: 233 236 239;
+  --color-on-surface: 26 28 28;
+  --color-secondary: 93 94 97;
+  --color-tertiary: 90 92 93;
+  --color-outline: 143 111 115;
+  --color-soft-off-white: 248 249 250;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --color-surface: 18 19 22;
+  --color-surface-dim: 13 14 16;
+  --color-surface-bright: 42 44 48;
+  --color-surface-container-lowest: 30 32 35;
+  --color-surface-container-low: 36 38 42;
+  --color-surface-container: 42 44 48;
+  --color-surface-container-high: 48 50 54;
+  --color-surface-variant: 53 55 59;
+  --color-surface-border: 51 53 58;
+  --color-on-surface: 240 240 241;
+  --color-secondary: 184 185 188;
+  --color-tertiary: 154 156 158;
+  --color-outline: 169 129 134;
+  --color-soft-off-white: 38 40 44;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --color-surface: 18 19 22;
+    --color-surface-dim: 13 14 16;
+    --color-surface-bright: 42 44 48;
+    --color-surface-container-lowest: 30 32 35;
+    --color-surface-container-low: 36 38 42;
+    --color-surface-container: 42 44 48;
+    --color-surface-container-high: 48 50 54;
+    --color-surface-variant: 53 55 59;
+    --color-surface-border: 51 53 58;
+    --color-on-surface: 240 240 241;
+    --color-secondary: 184 185 188;
+    --color-tertiary: 154 156 158;
+    --color-outline: 169 129 134;
+    --color-soft-off-white: 38 40 44;
+  }
 }
 
 html,
@@ -12,8 +64,16 @@ body {
 }
 
 body {
-  background-color: #f9f9f9;
-  color: #1a1c1c;
+  background-color: rgb(var(--color-surface));
+  color: rgb(var(--color-on-surface));
+  transition: background-color 0.3s ease, color 0.3s ease;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  font-feature-settings: "cv11", "ss01", "cv01", "cv02";
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 .hide-scrollbar::-webkit-scrollbar {
@@ -30,7 +90,7 @@ body {
 }
 
 .chat-scroll::-webkit-scrollbar-thumb {
-  background-color: #e2e2e5;
+  background-color: rgb(var(--color-surface-variant));
   border-radius: 20px;
 }
 
@@ -45,4 +105,35 @@ body {
 .material-symbols-outlined {
   font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
   user-select: none;
+}
+
+@layer components {
+  .card-surface {
+    @apply bg-surface-container-lowest rounded-xl shadow-premium transition-all duration-300;
+  }
+  .card-hover {
+    @apply hover:shadow-premium-hover hover:-translate-y-1 transition-all duration-300;
+  }
+  .skeleton {
+    @apply relative overflow-hidden bg-surface-container-high rounded-lg;
+    background-image: linear-gradient(
+      90deg,
+      rgb(var(--color-surface-container-high)) 0%,
+      rgb(var(--color-surface-container)) 20%,
+      rgb(var(--color-surface-container-high)) 40%,
+      rgb(var(--color-surface-container-high)) 100%
+    );
+    background-size: 800px 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
