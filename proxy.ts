@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 const PUBLIC_PATHS = new Set(["/", "/login", "/admin-login", "/signup"]);
+const AUTH_ONLY_PATHS = new Set(["/pending-approval"]);
 const PUBLIC_METADATA_PATHS = new Set([
   "/manifest.webmanifest",
   "/robots.txt",
@@ -55,17 +56,41 @@ export async function proxy(request: NextRequest) {
     return redirectToLogin(request, pathname);
   }
 
+  if (AUTH_ONLY_PATHS.has(pathname)) {
+    return response;
+  }
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("verified, role")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  const isAdmin = profile?.role === "admin";
+  const isApproved = profile?.verified === true || isAdmin;
+
+  if (pathname.startsWith("/admin")) {
+    if (!isAdmin) {
+      return NextResponse.redirect(new URL(isApproved ? "/home" : "/pending-approval", request.url));
+    }
+    return response;
+  }
+
+  if (!isApproved) {
+    return NextResponse.redirect(new URL("/pending-approval", request.url));
+  }
+
   return response;
 }
 
 function redirectToLogin(request: NextRequest, pathname: string) {
-    const login = request.nextUrl.clone();
-    login.pathname = pathname.startsWith("/admin") ? "/admin-login" : "/login";
-    login.search = "";
-    if (pathname !== "/login" && pathname !== "/admin-login") {
-      login.searchParams.set("next", pathname);
-    }
-    return NextResponse.redirect(login);
+  const login = request.nextUrl.clone();
+  login.pathname = pathname.startsWith("/admin") ? "/admin-login" : "/login";
+  login.search = "";
+  if (pathname !== "/login" && pathname !== "/admin-login") {
+    login.searchParams.set("next", pathname);
+  }
+  return NextResponse.redirect(login);
 }
 
 export const config = {
