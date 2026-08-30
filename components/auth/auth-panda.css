@@ -1,77 +1,13 @@
-.panda-fx {
+.panda-stage {
   pointer-events: none;
   user-select: none;
 }
 
-.panda-fx-layer {
-  transition:
-    opacity 0.45s ease,
-    transform 0.55s cubic-bezier(0.22, 1, 0.36, 1),
-    filter 0.45s ease;
+.panda-state {
+  opacity: 0;
+  transition: opacity 0.45s ease;
 }
 
-.panda-fx-gaze {
-  animation: panda-fx-glow 3.8s ease-in-out infinite;
-}
-
-.panda-fx-tear {
-  animation: panda-fx-tear 1.6s ease-in infinite;
-}
-
-.panda-fx-heart {
-  animation: panda-fx-heart 1.8s ease-out infinite;
-}
-
-.panda-fx-sparkle {
-  animation: panda-fx-sparkle 1.4s ease-in-out infinite;
-}
-
-@keyframes panda-fx-glow {
-  0%,
-  100% {
-    opacity: 0.22;
-  }
-  50% {
-    opacity: 0.4;
-  }
-}
-
-@keyframes panda-fx-tear {
-  0% {
-    opacity: 0;
-    transform: translateY(-2px) scale(0.8);
-  }
-  30% {
-    opacity: 0.75;
-  }
-  100% {
-    opacity: 0;
-    transform: translateY(14px) scale(0.9);
-  }
-}
-
-@keyframes panda-fx-heart {
-  0% {
-    opacity: 0;
-    transform: translateY(6px) scale(0.5);
-  }
-  35% {
-    opacity: 0.85;
-  }
-  100% {
-    opacity: 0;
-    transform: translateY(-22px) scale(1);
-  }
-}
-
-@keyframes panda-fx-sparkle {
-  0%,
-  100% {
-    opacity: 0.15;
-    transform: scale(0.8);
-  }
-  50% {
-    opacity: 0.8;
-    transform: scale(1.08);
-  }
+.panda-state.is-active {
+  opacity: 1;
 }

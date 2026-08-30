@@ -9,7 +9,7 @@ import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { InteractivePanda } from "./InteractivePanda";
 import type { PandaMood } from "./panda-types";
 
-const PANDA_ART = "/images/sherides-panda-auth.png";
+const SCENE_ART = "/images/sherides-panda-scene.png";
 
 export const authFieldClass =
   "w-full rounded-xl border border-white/15 bg-black/45 px-4 py-3 text-white placeholder:text-white/45 outline-none transition-all duration-300 focus:border-[#E91E63] focus:ring-2 focus:ring-[#E91E63]/30";
@@ -21,21 +21,20 @@ type AuthSceneProps = {
   admin?: boolean;
 };
 
-export function AuthScene({ children, mood, track = 0, admin = false }: AuthSceneProps) {
+export function AuthScene({ children, mood, admin = false }: AuthSceneProps) {
   return (
     <div className="relative min-h-screen overflow-hidden bg-[#120d12] text-white">
       <Image
-        src={PANDA_ART}
+        src={SCENE_ART}
         alt=""
         fill
         priority
         sizes="100vw"
-        className="pointer-events-none object-cover object-[72%_center] select-none"
+        className="pointer-events-none object-cover object-[center_right] select-none"
       />
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/80 via-transparent to-black/75" />
-      <div className="pointer-events-none absolute inset-y-0 left-0 w-full bg-gradient-to-r from-black/72 via-black/35 to-transparent lg:w-[58%]" />
-
-      <InteractivePanda mood={mood} track={track} />
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-black/70 to-transparent" />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/70 to-transparent" />
+      <div className="pointer-events-none absolute inset-y-0 left-0 w-full max-w-[640px] bg-gradient-to-r from-black/60 via-black/25 to-transparent" />
 
       <div className="relative z-10 flex min-h-screen flex-col">
         <header className="flex items-center justify-between gap-3 px-4 py-4 sm:px-8">
@@ -66,8 +65,11 @@ export function AuthScene({ children, mood, track = 0, admin = false }: AuthScen
           </div>
         </header>
 
-        <main className="flex flex-1 items-center px-4 py-6 sm:px-8">
-          <section className="w-full max-w-[460px]">{children}</section>
+        <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col items-center gap-4 px-4 py-4 sm:px-8 lg:flex-row lg:items-end lg:justify-between">
+          <section className="order-2 w-full max-w-[460px] lg:order-1 lg:mb-10">{children}</section>
+          <section className="order-1 h-[230px] w-full max-w-[420px] sm:h-[300px] lg:order-2 lg:h-[min(68vh,620px)] lg:max-w-[560px]">
+            <InteractivePanda mood={mood} />
+          </section>
         </main>
 
         <footer className="mt-auto flex flex-col items-center justify-between gap-3 px-4 py-4 text-center text-white/70 sm:flex-row sm:px-8 sm:text-left">
