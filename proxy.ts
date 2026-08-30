@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 const PUBLIC_PATHS = new Set(["/", "/login", "/admin-login", "/signup"]);
-const AUTH_ONLY_PATHS = new Set(["/pending-approval"]);
+const AUTH_ONLY_PATHS = new Set(["/pending-approval", "/verification"]);
 const PUBLIC_METADATA_PATHS = new Set([
   "/manifest.webmanifest",
   "/robots.txt",
