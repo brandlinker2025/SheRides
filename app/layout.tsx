@@ -19,7 +19,7 @@ const montserrat = Montserrat({
 });
 
 const siteUrl = "https://sherides.online";
-const ogImage = "https://images.unsplash.com/photo-1558981806-ec527fa84c39?auto=format&fit=crop&w=1200&h=630&q=80";
+const ogImage = "/sherides-community-og.jpg";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
