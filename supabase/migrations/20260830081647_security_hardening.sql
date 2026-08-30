@@ -66,6 +66,15 @@ grant execute on function public.is_conversation_member(uuid) to authenticated;
 -- Browser clients must never be able to bootstrap or recover an admin role.
 revoke all on function public.ensure_first_admin() from public, anon, authenticated;
 
+-- Remove the development-only RPC that can write directly to auth.users.
+drop function if exists public.seed_auth_user(uuid, text, text, text, text);
+
+-- Direct-message creation is available only to signed-in users and uses a
+-- fixed search path because it bypasses table RLS intentionally.
+alter function public.get_or_create_dm(uuid) set search_path = '';
+revoke all on function public.get_or_create_dm(uuid) from public, anon;
+grant execute on function public.get_or_create_dm(uuid) to authenticated;
+
 create or replace function public.handle_new_user()
 returns trigger
 language plpgsql
@@ -92,6 +101,8 @@ drop trigger if exists on_auth_user_created on auth.users;
 create trigger on_auth_user_created
   after insert on auth.users
   for each row execute procedure public.handle_new_user();
+
+revoke all on function public.handle_new_user() from public, anon, authenticated;
 
 -- Welcome messages are an internal signup-trigger operation, not a public RPC.
 revoke all on function public.send_welcome_message(uuid) from public, anon, authenticated;
