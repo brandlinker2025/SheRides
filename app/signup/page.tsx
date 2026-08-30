@@ -40,8 +40,8 @@ function SignupForm() {
               e.preventDefault();
               setError(null);
               setInfo(null);
-              if (password.length < 10) {
-                setError("Use at least 10 characters for your password.");
+              if (password.length < 6) {
+                setError("Use at least 6 characters for your password.");
                 setPandaMood("sad");
                 return;
               }
@@ -94,13 +94,13 @@ function SignupForm() {
               <input
                 type={showPassword ? "text" : "password"}
                 required
-                minLength={10}
+                minLength={6}
                 maxLength={128}
                 autoComplete="new-password"
                 value={password}
                 onFocus={() => setPandaMood(showPassword ? "peek-password" : "hide")}
                 onChange={(e) => { setPassword(e.target.value); setPandaMood(showPassword ? "peek-password" : "hide"); }}
-                placeholder="Password (min. 10 characters)"
+                placeholder="Password (min. 6 characters)"
                 className="w-full bg-soft-off-white border border-surface-border rounded-lg px-4 py-3 pr-12 focus:outline-none focus:border-accent-magenta focus:ring-2 focus:ring-accent-magenta/20 transition-all duration-300"
               />
               <button
@@ -119,7 +119,7 @@ function SignupForm() {
             <input
               type={showPassword ? "text" : "password"}
               required
-              minLength={10}
+              minLength={6}
               maxLength={128}
               autoComplete="new-password"
               value={confirmPassword}
