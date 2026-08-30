@@ -1,4 +1,5 @@
 import { UsersTable } from "@/components/admin/UsersTable";
+import { BackLink } from "@/components/ui/BackLink";
 import { loadAdminUsers } from "@/lib/admin/queries";
 import { requireAdmin } from "@/lib/supabase/require-admin";
 
@@ -9,6 +10,7 @@ export default async function AdminUsersPage() {
   return (
     <div>
       <div className="mb-section-gap">
+        <BackLink href="/admin" label="Dashboard" className="mb-3" />
         <h1 className="font-headline-xl text-headline-xl mb-2">Users</h1>
         <p className="font-body-lg text-secondary">View registered riders and grant or remove the verified badge.</p>
       </div>

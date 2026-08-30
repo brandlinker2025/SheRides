@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Avatar } from "@/components/ui/Avatar";
+import { BackLink } from "@/components/ui/BackLink";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { useAuth } from "@/lib/auth-context";
 import { formatRelativeTime } from "@/lib/profile";
@@ -60,6 +61,7 @@ export default function NotificationsPage() {
 
   return (
     <div className="max-w-2xl mx-auto px-container-margin-mobile py-section-gap">
+      <BackLink href="/home" label="Home" className="mb-4" />
       <div className="flex items-center justify-between mb-6">
         <h1 className="font-headline-xl text-headline-xl">Notifications</h1>
         <button type="button" onClick={() => void markAllRead()} className="font-label-lg text-accent-magenta">
@@ -78,6 +80,13 @@ export default function NotificationsPage() {
             <Link
               key={n.id}
               href={n.href}
+              onClick={() => {
+                if (!n.unread) return;
+                const supabase = createClient();
+                if (!supabase || !user) return;
+                void supabase.from("notifications").update({ read: true }).eq("id", n.id);
+                setItems((prev) => prev.map((item) => (item.id === n.id ? { ...item, unread: false } : item)));
+              }}
               className={`flex gap-4 p-4 transition-colors duration-200 hover:bg-soft-off-white ${n.unread ? "bg-accent-magenta/5" : ""}`}
             >
               <Avatar src={n.avatar} alt={n.actor} size={48} />

@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { isPandaOverlayMood, type PandaMood } from "./panda-types";
+import type { PandaMood } from "./panda-types";
 import "./auth-panda.css";
 
 export type { PandaMood } from "./panda-types";
@@ -35,6 +35,15 @@ const DEFAULT_SPEECH: Record<PandaMood, string> = {
   happy: "Yay! Let's ride! ♥",
 };
 
+function motionClass(mood: PandaMood) {
+  if (mood === "look" || mood === "track") return "panda-look";
+  if (mood === "cover") return "panda-cover";
+  if (mood === "peek") return "panda-peek";
+  if (mood === "sad") return "panda-sad";
+  if (mood === "happy") return "panda-happy";
+  return "panda-breathe";
+}
+
 type InteractivePandaProps = {
   mood: PandaMood;
   speech?: string;
@@ -43,32 +52,25 @@ type InteractivePandaProps = {
 
 export function InteractivePanda({ mood, speech, admin = false }: InteractivePandaProps) {
   const active = PANDA_STATES[mood];
-  const showOverlay = isPandaOverlayMood(mood);
   const message =
     speech ??
     (admin && mood === "idle" ? "Admin access only. I’ll keep watch." : DEFAULT_SPEECH[mood]);
 
   return (
     <div className="panda-stage pointer-events-none absolute inset-0" aria-hidden="true">
-      {showOverlay
-        ? PANDA_ASSETS.map((src) => (
-            <div
-              key={src}
-              className={`absolute left-[6%] bottom-[2%] h-[86%] w-[72%] max-w-[540px] sm:left-[10%] sm:w-[64%] ${
-                src === active ? "panda-state is-active" : "panda-state"
-              }`}
-            >
-              <Image
-                src={src}
-                alt=""
-                fill
-                sizes="(min-width: 1024px) 36vw, 80vw"
-                priority={src === PANDA_STATES.cover}
-                className="object-contain object-bottom select-none"
-              />
-            </div>
-          ))
-        : null}
+      <div className={`absolute left-[4%] bottom-[1%] h-[88%] w-[74%] max-w-[560px] sm:left-[8%] sm:w-[66%] ${motionClass(mood)}`}>
+        {PANDA_ASSETS.map((src) => (
+          <Image
+            key={src}
+            src={src}
+            alt=""
+            fill
+            sizes="(min-width: 1024px) 36vw, 80vw"
+            priority={src === PANDA_STATES.idle || src === PANDA_STATES.look}
+            className={`object-contain object-bottom select-none ${src === active ? "panda-state is-active" : "panda-state"}`}
+          />
+        ))}
+      </div>
 
       <div
         key={message}

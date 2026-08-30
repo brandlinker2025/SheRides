@@ -58,10 +58,6 @@ export function BottomNav() {
           }`}
         />
         <span className="font-label-caps text-label-caps">Messages</span>
-        <span className="absolute top-0 right-2 flex h-2.5 w-2.5">
-          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent-magenta opacity-75" />
-          <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-accent-magenta border-2 border-surface" />
-        </span>
       </Link>
       <div className="relative">{item("/profile", "person", "Profile")}</div>
     </nav>

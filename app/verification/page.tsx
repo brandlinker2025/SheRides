@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { BackLink } from "@/components/ui/BackLink";
 import { BrandLogo } from "@/components/ui/BrandLogo";
 
 const MAX_FILE_BYTES = 10 * 1024 * 1024;
@@ -116,6 +117,7 @@ export default function VerificationPage() {
   return (
     <main className="min-h-screen bg-surface flex items-center justify-center px-container-margin-mobile py-section-gap">
       <section className="w-full max-w-xl bg-surface-container-lowest rounded-xl shadow-premium p-8">
+        <BackLink href="/login" label="Back to sign in" className="mb-4" />
         <Link href="/" className="inline-block mb-6" aria-label="SheRides home">
           <BrandLogo className="text-[42px]" />
         </Link>

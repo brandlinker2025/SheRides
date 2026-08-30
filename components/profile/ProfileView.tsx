@@ -116,8 +116,11 @@ export function ProfileView({ rider, isSelf, onSignOut }: ProfileViewProps) {
                       const supabase = createClient();
                       if (!supabase) return;
                       const { data, error } = await supabase.rpc("get_or_create_dm", { other_id: rider.id });
-                      if (!error) router.push(`/messages?c=${data ?? ""}`);
-                      else router.push("/messages");
+                      if (error || !data) {
+                        window.alert(error?.message || "Could not open that conversation.");
+                        return;
+                      }
+                      router.push(`/messages?c=${data}`);
                     }}
                     className="flex-1 md:flex-none px-8 py-3 bg-deep-charcoal text-white rounded-lg font-label-lg"
                   >

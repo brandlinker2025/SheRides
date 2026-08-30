@@ -22,6 +22,36 @@
   opacity: 1;
 }
 
+.panda-breathe {
+  animation: panda-breathe 3.4s ease-in-out infinite;
+  transform-origin: 50% 90%;
+}
+
+.panda-look {
+  animation: panda-look 2.6s ease-in-out infinite;
+  transform-origin: 50% 90%;
+}
+
+.panda-cover {
+  animation: panda-cover 1.8s ease-in-out infinite;
+  transform-origin: 50% 80%;
+}
+
+.panda-peek {
+  animation: panda-peek 1.6s ease-in-out infinite;
+  transform-origin: 55% 80%;
+}
+
+.panda-sad {
+  animation: panda-sad 2.2s ease-in-out infinite;
+  transform-origin: 50% 90%;
+}
+
+.panda-happy {
+  animation: panda-happy 0.9s ease-in-out infinite;
+  transform-origin: 50% 90%;
+}
+
 .panda-speech {
   animation: panda-speech-in 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
@@ -38,6 +68,66 @@
   border-radius: 2px;
 }
 
+@keyframes panda-breathe {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(-4px, -8px, 0) scale(1.025);
+  }
+}
+
+@keyframes panda-look {
+  0%,
+  100% {
+    transform: translate3d(-6px, 0, 0) rotate(-2deg);
+  }
+  50% {
+    transform: translate3d(-14px, -4px, 0) rotate(-4deg);
+  }
+}
+
+@keyframes panda-cover {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(0, 6px, 0) scale(0.98);
+  }
+}
+
+@keyframes panda-peek {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+  50% {
+    transform: translate3d(4px, -4px, 0) rotate(3deg);
+  }
+}
+
+@keyframes panda-sad {
+  0%,
+  100% {
+    transform: translate3d(0, 4px, 0) rotate(-2deg);
+  }
+  50% {
+    transform: translate3d(-3px, 8px, 0) rotate(-4deg);
+  }
+}
+
+@keyframes panda-happy {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(0, -10px, 0) scale(1.04);
+  }
+}
+
 @keyframes panda-speech-in {
   from {
     opacity: 0;
@@ -51,7 +141,13 @@
 
 @media (prefers-reduced-motion: reduce) {
   .panda-state,
-  .panda-speech {
+  .panda-speech,
+  .panda-breathe,
+  .panda-look,
+  .panda-cover,
+  .panda-peek,
+  .panda-sad,
+  .panda-happy {
     animation: none;
     transition: none;
   }

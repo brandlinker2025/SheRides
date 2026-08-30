@@ -1,4 +1,5 @@
 import { VerificationReviewTable } from "@/components/admin/VerificationReviewTable";
+import { BackLink } from "@/components/ui/BackLink";
 import { loadAdminVerifications } from "@/lib/admin/queries";
 import { requireAdmin } from "@/lib/supabase/require-admin";
 
@@ -15,6 +16,7 @@ export default async function AdminVerificationsPage() {
   return (
     <div>
       <div className="mb-section-gap">
+        <BackLink href="/admin" label="Dashboard" className="mb-3" />
         <h1 className="font-headline-xl text-headline-xl mb-2">Verification Center</h1>
         <p className="font-body-lg text-secondary">
           Review each rider&apos;s submitted identity/rider document before granting community access.
