@@ -3,13 +3,18 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 const PUBLIC_PATHS = new Set(["/", "/login", "/signup"]);
+const PUBLIC_METADATA_PATHS = new Set([
+  "/manifest.webmanifest",
+  "/robots.txt",
+  "/sitemap.xml",
+  "/sw.js",
+  "/icon.svg",
+]);
 
 function isPublicPath(pathname: string) {
   if (PUBLIC_PATHS.has(pathname)) return true;
   if (pathname.startsWith("/_next/")) return true;
-  if (pathname === "/manifest.webmanifest" || pathname === "/sw.js" || pathname === "/icon.svg") {
-    return true;
-  }
+  if (PUBLIC_METADATA_PATHS.has(pathname)) return true;
   if (/\.(?:svg|png|jpg|jpeg|gif|webp|ico|js|css|woff2?|map)$/i.test(pathname)) return true;
   return false;
 }
