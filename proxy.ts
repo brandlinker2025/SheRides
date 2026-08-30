@@ -2,7 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-const PUBLIC_PATHS = new Set(["/", "/login", "/signup"]);
+const PUBLIC_PATHS = new Set(["/", "/login", "/admin-login", "/signup"]);
 const PUBLIC_METADATA_PATHS = new Set([
   "/manifest.webmanifest",
   "/robots.txt",
@@ -60,9 +60,9 @@ export async function proxy(request: NextRequest) {
 
 function redirectToLogin(request: NextRequest, pathname: string) {
     const login = request.nextUrl.clone();
-    login.pathname = "/login";
+    login.pathname = pathname.startsWith("/admin") ? "/admin-login" : "/login";
     login.search = "";
-    if (pathname !== "/login") {
+    if (pathname !== "/login" && pathname !== "/admin-login") {
       login.searchParams.set("next", pathname);
     }
     return NextResponse.redirect(login);
