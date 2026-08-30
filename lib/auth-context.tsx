@@ -131,12 +131,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           password,
           options: {
             data: { full_name: fullName, username: email.split("@")[0] },
-            emailRedirectTo: origin ? `${origin}/home` : undefined,
+            emailRedirectTo: origin ? `${origin}/verification` : undefined,
           },
         });
         if (error) return error.message;
         if (data.user && !data.session) {
-          return "Check your email to confirm your account, then sign in.";
+          return "Check your email to confirm your account, then sign in and complete rider verification.";
         }
         if (data.user) {
           await supabase.from("profiles").upsert({
