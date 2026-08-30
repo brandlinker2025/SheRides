@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { createServerSupabase } from "./server";
 
 export async function requireUser() {
-  const supabase = createServerSupabase();
+  const supabase = await createServerSupabase();
   if (!supabase) {
     redirect("/login");
   }

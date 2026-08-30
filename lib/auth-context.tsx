@@ -9,7 +9,6 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { promoteFirstAdmin } from "./admin/promote-first-admin";
 import { riderFromProfile } from "./profile";
 import { createClient } from "./supabase/client";
 import type { Rider } from "./types";
@@ -51,17 +50,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         username: fullName?.toLowerCase().replace(/\s+/g, "") || id.slice(0, 8),
       });
     }
-    await promoteFirstAdmin(supabase, id);
-    const { data: auth } = await supabase.auth.getUser();
-    const email = auth.user?.email?.toLowerCase();
-    if (email === "admin@sherides.com") {
-      await supabase.from("profiles").update({ role: "admin", verified: true }).eq("id", id);
-    }
     const latest = await supabase.from("profiles").select("*").eq("id", id).maybeSingle();
-    if (latest.data?.role === "admin" && !latest.data.verified) {
-      await supabase.from("profiles").update({ verified: true }).eq("id", id);
-      latest.data.verified = true;
-    }
     const { count } = await supabase.from("posts").select("*", { count: "exact", head: true }).eq("author_id", id);
     const rider = riderFromProfile(id, latest.data, fullName);
     rider.postsCount = count ?? 0;
@@ -155,7 +144,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             full_name: fullName,
             username: email.split("@")[0],
           });
-          await supabase.rpc("send_welcome_message", { new_user_id: data.user.id });
         }
         return null;
       },
