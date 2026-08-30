@@ -53,6 +53,25 @@ export default function VerificationPage() {
       return;
     }
 
+    const { data: previous } = await supabase
+      .from("verifications")
+      .select("id,status")
+      .eq("user_id", authData.user.id)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (previous?.status === "pending") {
+      setBusy(false);
+      router.replace("/pending-approval");
+      return;
+    }
+    if (previous?.status === "approved") {
+      setBusy(false);
+      router.replace("/home");
+      return;
+    }
+
     const ext = file.type === "application/pdf" ? "pdf" : file.type === "image/png" ? "png" : file.type === "image/webp" ? "webp" : "jpg";
     const path = `${authData.user.id}/${crypto.randomUUID()}.${ext}`;
     const { error: uploadError } = await supabase.storage.from("verifications").upload(path, file, {
@@ -77,14 +96,6 @@ export default function VerificationPage() {
       reviewed_by: null,
       notes: null,
     };
-
-    const { data: previous } = await supabase
-      .from("verifications")
-      .select("id,status")
-      .eq("user_id", authData.user.id)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
 
     const result = previous?.status === "rejected"
       ? await supabase.from("verifications").update(payload).eq("id", previous.id)
