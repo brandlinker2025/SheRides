@@ -24,10 +24,6 @@ function SignupForm() {
     if (emailParam) setEmail(emailParam);
   }, [params]);
 
-  useEffect(() => {
-    if (!loading && user) router.replace("/home");
-  }, [loading, user, router]);
-
   return (
     <div className="min-h-screen bg-surface flex items-center justify-center px-container-margin-mobile py-section-gap relative overflow-hidden">
       <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-primary-fixed-dim opacity-20 blur-[120px] rounded-full pointer-events-none" />

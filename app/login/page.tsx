@@ -28,10 +28,6 @@ function LoginForm() {
   const [resetMessage, setResetMessage] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  useEffect(() => {
-    if (!loading && user) router.replace(next);
-  }, [loading, user, next, router]);
-
   async function handleForgotPassword() {
     setError(null);
     if (!email.trim()) {
