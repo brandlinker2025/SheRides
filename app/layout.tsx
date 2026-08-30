@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, Montserrat } from "next/font/google";
+import localFont from "next/font/local";
 import { AppProviders } from "@/components/providers/AppProviders";
 import { InstallPrompt } from "@/components/pwa/InstallPrompt";
 import { RegisterSW } from "@/components/pwa/RegisterSW";
@@ -16,6 +17,13 @@ const montserrat = Montserrat({
   weight: ["600", "700"],
   variable: "--font-montserrat",
   display: "swap",
+});
+
+const butterpop = localFont({
+  src: "./fonts/Butterpop.ttf",
+  variable: "--font-butterpop",
+  display: "swap",
+  weight: "400",
 });
 
 const siteUrl = "https://sherides.online";
@@ -64,7 +72,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${inter.variable} ${montserrat.variable}`}>
+    <html lang="en" className={`${inter.variable} ${montserrat.variable} ${butterpop.variable}`}>
       <head>
         <link rel="icon" href="/icon.svg" type="image/svg+xml" />
         <link rel="apple-touch-icon" href="/icon.svg" />

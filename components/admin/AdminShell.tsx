@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Icon } from "@/components/ui/Icon";
+import { BrandLogo } from "@/components/ui/BrandLogo";
 
 const nav = [
   { href: "/admin", label: "Dashboard", icon: "dashboard", exact: true },
@@ -24,15 +25,15 @@ export function AdminShell({
   return (
     <div className="min-h-screen bg-background">
       <header className="fixed top-0 w-full z-50 flex justify-between items-center px-gutter py-base bg-deep-charcoal md:hidden">
-        <span className="font-display-lg-mobile font-bold text-accent-magenta">SheRides Admin</span>
+        <BrandLogo suffix="Admin" className="text-[28px]" />
         <Link href="/home" className="text-on-primary/80 font-label-lg text-label-lg">
           App
         </Link>
       </header>
       <nav className="hidden md:flex flex-col h-screen fixed left-0 top-0 py-section-gap w-64 bg-deep-charcoal shadow-xl z-50">
         <div className="px-base mb-section-gap">
-          <Link href="/home" className="font-display-lg text-display-lg text-accent-magenta font-bold">
-            SheRides
+          <Link href="/home" aria-label="SheRides community home">
+            <BrandLogo className="text-[46px]" />
           </Link>
           <div className="text-on-primary opacity-70 font-label-caps text-label-caps mt-2">Admin Panel</div>
           {adminName && <p className="text-on-primary/50 font-body-sm text-body-sm mt-2">{adminName}</p>}

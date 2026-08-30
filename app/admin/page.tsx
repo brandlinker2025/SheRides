@@ -33,7 +33,7 @@ export default async function AdminDashboardPage() {
           <Link
             key={card.label}
             href={card.href}
-            className="bg-white rounded-xl shadow-premium border border-surface-border p-6 hover:shadow-premium-hover transition-shadow"
+            className="bg-surface-container-lowest text-on-surface rounded-xl shadow-premium border border-surface-border p-6 hover:shadow-premium-hover transition-shadow"
           >
             <Icon name={card.icon} className="text-accent-magenta" />
             <p className="font-display-lg text-[36px] text-on-background mt-3">{card.value}</p>
@@ -42,7 +42,7 @@ export default async function AdminDashboardPage() {
         ))}
       </div>
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-gutter">
-        <section className="bg-white rounded-xl shadow-premium border border-surface-border p-6">
+        <section className="bg-surface-container-lowest text-on-surface rounded-xl shadow-premium border border-surface-border p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-headline-md text-headline-md">Recent riders</h2>
             <Link href="/admin/users" className="text-accent-magenta font-label-lg">
@@ -66,7 +66,7 @@ export default async function AdminDashboardPage() {
             {usersResult.users.length === 0 && <p className="font-body-sm text-tertiary">No registered users yet.</p>}
           </div>
         </section>
-        <section className="bg-white rounded-xl shadow-premium border border-surface-border p-6">
+        <section className="bg-surface-container-lowest text-on-surface rounded-xl shadow-premium border border-surface-border p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-headline-md text-headline-md">Latest posts</h2>
             <Link href="/admin/posts" className="text-accent-magenta font-label-lg">
@@ -85,7 +85,7 @@ export default async function AdminDashboardPage() {
         </section>
       </div>
       {eventsResult.events.length > 0 && (
-        <section className="bg-white rounded-xl shadow-premium border border-surface-border p-6 mt-gutter">
+        <section className="bg-surface-container-lowest text-on-surface rounded-xl shadow-premium border border-surface-border p-6 mt-gutter">
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-headline-md text-headline-md">Upcoming events</h2>
             <Link href="/admin/events" className="text-accent-magenta font-label-lg">

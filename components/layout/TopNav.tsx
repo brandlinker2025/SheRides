@@ -5,6 +5,7 @@ import { useAuth } from "@/lib/auth-context";
 import { Icon } from "../ui/Icon";
 import { Avatar } from "../ui/Avatar";
 import { ThemeToggle } from "../ui/ThemeToggle";
+import { BrandLogo } from "../ui/BrandLogo";
 
 export function TopNav() {
   const { user } = useAuth();
@@ -12,8 +13,8 @@ export function TopNav() {
   return (
     <header className="fixed top-0 w-full z-50 flex justify-between items-center px-gutter py-base bg-deep-charcoal shadow-nav">
       <div className="flex items-center gap-gutter">
-        <Link href="/home" className="font-display-lg text-display-lg-mobile font-bold text-accent-magenta tracking-tight">
-          SheRides
+        <Link href="/home" aria-label="SheRides home">
+          <BrandLogo className="text-[36px] sm:text-[40px]" />
         </Link>
         <div className="hidden md:flex items-center bg-surface-container-low/10 rounded-full px-4 py-2 w-64 border border-white/10 focus-within:border-accent-magenta transition-colors">
           <Icon name="search" className="text-on-primary/70 mr-2" />
