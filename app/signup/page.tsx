@@ -6,6 +6,7 @@ import { Suspense, useState } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { Icon } from "@/components/ui/Icon";
 import { AuthScene, authFieldClass } from "@/components/auth/AuthScene";
+import { AuthOrDivider, AuthSocialButtons } from "@/components/auth/AuthSocialButtons";
 import { usePandaForm } from "@/components/auth/usePandaForm";
 
 function SignupForm() {
@@ -23,10 +24,16 @@ function SignupForm() {
   const panda = usePandaForm();
 
   return (
-    <AuthScene mood={panda.mood} track={panda.track}>
-      <div className="rounded-[28px] border border-[#E91E63]/45 bg-[rgba(18,14,20,0.72)] p-6 shadow-[0_20px_50px_rgba(0,0,0,0.35),0_0_0_1px_rgba(233,30,99,0.12)] backdrop-blur-xl sm:p-8">
+    <AuthScene
+      mood={panda.mood}
+      track={panda.track}
+      speech={
+        panda.mood === "idle" ? "Hey Rider! ♥ Create your account and join the ride!" : undefined
+      }
+    >
+      <div className="w-full rounded-[28px] border border-[#FF2D78]/50 bg-[rgba(12,10,14,0.82)] p-6 shadow-[0_20px_50px_rgba(0,0,0,0.35),0_0_0_1px_rgba(255,45,120,0.12)] backdrop-blur-xl sm:p-8">
         <h1
-          className="mb-1 text-[34px] leading-none text-[#E91E63] sm:text-[40px]"
+          className="mb-1 text-[34px] leading-none text-[#FF2D78] sm:text-[42px]"
           style={{ fontFamily: "var(--font-butterpop), Georgia, serif" }}
         >
           Join Community
@@ -128,7 +135,7 @@ function SignupForm() {
                   return nextValue;
                 });
               }}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-white/55 transition-colors hover:text-[#E91E63]"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-white/55 transition-colors hover:text-[#FF2D78]"
               aria-label={showPassword ? "Hide password" : "Show password"}
             >
               <Icon name={showPassword ? "visibility_off" : "visibility"} size={20} />
@@ -152,18 +159,27 @@ function SignupForm() {
               {error}
             </p>
           )}
-          {info && <p className="text-sm text-[#E91E63]">{info}</p>}
+          {info && <p className="text-sm text-[#FF2D78]">{info}</p>}
           <button
             type="submit"
             disabled={busy}
-            className="h-[56px] rounded-full bg-[#E91E63] font-label-lg text-white shadow-magenta transition-all duration-200 hover:-translate-y-0.5 hover:bg-primary-container active:scale-[0.98] disabled:pointer-events-none disabled:opacity-60"
+            className="h-[56px] rounded-full bg-[#FF2D78] font-label-lg text-white shadow-magenta transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#e2165f] active:scale-[0.98] disabled:pointer-events-none disabled:opacity-60"
           >
             {busy ? "Creating account..." : "Create Account"}
           </button>
         </form>
+        <div className="mt-5 flex flex-col gap-4">
+          <AuthOrDivider />
+          <AuthSocialButtons
+            onError={(message) => {
+              setError(message);
+              panda.onError();
+            }}
+          />
+        </div>
         <p className="mt-6 text-sm text-white/70">
           Already a member?{" "}
-          <Link href="/login" className="font-label-lg text-[#E91E63]">
+          <Link href="/login" className="font-label-lg text-[#FF2D78]">
             Sign In
           </Link>
         </p>

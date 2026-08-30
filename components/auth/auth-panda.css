@@ -1,3 +1,13 @@
+.auth-page {
+  --auth-pink: #ff2d78;
+  --auth-pink-deep: #e91e63;
+  --auth-ink: #0b090c;
+}
+
+.auth-scene-panel {
+  isolation: isolate;
+}
+
 .panda-stage {
   pointer-events: none;
   user-select: none;
@@ -10,4 +20,39 @@
 
 .panda-state.is-active {
   opacity: 1;
+}
+
+.panda-speech {
+  animation: panda-speech-in 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.panda-speech::after {
+  content: "";
+  position: absolute;
+  right: 1.6rem;
+  bottom: -0.38rem;
+  width: 0.72rem;
+  height: 0.72rem;
+  background: inherit;
+  transform: rotate(45deg);
+  border-radius: 2px;
+}
+
+@keyframes panda-speech-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .panda-state,
+  .panda-speech {
+    animation: none;
+    transition: none;
+  }
 }
