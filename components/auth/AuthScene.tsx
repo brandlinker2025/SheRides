@@ -13,7 +13,7 @@ import {
   TikTokMark,
   YouTubeMark,
 } from "./auth-marks";
-import type { PandaMood } from "./panda-types";
+import { isPandaOverlayMood, type PandaMood } from "./panda-types";
 import "./auth-panda.css";
 
 const SCENE_ART = "/images/sherides-panda-scene.png";
@@ -44,6 +44,8 @@ type AuthSceneProps = {
 };
 
 export function AuthScene({ children, mood, speech, admin = false }: AuthSceneProps) {
+  const overlayMood = isPandaOverlayMood(mood);
+
   return (
     <div className="auth-page relative min-h-screen overflow-x-hidden bg-[#0b090c] text-white">
       <div className="relative z-10 flex min-h-screen flex-col">
@@ -92,16 +94,21 @@ export function AuthScene({ children, mood, speech, admin = false }: AuthScenePr
 
         <main className="mx-auto grid w-full max-w-[1440px] flex-1 grid-cols-1 items-stretch gap-4 px-4 pb-4 sm:px-8 lg:grid-cols-[minmax(0,460px)_minmax(0,1fr)] lg:gap-8">
           <section className="order-2 flex w-full items-center lg:order-1 lg:py-4">{children}</section>
-          <section className="auth-scene-panel relative order-1 h-[240px] overflow-hidden rounded-[28px] border border-white/10 sm:h-[320px] lg:order-2 lg:h-auto lg:min-h-[560px] lg:rounded-[32px]">
+          <section className="auth-scene-panel relative order-1 h-[260px] overflow-hidden rounded-[28px] border border-white/10 sm:h-[320px] lg:order-2 lg:h-auto lg:min-h-[560px] lg:rounded-[32px]">
             <Image
               src={SCENE_ART}
               alt="SheRides panda pointing toward the login form from a sunset overlook"
               fill
               priority
               sizes="(min-width: 1024px) 55vw, 100vw"
-              className="object-cover object-[28%_center] select-none"
+              className={`object-cover object-[42%_center] select-none transition-opacity duration-300 ${
+                overlayMood ? "opacity-40" : "opacity-100"
+              }`}
             />
             <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[#0b090c]/35 via-transparent to-transparent lg:from-[#0b090c]/20" />
+            {overlayMood ? (
+              <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_38%_72%,rgba(8,6,10,0.92)_0%,rgba(8,6,10,0.45)_48%,transparent_78%)]" />
+            ) : null}
             <InteractivePanda mood={mood} speech={speech} admin={admin} />
             <p className="absolute bottom-3 left-1/2 z-20 flex -translate-x-1/2 items-center gap-1 rounded-full border border-white/20 bg-black/45 px-3 py-1 text-[11px] whitespace-nowrap text-white/90 backdrop-blur-md">
               <Icon name="verified_user" size={14} filled className="text-[#FF2D78]" />

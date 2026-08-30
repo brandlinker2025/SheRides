@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import type { PandaMood } from "./panda-types";
+import { isPandaOverlayMood, type PandaMood } from "./panda-types";
 import "./auth-panda.css";
 
 export type { PandaMood } from "./panda-types";
@@ -35,8 +35,6 @@ const DEFAULT_SPEECH: Record<PandaMood, string> = {
   happy: "Yay! Let's ride! ♥",
 };
 
-const OVERLAY_MOODS: PandaMood[] = ["cover", "peek", "sad", "happy"];
-
 type InteractivePandaProps = {
   mood: PandaMood;
   speech?: string;
@@ -45,7 +43,7 @@ type InteractivePandaProps = {
 
 export function InteractivePanda({ mood, speech, admin = false }: InteractivePandaProps) {
   const active = PANDA_STATES[mood];
-  const showOverlay = OVERLAY_MOODS.includes(mood);
+  const showOverlay = isPandaOverlayMood(mood);
   const message =
     speech ??
     (admin && mood === "idle" ? "Admin access only. I’ll keep watch." : DEFAULT_SPEECH[mood]);
@@ -56,7 +54,7 @@ export function InteractivePanda({ mood, speech, admin = false }: InteractivePan
         ? PANDA_ASSETS.map((src) => (
             <div
               key={src}
-              className={`absolute left-[2%] bottom-[4%] h-[78%] w-[68%] max-w-[520px] sm:left-[6%] sm:w-[62%] ${
+              className={`absolute left-[6%] bottom-[2%] h-[86%] w-[72%] max-w-[540px] sm:left-[10%] sm:w-[64%] ${
                 src === active ? "panda-state is-active" : "panda-state"
               }`}
             >
@@ -74,7 +72,7 @@ export function InteractivePanda({ mood, speech, admin = false }: InteractivePan
 
       <div
         key={message}
-        className="panda-speech absolute left-3 top-4 z-20 max-w-[220px] rounded-2xl bg-white px-3.5 py-2.5 text-[12px] font-medium leading-snug text-[#2a1a22] shadow-[0_12px_28px_rgba(0,0,0,0.28)] sm:left-6 sm:top-6 sm:max-w-[260px] sm:text-[13px]"
+        className="panda-speech absolute left-3 top-3 z-20 max-w-[200px] rounded-2xl bg-white px-3 py-2 text-[11px] font-medium leading-snug text-[#2a1a22] shadow-[0_12px_28px_rgba(0,0,0,0.28)] sm:left-6 sm:top-6 sm:max-w-[260px] sm:px-3.5 sm:py-2.5 sm:text-[13px]"
       >
         {message}
       </div>
