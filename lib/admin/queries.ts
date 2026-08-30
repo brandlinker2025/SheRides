@@ -41,6 +41,24 @@ export type AdminEventRow = {
   featured: boolean;
 };
 
+export type AdminVerificationRow = {
+  id: string;
+  user_id: string;
+  document_url: string | null;
+  status: "pending" | "approved" | "rejected";
+  nid_number: string;
+  driving_license_number: string | null;
+  chassis_number: string | null;
+  notes: string | null;
+  created_at: string;
+  profile: {
+    full_name: string;
+    username: string | null;
+    avatar_url: string | null;
+  } | null;
+  document_signed_url: string | null;
+};
+
 function missingTable(error: { message?: string; code?: string } | null) {
   if (!error) return false;
   return error.code === "PGRST205" || /could not find the table|schema cache/i.test(error.message ?? "");
@@ -82,6 +100,33 @@ export async function loadAdminUsers(supabase: SupabaseClient) {
     .select("id, username, full_name, location, bike, avatar_url, verified, role, created_at")
     .order("created_at", { ascending: true });
   return { users: (data ?? []) as AdminUserRow[], error: error?.message ?? null };
+}
+
+export async function loadAdminVerifications(supabase: SupabaseClient) {
+  const { data, error } = await supabase
+    .from("verifications")
+    .select("id, user_id, document_url, status, nid_number, driving_license_number, chassis_number, notes, created_at, profile:profiles!user_id(full_name, username, avatar_url)")
+    .order("created_at", { ascending: false });
+
+  if (error) return { verifications: [] as AdminVerificationRow[], error: error.message };
+
+  const verifications = await Promise.all(
+    (data ?? []).map(async (row) => {
+      const profile = Array.isArray(row.profile) ? row.profile[0] : row.profile;
+      let documentSignedUrl: string | null = null;
+      if (row.document_url) {
+        const signed = await supabase.storage.from("verifications").createSignedUrl(row.document_url, 300);
+        documentSignedUrl = signed.data?.signedUrl ?? null;
+      }
+      return {
+        ...row,
+        profile: profile ?? null,
+        document_signed_url: documentSignedUrl,
+      } as AdminVerificationRow;
+    })
+  );
+
+  return { verifications, error: null };
 }
 
 export async function loadAdminPosts(supabase: SupabaseClient) {
