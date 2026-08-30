@@ -18,11 +18,11 @@ export default async function AdminVerificationsPage() {
       </div>
       {error && <p className="mb-4 text-error font-body-sm">{error}</p>}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-gutter mb-8">
-        <div className="bg-white rounded-xl shadow-premium border border-surface-border p-6">
+        <div className="bg-surface-container-lowest text-on-surface rounded-xl shadow-premium border border-surface-border p-6">
           <p className="font-display-lg text-[36px]">{pending.length}</p>
           <p className="font-label-caps text-label-caps text-tertiary">Pending</p>
         </div>
-        <div className="bg-white rounded-xl shadow-premium border border-surface-border p-6">
+        <div className="bg-surface-container-lowest text-on-surface rounded-xl shadow-premium border border-surface-border p-6">
           <p className="font-display-lg text-[36px]">{verified.length}</p>
           <p className="font-label-caps text-label-caps text-tertiary">Verified</p>
         </div>

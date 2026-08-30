@@ -88,7 +88,7 @@ export function EventsManager({ events }: { events: AdminEventRow[] }) {
     <div className="grid grid-cols-1 xl:grid-cols-12 gap-gutter">
       <form
         onSubmit={onSubmit}
-        className="xl:col-span-5 bg-white rounded-xl shadow-premium border border-surface-border p-6 flex flex-col gap-4"
+        className="xl:col-span-5 bg-surface-container-lowest text-on-surface rounded-xl shadow-premium border border-surface-border p-6 flex flex-col gap-4"
       >
         <h2 className="font-headline-md text-headline-md">{editingId ? "Edit event" : "Create event"}</h2>
         {error && <p className="text-error font-body-sm">{error}</p>}
@@ -181,12 +181,12 @@ export function EventsManager({ events }: { events: AdminEventRow[] }) {
 
       <div className="xl:col-span-7 flex flex-col gap-4">
         {events.length === 0 && (
-          <div className="bg-white rounded-xl shadow-premium border border-surface-border p-10 text-center font-body-sm text-tertiary">
+          <div className="bg-surface-container-lowest text-on-surface rounded-xl shadow-premium border border-surface-border p-10 text-center font-body-sm text-tertiary">
             No events yet. Create the first ride or meetup.
           </div>
         )}
         {events.map((event) => (
-          <article key={event.id} className="bg-white rounded-xl shadow-premium border border-surface-border overflow-hidden">
+          <article key={event.id} className="bg-surface-container-lowest text-on-surface rounded-xl shadow-premium border border-surface-border overflow-hidden">
             <div className="flex flex-col md:flex-row">
               <img
                 src={event.cover_url || img.coastalGroup}

@@ -41,7 +41,7 @@ export function UsersTable({ users }: { users: AdminUserRow[] }) {
   }
 
   return (
-    <div className="bg-white rounded-xl shadow-premium border border-surface-border overflow-hidden">
+    <div className="bg-surface-container-lowest text-on-surface rounded-xl shadow-premium border border-surface-border overflow-hidden">
       <div className="p-4 border-b border-surface-border flex flex-col md:flex-row gap-3 md:items-center md:justify-between">
         <p className="font-body-sm text-secondary">{filtered.length} riders</p>
         <input

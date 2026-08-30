@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Icon } from "@/components/ui/Icon";
+import { BrandLogo } from "@/components/ui/BrandLogo";
 
 export default function SplashPage() {
   return (
@@ -24,9 +25,7 @@ export default function SplashPage() {
         </section>
         <section className="order-2 md:order-1 w-full md:w-[45%] lg:w-[40%] flex flex-col justify-center px-container-margin-mobile md:px-container-margin-desktop py-section-gap md:min-h-screen bg-surface md:bg-transparent animate-fade-in-up">
           <div className="mb-section-gap">
-            <span className="font-display-lg-mobile md:font-display-lg text-display-lg-mobile md:text-display-lg text-accent-magenta tracking-tight">
-              SheRides
-            </span>
+            <BrandLogo className="text-[44px] md:text-[52px]" />
           </div>
           <div className="mb-section-gap max-w-lg">
             <h1 className="font-display-lg-mobile md:font-display-lg text-display-lg-mobile md:text-display-lg text-on-surface mb-component-gap">

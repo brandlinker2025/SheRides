@@ -35,12 +35,12 @@ export function PostsTable({ posts }: { posts: AdminPostRow[] }) {
     <div className="flex flex-col gap-4">
       {error && <p className="text-error font-body-sm">{error}</p>}
       {posts.length === 0 && (
-        <div className="bg-white rounded-xl shadow-premium border border-surface-border p-10 text-center font-body-sm text-tertiary">
+        <div className="bg-surface-container-lowest text-on-surface rounded-xl shadow-premium border border-surface-border p-10 text-center font-body-sm text-tertiary">
           No posts yet.
         </div>
       )}
       {posts.map((post) => (
-        <article key={post.id} className="bg-white rounded-xl shadow-premium border border-surface-border p-5">
+        <article key={post.id} className="bg-surface-container-lowest text-on-surface rounded-xl shadow-premium border border-surface-border p-5">
           <div className="flex items-start justify-between gap-4">
             <div className="flex items-center gap-3">
               <Avatar src={post.author?.avatar_url} alt={post.author?.full_name || "Rider"} size={40} />
