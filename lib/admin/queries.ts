@@ -105,7 +105,7 @@ export async function loadAdminUsers(supabase: SupabaseClient) {
 export async function loadAdminVerifications(supabase: SupabaseClient) {
   const { data, error } = await supabase
     .from("verifications")
-    .select("id, user_id, document_url, status, nid_number, driving_license_number, chassis_number, notes, created_at, profile:profiles!user_id(full_name, username, avatar_url)")
+    .select("id, user_id, document_url, status, nid_number, driving_license_number, chassis_number, notes, created_at, profile:profiles!verifications_user_id_fkey(full_name, username, avatar_url)")
     .order("created_at", { ascending: false });
 
   if (error) return { verifications: [] as AdminVerificationRow[], error: error.message };
