@@ -28,6 +28,11 @@ export default async function PendingApprovalPage() {
     : status === "pending"
       ? "Your identity and rider details are waiting for review by a SheRides administrator."
       : "Your account exists, but rider verification has not been submitted yet.";
+  const cta = status === "pending" ? null : (
+    <Link href="/verification" className="h-12 px-5 inline-flex items-center rounded-full bg-accent-magenta text-white font-label-lg">
+      {status === "rejected" ? "Resubmit verification" : "Complete verification"}
+    </Link>
+  );
 
   return (
     <main className="min-h-screen bg-surface flex items-center justify-center px-container-margin-mobile py-section-gap">
@@ -44,9 +49,7 @@ export default async function PendingApprovalPage() {
           </p>
         </div>
         <div className="flex flex-wrap gap-3">
-          <Link href="/signup" className="h-12 px-5 inline-flex items-center rounded-full bg-accent-magenta text-white font-label-lg">
-            Verification details
-          </Link>
+          {cta}
           <Link href="/login" className="h-12 px-5 inline-flex items-center rounded-full border border-surface-border font-label-lg">
             Back to sign in
           </Link>
