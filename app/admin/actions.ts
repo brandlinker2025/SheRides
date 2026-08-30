@@ -41,10 +41,30 @@ function refreshAdmin() {
 
 export async function setRiderVerified(userId: string, verified: boolean) {
   if (!validUuid(userId) || typeof verified !== "boolean") return { error: "Invalid request." };
+  if (verified) return { error: "Approve riders from Verification Center after reviewing their submitted documents." };
   const { supabase } = await requireAdmin();
-  const { error } = await supabase.from("profiles").update({ verified }).eq("id", userId);
+  const { error } = await supabase.from("profiles").update({ verified: false }).eq("id", userId);
   if (error) return { error: error.message };
   refreshAdmin();
+  return {};
+}
+
+export async function reviewRiderVerification(
+  verificationId: string,
+  approve: boolean,
+  notes = ""
+) {
+  if (!validUuid(verificationId) || typeof approve !== "boolean") return { error: "Invalid verification request." };
+  const { supabase } = await requireAdmin();
+  const reviewNotes = cleanText(notes, 500) || null;
+  const { error } = await supabase.rpc("review_rider_verification", {
+    target_verification_id: verificationId,
+    approve,
+    review_notes: reviewNotes,
+  });
+  if (error) return { error: error.message };
+  refreshAdmin();
+  revalidatePath("/home");
   return {};
 }
 
