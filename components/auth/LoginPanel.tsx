@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState, type FormEvent } from "react";
 import { useAuth } from "@/lib/auth-context";
+import { siteOrigin } from "@/lib/site";
 import { createClient } from "@/lib/supabase/client";
 import { Icon } from "@/components/ui/Icon";
 import { AuthScene, authFieldClass } from "./AuthScene";
@@ -73,10 +74,9 @@ export function LoginPanel({ admin = false }: { admin?: boolean }) {
     }
     const supabase = createClient();
     if (!supabase) return;
-    const origin = typeof window !== "undefined" ? window.location.origin : "";
     const resetPath = admin ? "/admin-login" : "/login";
     const { error: resetError } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-      redirectTo: origin ? `${origin}${resetPath}` : undefined,
+      redirectTo: `${siteOrigin()}${resetPath}`,
     });
     setResetMessage(
       resetError ? translateAuthError(resetError.message) : "A password reset link has been sent to your email."

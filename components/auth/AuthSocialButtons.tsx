@@ -1,5 +1,6 @@
 "use client";
 
+import { siteOrigin } from "@/lib/site";
 import { createClient } from "@/lib/supabase/client";
 import { FacebookMark, GoogleMark } from "./auth-marks";
 
@@ -15,11 +16,10 @@ export function AuthSocialButtons({ onError, redirectTo }: AuthSocialButtonsProp
       onError("Sign-in is not configured yet.");
       return;
     }
-    const origin = typeof window !== "undefined" ? window.location.origin : "";
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
       options: {
-        redirectTo: redirectTo ?? (origin ? `${origin}/home` : undefined),
+        redirectTo: redirectTo ?? `${siteOrigin()}/home`,
       },
     });
     if (error) onError(error.message);
