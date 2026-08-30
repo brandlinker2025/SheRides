@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import { sidebarCommunities } from "@/lib/data";
 import { img } from "@/lib/images";
@@ -95,7 +95,25 @@ export function SideNav() {
         >
           Start a Ride
         </button>
+        <LogoutButton />
       </div>
     </nav>
+  );
+}
+
+function LogoutButton() {
+  const { signOut } = useAuth();
+  const router = useRouter();
+  return (
+    <button
+      type="button"
+      onClick={async () => {
+        await signOut();
+        router.push("/");
+      }}
+      className="w-full mt-3 text-secondary font-body-sm py-2 rounded-full hover:text-red-400 hover:bg-red-500/10 transition-colors flex items-center justify-center gap-2"
+    >
+      <span>🚪</span> লগআউট
+    </button>
   );
 }
