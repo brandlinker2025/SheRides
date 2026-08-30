@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { setRiderVerified } from "@/app/admin/actions";
@@ -31,10 +32,10 @@ export function UsersTable({ users }: { users: AdminUserRow[] }) {
     );
   }, [users, query]);
 
-  async function toggleVerified(user: AdminUserRow) {
+  async function unverify(user: AdminUserRow) {
     setBusyId(user.id);
     setError(null);
-    const result = await setRiderVerified(user.id, !user.verified);
+    const result = await setRiderVerified(user.id, false);
     setBusyId(null);
     if (result.error) setError(result.error);
     else router.refresh();
@@ -60,7 +61,7 @@ export function UsersTable({ users }: { users: AdminUserRow[] }) {
               <th className="px-4 py-3">Location</th>
               <th className="px-4 py-3">Role</th>
               <th className="px-4 py-3">Joined</th>
-              <th className="px-4 py-3 text-right">Verified</th>
+              <th className="px-4 py-3 text-right">Access</th>
             </tr>
           </thead>
           <tbody>
@@ -90,18 +91,22 @@ export function UsersTable({ users }: { users: AdminUserRow[] }) {
                 </td>
                 <td className="px-4 py-3 font-body-sm text-secondary">{formatDate(user.created_at)}</td>
                 <td className="px-4 py-3 text-right">
-                  <button
-                    type="button"
-                    disabled={busyId === user.id}
-                    onClick={() => toggleVerified(user)}
-                    className={`px-4 py-2 rounded-lg font-label-lg text-label-lg ${
-                      user.verified
-                        ? "bg-soft-off-white border border-surface-border text-secondary"
-                        : "bg-accent-magenta text-white"
-                    }`}
-                  >
-                    {busyId === user.id ? "Saving..." : user.verified ? "Unverify" : "Verify"}
-                  </button>
+                  {user.role === "admin" ? (
+                    <span className="font-body-sm text-secondary">Admin</span>
+                  ) : user.verified ? (
+                    <button
+                      type="button"
+                      disabled={busyId === user.id}
+                      onClick={() => void unverify(user)}
+                      className="px-4 py-2 rounded-lg font-label-lg text-label-lg bg-soft-off-white border border-surface-border text-secondary disabled:opacity-60"
+                    >
+                      {busyId === user.id ? "Saving..." : "Revoke access"}
+                    </button>
+                  ) : (
+                    <Link href="/admin/verifications" className="inline-flex px-4 py-2 rounded-lg font-label-lg text-label-lg bg-accent-magenta text-white">
+                      Review application
+                    </Link>
+                  )}
                 </td>
               </tr>
             ))}
