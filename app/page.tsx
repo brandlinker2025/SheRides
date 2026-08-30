@@ -1,5 +1,5 @@
+import Image from "next/image";
 import Link from "next/link";
-import { img } from "@/lib/images";
 import { Icon } from "@/components/ui/Icon";
 
 export default function SplashPage() {
@@ -9,7 +9,20 @@ export default function SplashPage() {
         <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-primary-fixed-dim opacity-20 blur-[120px] rounded-full" />
       </div>
       <main className="min-h-screen flex flex-col md:flex-row relative z-10 w-full max-w-[1440px] mx-auto">
-        <section className="w-full md:w-[45%] lg:w-[40%] flex flex-col justify-center px-container-margin-mobile md:px-container-margin-desktop py-section-gap min-h-screen md:min-h-0 bg-surface md:bg-transparent animate-fade-in-up">
+        <section className="order-1 md:order-2 w-full md:w-[55%] lg:w-[60%] h-64 sm:h-80 md:h-screen relative">
+          <div className="absolute inset-0 rounded-b-[32px] md:rounded-b-none md:rounded-l-[40px] shadow-[-20px_0_60px_rgba(26,28,30,0.08)] overflow-hidden">
+            <Image
+              src="/hero-community.png"
+              alt="SheRides community of women riders gathered together at sunset"
+              fill
+              priority
+              sizes="(min-width: 1024px) 60vw, (min-width: 768px) 55vw, 100vw"
+              className="object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-surface via-transparent to-transparent md:bg-gradient-to-r md:from-black/10 md:via-transparent md:to-transparent" />
+          </div>
+        </section>
+        <section className="order-2 md:order-1 w-full md:w-[45%] lg:w-[40%] flex flex-col justify-center px-container-margin-mobile md:px-container-margin-desktop py-section-gap md:min-h-screen bg-surface md:bg-transparent animate-fade-in-up">
           <div className="mb-section-gap">
             <span className="font-display-lg-mobile md:font-display-lg text-display-lg-mobile md:text-display-lg text-accent-magenta tracking-tight">
               SheRides
@@ -42,14 +55,6 @@ export default function SplashPage() {
             <span className="font-body-sm text-body-sm text-tertiary">
               Built for verified female riders.
             </span>
-          </div>
-        </section>
-        <section className="w-full md:w-[55%] lg:w-[60%] h-[320px] md:h-screen relative hidden md:block">
-          <div
-            className="absolute top-0 right-0 w-full h-full bg-cover bg-center md:rounded-l-[40px] shadow-[-20px_0_60px_rgba(26,28,30,0.08)] overflow-hidden"
-            style={{ backgroundImage: `url('${img.splash}')` }}
-          >
-            <div className="absolute inset-0 bg-gradient-to-r from-black/10 to-transparent" />
           </div>
         </section>
       </main>

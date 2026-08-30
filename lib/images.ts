@@ -1,6 +1,4 @@
 export const img = {
-  splash:
-    "https://images.unsplash.com/photo-1558981806-ec527fa84c39?auto=format&fit=crop&w=1600&q=80",
   logo:
     "https://images.unsplash.com/photo-1558981403-c5f9899a28bc?auto=format&fit=crop&w=200&q=80",
   workshop:
