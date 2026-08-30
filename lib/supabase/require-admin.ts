@@ -1,11 +1,18 @@
 import { redirect } from "next/navigation";
-import { requireUser } from "./require-user";
 import { createServerSupabase } from "./server";
 
 export async function requireAdmin() {
-  const user = await requireUser();
   const supabase = await createServerSupabase();
-  if (!supabase) redirect("/login");
+  if (!supabase) redirect("/admin-login");
+
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser();
+
+  if (error || !user) {
+    redirect("/admin-login");
+  }
 
   const { data: profile } = await supabase
     .from("profiles")

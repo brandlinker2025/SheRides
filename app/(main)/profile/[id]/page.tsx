@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { ProfileView } from "@/components/profile/ProfileView";
+import { BackLink } from "@/components/ui/BackLink";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { useAuth } from "@/lib/auth-context";
 import { riderFromProfile } from "@/lib/profile";
@@ -29,7 +30,23 @@ export default function RiderProfilePage() {
       });
   }, [params.id]);
 
-  if (missing) return <div className="p-gutter"><EmptyState title="Rider not found." /></div>;
-  if (!rider) return null;
-  return <ProfileView rider={rider} isSelf={user?.id === rider.id} />;
+  if (missing) {
+    return (
+      <div className="p-gutter">
+        <BackLink href="/home" label="Home" className="mb-4" />
+        <EmptyState title="Rider not found." />
+      </div>
+    );
+  }
+  if (!rider) {
+    return <p className="p-gutter font-body-sm text-tertiary">Loading rider…</p>;
+  }
+  return (
+    <div>
+      <div className="px-container-margin-mobile md:px-container-margin-desktop pt-4">
+        <BackLink href="/home" label="Home" />
+      </div>
+      <ProfileView rider={rider} isSelf={user?.id === rider.id} />
+    </div>
+  );
 }

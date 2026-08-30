@@ -10,6 +10,7 @@ import {
   type ReactNode,
 } from "react";
 import { riderFromProfile } from "./profile";
+import { siteOrigin } from "./site";
 import { createClient } from "./supabase/client";
 import type { Rider } from "./types";
 
@@ -125,13 +126,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       async signUp(fullName, email, password) {
         const supabase = createClient();
         if (!supabase) return "Supabase is not configured.";
-        const origin = typeof window !== "undefined" ? window.location.origin : "";
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: {
             data: { full_name: fullName, username: email.split("@")[0] },
-            emailRedirectTo: origin ? `${origin}/verification` : undefined,
+            emailRedirectTo: `${siteOrigin()}/verification`,
           },
         });
         if (error) return error.message;

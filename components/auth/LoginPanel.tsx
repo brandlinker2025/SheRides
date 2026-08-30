@@ -2,17 +2,24 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { useAuth } from "@/lib/auth-context";
+import { siteOrigin } from "@/lib/site";
 import { createClient } from "@/lib/supabase/client";
-import { BrandLogo } from "@/components/ui/BrandLogo";
 import { Icon } from "@/components/ui/Icon";
-import { InteractivePanda, type PandaMood } from "@/components/auth/InteractivePanda";
+import { AuthScene, authFieldClass } from "./AuthScene";
+import { AuthOrDivider, AuthSocialButtons } from "./AuthSocialButtons";
+import { usePandaForm } from "./usePandaForm";
+
+const REMEMBER_KEY = "sherides-remember-email";
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function translateAuthError(message: string): string {
   const lower = message.toLowerCase();
   if (lower.includes("email not confirmed")) return "Please verify your email first.";
-  if (lower.includes("invalid login credentials") || lower.includes("invalid credentials")) return "The email or password is incorrect.";
+  if (lower.includes("invalid login credentials") || lower.includes("invalid credentials")) {
+    return "The email or password is incorrect.";
+  }
   return message;
 }
 
@@ -30,47 +37,73 @@ export function LoginPanel({ admin = false }: { admin?: boolean }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [resetMessage, setResetMessage] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  const [pandaMood, setPandaMood] = useState<PandaMood>("idle");
+  const panda = usePandaForm();
+  const emailValid = EMAIL_PATTERN.test(email.trim());
+
+  useEffect(() => {
+    try {
+      const saved = window.localStorage.getItem(REMEMBER_KEY);
+      if (saved) {
+        setEmail(saved);
+        setRememberMe(true);
+      }
+    } catch {
+      /* storage unavailable */
+    }
+  }, []);
+
+  function persistRememberedEmail(nextEmail: string, remember: boolean) {
+    try {
+      if (remember && nextEmail) window.localStorage.setItem(REMEMBER_KEY, nextEmail);
+      else window.localStorage.removeItem(REMEMBER_KEY);
+    } catch {
+      /* storage unavailable */
+    }
+  }
 
   async function handleForgotPassword() {
     setError(null);
     if (!email.trim()) {
       setResetMessage("Enter your email address first.");
-      setPandaMood("sad");
+      panda.onError();
       return;
     }
     const supabase = createClient();
     if (!supabase) return;
-    const origin = typeof window !== "undefined" ? window.location.origin : "";
     const resetPath = admin ? "/admin-login" : "/login";
     const { error: resetError } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-      redirectTo: origin ? `${origin}${resetPath}` : undefined,
+      redirectTo: `${siteOrigin()}${resetPath}`,
     });
-    setResetMessage(resetError ? translateAuthError(resetError.message) : "A password reset link has been sent to your email.");
-    setPandaMood(resetError ? "sad" : "happy");
+    setResetMessage(
+      resetError ? translateAuthError(resetError.message) : "A password reset link has been sent to your email."
+    );
+    if (resetError) panda.onError();
+    else panda.onSuccess();
   }
 
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setBusy(true);
     setError(null);
     setResetMessage(null);
-    setPandaMood("hide");
 
     const message = await signIn(email.trim(), password);
     if (message) {
       setBusy(false);
       setError(translateAuthError(message));
-      setPandaMood("sad");
+      panda.onError();
       return;
     }
 
     if (admin) {
       const supabase = createClient();
-      const { data: authData } = supabase ? await supabase.auth.getUser() : { data: { user: null } };
+      const { data: authData } = supabase
+        ? await supabase.auth.getUser()
+        : { data: { user: null } };
       const { data: profile } = authData.user && supabase
         ? await supabase.from("profiles").select("role").eq("id", authData.user.id).maybeSingle()
         : { data: null };
@@ -79,86 +112,152 @@ export function LoginPanel({ admin = false }: { admin?: boolean }) {
         if (supabase) await supabase.auth.signOut();
         setBusy(false);
         setError("This account does not have administrator access.");
-        setPandaMood("sad");
+        panda.onError();
         return;
       }
     }
 
-    setPandaMood("happy");
+    persistRememberedEmail(email.trim(), rememberMe);
+    panda.onSuccess();
     window.setTimeout(() => {
       router.replace(next);
       router.refresh();
-    }, 450);
+    }, 900);
   }
 
   return (
-    <div className="min-h-screen bg-surface flex items-center justify-center px-container-margin-mobile py-section-gap relative overflow-hidden">
-      <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-primary-fixed-dim opacity-20 blur-[120px] rounded-full pointer-events-none" />
-      <div className="relative z-10 grid w-full max-w-5xl items-center gap-8 lg:grid-cols-[minmax(0,448px)_1fr]">
-        <div className="w-full bg-surface-container-lowest rounded-xl shadow-premium p-8 relative animate-fade-in-up">
-          <Link href="/" className="inline-block mb-6" aria-label="SheRides home">
-            <BrandLogo suffix={admin ? "Admin" : undefined} className="text-[42px]" />
-          </Link>
-          <h1 className="font-headline-xl text-headline-xl mb-2">{admin ? "Admin Sign In" : "Sign in"}</h1>
-          <p className="font-body-sm text-body-sm text-secondary mb-6">
-            {admin ? "Restricted access for authorized SheRides administrators." : "Welcome back to Bangladesh Women Riders Community."}
-          </p>
-          <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
+    <AuthScene admin={admin} mood={panda.mood} track={panda.track}>
+      <div className="w-full rounded-[28px] border border-[#FF2D78]/50 bg-[rgba(12,10,14,0.82)] p-6 shadow-[0_20px_50px_rgba(0,0,0,0.35),0_0_0_1px_rgba(255,45,120,0.12)] backdrop-blur-xl sm:p-8">
+        <h1
+          className="mb-1 text-[34px] leading-none text-[#FF2D78] sm:text-[42px]"
+          style={{ fontFamily: "var(--font-butterpop), Georgia, serif" }}
+        >
+          {admin ? "Admin Sign In" : "Welcome Back!"}
+        </h1>
+        <p className="mb-6 text-sm text-white/70">
+          {admin
+            ? "Restricted access for authorized SheRides administrators."
+            : "Log in to your SheRides account"}
+        </p>
+        <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
+          <label className="relative block">
+            <Icon name="mail" size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/45" />
             <input
               type="email"
               required
               autoComplete="email"
               value={email}
-              onFocus={() => setPandaMood("peek")}
-              onBlur={() => !password && setPandaMood("idle")}
-              onChange={(event) => { setEmail(event.target.value); setPandaMood("peek"); }}
+              onChange={(event) => {
+                setEmail(event.target.value);
+                panda.onTextInput(event.target.value);
+              }}
+              onFocus={panda.onTextFocus}
+              onBlur={panda.onBlur}
               placeholder={admin ? "Admin email" : "Email"}
-              className="w-full bg-soft-off-white border border-surface-border rounded-lg px-4 py-3 focus:outline-none focus:border-accent-magenta focus:ring-2 focus:ring-accent-magenta/20 transition-all duration-300"
+              className={`${authFieldClass} pl-11 ${emailValid ? "pr-11" : ""}`}
             />
-            <div className="relative">
-              <input
-                type={showPassword ? "text" : "password"}
-                required
-                autoComplete="current-password"
-                value={password}
-                onFocus={() => setPandaMood(showPassword ? "peek-password" : "hide")}
-                onChange={(event) => { setPassword(event.target.value); setPandaMood(showPassword ? "peek-password" : "hide"); }}
-                placeholder="Password"
-                className="w-full bg-soft-off-white border border-surface-border rounded-lg px-4 py-3 pr-12 focus:outline-none focus:border-accent-magenta focus:ring-2 focus:ring-accent-magenta/20 transition-all duration-300"
+            {emailValid ? (
+              <Icon
+                name="check_circle"
+                size={20}
+                filled
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#3ddc84]"
               />
-              <button
-                type="button"
-                onClick={() => setShowPassword((value) => {
-                  const nextShow = !value;
-                  setPandaMood(nextShow ? "peek-password" : "hide");
-                  return nextShow;
-                })}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-secondary hover:text-accent-magenta transition-colors"
-                aria-label={showPassword ? "Hide password" : "Show password"}
-              >
-                <Icon name={showPassword ? "visibility_off" : "visibility"} size={20} />
-              </button>
-            </div>
-            <div className="flex justify-end -mt-2">
-              <button type="button" onClick={() => void handleForgotPassword()} className="font-body-sm text-body-sm text-accent-magenta hover:underline">
-                Forgot password?
-              </button>
-            </div>
-            {resetMessage && <p className="font-body-sm text-accent-magenta">{resetMessage}</p>}
-            {error && <p className="text-error font-body-sm" role="alert">{error}</p>}
-            <button type="submit" disabled={busy} className="h-[56px] bg-accent-magenta text-white font-label-lg rounded-full shadow-magenta hover:bg-primary-container transition-all duration-200 hover:-translate-y-0.5 active:scale-[0.98] disabled:opacity-60 disabled:pointer-events-none">
-              {busy ? "Signing in..." : admin ? "Sign In to Admin" : "Sign In"}
+            ) : null}
+          </label>
+          <label className="relative block">
+            <Icon name="lock" size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/45" />
+            <input
+              type={showPassword ? "text" : "password"}
+              required
+              minLength={6}
+              autoComplete="current-password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              onFocus={() => panda.onPasswordFocus(showPassword)}
+              onBlur={panda.onBlur}
+              placeholder="Password"
+              className={`${authFieldClass} pl-11 pr-12`}
+            />
+            <button
+              type="button"
+              onMouseDown={(event) => event.preventDefault()}
+              onClick={() => {
+                setShowPassword((value) => {
+                  const nextValue = !value;
+                  panda.onPasswordVisibility(nextValue);
+                  return nextValue;
+                });
+              }}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-white/55 transition-colors hover:text-[#FF2D78]"
+              aria-label={showPassword ? "Hide password" : "Show password"}
+            >
+              <Icon name={showPassword ? "visibility_off" : "visibility"} size={20} />
             </button>
-          </form>
-          {admin ? (
-            <p className="mt-6 font-body-sm text-secondary">Community member? <Link href="/login" className="text-accent-magenta font-label-lg">User Sign In</Link></p>
-          ) : (
-            <p className="mt-6 font-body-sm text-secondary">New to SheRides?{" "}<Link href={email.trim() ? `/signup?email=${encodeURIComponent(email.trim())}` : "/signup"} className="text-accent-magenta font-label-lg">Join Community</Link></p>
+          </label>
+          <div className="flex items-center justify-between gap-3 -mt-1">
+            <label className="inline-flex items-center gap-2 text-sm text-white/70">
+              <input
+                type="checkbox"
+                checked={rememberMe}
+                onChange={(event) => {
+                  const next = event.target.checked;
+                  setRememberMe(next);
+                  persistRememberedEmail(email.trim(), next);
+                }}
+                className="h-4 w-4 rounded border-white/30 bg-black/40 text-[#FF2D78] accent-[#FF2D78]"
+              />
+              Remember me
+            </label>
+            <button type="button" onClick={() => void handleForgotPassword()} className="text-sm text-[#FF2D78] hover:underline">
+              Forgot password?
+            </button>
+          </div>
+          {resetMessage && <p className="text-sm text-[#FF2D78]">{resetMessage}</p>}
+          {error && (
+            <p className="text-sm text-[#ff8a80]" role="alert">
+              {error}
+            </p>
           )}
-        </div>
-        <div className="hidden lg:flex min-h-[460px] items-center justify-center"><InteractivePanda mood={pandaMood} admin={admin} /></div>
-        <div className="flex lg:hidden justify-center -mt-4 scale-75 origin-top h-[250px]"><InteractivePanda mood={pandaMood} admin={admin} /></div>
+          <button
+            type="submit"
+            disabled={busy}
+            className="inline-flex h-[56px] items-center justify-center gap-2 rounded-full bg-[#FF2D78] font-label-lg text-white shadow-magenta transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#e2165f] active:scale-[0.98] disabled:pointer-events-none disabled:opacity-60"
+          >
+            <Icon name="login" size={20} />
+            {busy ? "Signing in..." : admin ? "Sign In to Admin" : "Sign In"}
+          </button>
+        </form>
+        {!admin ? (
+          <div className="mt-5 flex flex-col gap-4">
+            <AuthOrDivider />
+            <AuthSocialButtons
+              onError={(message) => {
+                setError(message);
+                panda.onError();
+              }}
+            />
+          </div>
+        ) : null}
+        {admin ? (
+          <p className="mt-6 text-sm text-white/70">
+            Community member?{" "}
+            <Link href="/login" className="font-label-lg text-[#FF2D78]">
+              User Sign In
+            </Link>
+          </p>
+        ) : (
+          <p className="mt-6 text-sm text-white/70">
+            New to SheRides?{" "}
+            <Link
+              href={email.trim() ? `/signup?email=${encodeURIComponent(email.trim())}` : "/signup"}
+              className="font-label-lg text-[#FF2D78]"
+            >
+              Join Community
+            </Link>
+          </p>
+        )}
       </div>
-    </div>
+    </AuthScene>
   );
 }

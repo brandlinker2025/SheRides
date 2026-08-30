@@ -1,7 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Avatar } from "@/components/ui/Avatar";
+import { BackButton } from "@/components/ui/BackLink";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Icon } from "@/components/ui/Icon";
 import { useAuth } from "@/lib/auth-context";
@@ -24,75 +26,123 @@ type MessageItem = {
   time: string;
 };
 
-export default function MessagesPage() {
+function isUnread(lastAt?: string, lastReadAt?: string | null, lastFromMe?: boolean) {
+  if (!lastAt || lastFromMe) return false;
+  if (!lastReadAt) return true;
+  return new Date(lastAt).getTime() > new Date(lastReadAt).getTime();
+}
+
+function MessagesPage() {
   const { user } = useAuth();
+  const router = useRouter();
+  const params = useSearchParams();
+  const queryId = params.get("c");
   const [conversations, setConversations] = useState<ConversationItem[]>([]);
-  const [activeId, setActiveId] = useState<string | null>(null);
+  const [activeId, setActiveId] = useState<string | null>(queryId);
   const [messages, setMessages] = useState<MessageItem[]>([]);
   const [draft, setDraft] = useState("");
   const [filter, setFilter] = useState<"All" | "Unread">("All");
+  const [loadingList, setLoadingList] = useState(true);
+  const [loadingThread, setLoadingThread] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [sendError, setSendError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fromQuery = new URLSearchParams(window.location.search).get("c");
-    if (fromQuery) setActiveId(fromQuery);
-  }, []);
+  const openThread = useCallback(
+    (id: string | null) => {
+      setActiveId(id);
+      router.replace(id ? `/messages?c=${id}` : "/messages", { scroll: false });
+    },
+    [router]
+  );
 
-  useEffect(() => {
+  const loadConversations = useCallback(async () => {
     const supabase = createClient();
-    if (!supabase || !user) return;
+    if (!supabase || !user) {
+      setLoadingList(false);
+      setError(supabase ? null : "Messaging is not configured.");
+      return;
+    }
 
-    const load = async () => {
-      const { data: memberships } = await supabase
-        .from("conversation_members")
-        .select("conversation_id, conversations(id, updated_at, is_group, title)")
-        .eq("user_id", user.id);
-      const ids = (memberships ?? []).map((row) => row.conversation_id as string);
-      if (!ids.length) {
-        setConversations([]);
-        return;
-      }
-      const { data: members } = await supabase
+    const { data: memberships, error: membershipError } = await supabase
+      .from("conversation_members")
+      .select("conversation_id, last_read_at, conversations(id, updated_at, is_group, title)")
+      .eq("user_id", user.id);
+    if (membershipError) {
+      setError(membershipError.message);
+      setLoadingList(false);
+      return;
+    }
+
+    const ids = (memberships ?? []).map((row) => row.conversation_id as string);
+    if (!ids.length) {
+      setConversations([]);
+      setLoadingList(false);
+      return;
+    }
+
+    const [{ data: members }, { data: lastMessages }] = await Promise.all([
+      supabase
         .from("conversation_members")
         .select("conversation_id, user_id, profiles(full_name, avatar_url)")
-        .in("conversation_id", ids);
-      const { data: lastMessages } = await supabase
+        .in("conversation_id", ids),
+      supabase
         .from("messages")
-        .select("id, conversation_id, content, created_at")
+        .select("id, conversation_id, sender_id, content, created_at")
         .in("conversation_id", ids)
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: false }),
+    ]);
 
-      const items: ConversationItem[] = ids.map((id) => {
-        const others = (members ?? []).filter((m) => m.conversation_id === id && m.user_id !== user.id);
-        const other = others[0];
-        const profile = (other?.profiles && (Array.isArray(other.profiles) ? other.profiles[0] : other.profiles)) as
-          | { full_name?: string; avatar_url?: string }
-          | undefined;
-        const last = (lastMessages ?? []).find((m) => m.conversation_id === id);
-        return {
-          id,
-          name: profile?.full_name || "SheRides chat",
-          avatar: profile?.avatar_url || "",
-          preview: last?.content || "No messages yet",
-          time: formatRelativeTime(last?.created_at as string | undefined),
-          unread: false,
-        };
-      });
-      setConversations(items);
-      if (!activeId && items[0]) setActiveId(items[0].id);
-    };
+    const items: ConversationItem[] = ids.map((id) => {
+      const membership = (memberships ?? []).find((row) => row.conversation_id === id);
+      const others = (members ?? []).filter((m) => m.conversation_id === id && m.user_id !== user.id);
+      const other = others[0];
+      const profile = (other?.profiles && (Array.isArray(other.profiles) ? other.profiles[0] : other.profiles)) as
+        | { full_name?: string; avatar_url?: string }
+        | undefined;
+      const last = (lastMessages ?? []).find((m) => m.conversation_id === id);
+      return {
+        id,
+        name: profile?.full_name || "SheRides chat",
+        avatar: profile?.avatar_url || "",
+        preview: last?.content || "No messages yet",
+        time: formatRelativeTime(last?.created_at as string | undefined),
+        unread: isUnread(last?.created_at as string | undefined, membership?.last_read_at as string | null, last?.sender_id === user.id),
+      };
+    });
+    setConversations(items);
+    setError(null);
+    setLoadingList(false);
+  }, [user]);
 
-    void load();
-  }, [user, activeId]);
+  useEffect(() => {
+    void loadConversations();
+  }, [loadConversations]);
+
+  useEffect(() => {
+    if (queryId && queryId !== activeId) setActiveId(queryId);
+  }, [queryId, activeId]);
 
   useEffect(() => {
     const supabase = createClient();
-    if (!supabase || !user || !activeId) return;
+    if (!supabase || !user || !activeId) {
+      setMessages([]);
+      return;
+    }
+
+    let cancelled = false;
+    setLoadingThread(true);
     void supabase
       .from("messages")
       .select("id, sender_id, content, created_at")
       .eq("conversation_id", activeId)
       .order("created_at", { ascending: true })
-      .then(({ data }) => {
+      .then(async ({ data, error: threadError }) => {
+        if (cancelled) return;
+        if (threadError) {
+          setSendError(threadError.message);
+          setLoadingThread(false);
+          return;
+        }
         setMessages(
           (data ?? []).map((row) => ({
             id: row.id as string,
@@ -101,7 +151,49 @@ export default function MessagesPage() {
             time: formatRelativeTime(row.created_at as string),
           }))
         );
+        setLoadingThread(false);
+        await supabase
+          .from("conversation_members")
+          .update({ last_read_at: new Date().toISOString() })
+          .eq("conversation_id", activeId)
+          .eq("user_id", user.id);
+        setConversations((prev) => prev.map((c) => (c.id === activeId ? { ...c, unread: false } : c)));
       });
+
+    const channel = supabase
+      .channel(`messages:${activeId}`)
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "messages", filter: `conversation_id=eq.${activeId}` },
+        (payload) => {
+          const row = payload.new as { id: string; sender_id: string; content?: string; created_at: string };
+          setMessages((prev) => {
+            if (prev.some((item) => item.id === row.id)) return prev;
+            return [
+              ...prev,
+              {
+                id: row.id,
+                fromMe: row.sender_id === user.id,
+                text: row.content || "",
+                time: formatRelativeTime(row.created_at),
+              },
+            ];
+          });
+          setConversations((prev) =>
+            prev.map((c) =>
+              c.id === activeId
+                ? { ...c, preview: row.content || c.preview, time: "Just now", unread: row.sender_id !== user.id }
+                : c
+            )
+          );
+        }
+      )
+      .subscribe();
+
+    return () => {
+      cancelled = true;
+      void supabase.removeChannel(channel);
+    };
   }, [activeId, user]);
 
   const active = conversations.find((c) => c.id === activeId);
@@ -114,18 +206,33 @@ export default function MessagesPage() {
     const text = draft.trim();
     const supabase = createClient();
     if (!text || !supabase || !user || !activeId) return;
+    setSendError(null);
     setDraft("");
-    const { data } = await supabase
+    const { data, error: insertError } = await supabase
       .from("messages")
       .insert({ conversation_id: activeId, sender_id: user.id, content: text })
       .select("id, created_at")
       .single();
+    if (insertError || !data) {
+      setDraft(text);
+      setSendError(insertError?.message || "Message could not be sent.");
+      return;
+    }
     await supabase.from("conversations").update({ updated_at: new Date().toISOString() }).eq("id", activeId);
-    setMessages((prev) => [
-      ...prev,
-      { id: (data?.id as string) || `local-${Date.now()}`, fromMe: true, text, time: "Just now" },
-    ]);
-    setConversations((prev) => prev.map((c) => (c.id === activeId ? { ...c, preview: text, time: "Just now" } : c)));
+    setMessages((prev) =>
+      prev.some((item) => item.id === data.id)
+        ? prev
+        : [...prev, { id: data.id as string, fromMe: true, text, time: "Just now" }]
+    );
+    setConversations((prev) => prev.map((c) => (c.id === activeId ? { ...c, preview: text, time: "Just now", unread: false } : c)));
+  }
+
+  if (!user) {
+    return (
+      <div className="max-w-2xl mx-auto p-6">
+        <EmptyState title="Sign in to read messages." body="Your SheRides conversations stay private." />
+      </div>
+    );
   }
 
   return (
@@ -150,14 +257,24 @@ export default function MessagesPage() {
             </div>
           </div>
           <div className="flex-1 overflow-y-auto">
-            {list.length === 0 && (
-              <p className="p-6 font-body-sm text-tertiary">No conversations yet. New members get a welcome from Razia.</p>
+            {loadingList && <p className="p-6 font-body-sm text-tertiary">Loading conversations…</p>}
+            {error && (
+              <p className="p-6 font-body-sm text-error" role="alert">
+                {error}
+              </p>
+            )}
+            {!loadingList && !error && list.length === 0 && (
+              <p className="p-6 font-body-sm text-tertiary">
+                {filter === "Unread"
+                  ? "No unread messages."
+                  : "No conversations yet. Approved riders get a welcome from Razia."}
+              </p>
             )}
             {list.map((c) => (
               <button
                 key={c.id}
                 type="button"
-                onClick={() => setActiveId(c.id)}
+                onClick={() => openThread(c.id)}
                 className={`w-full flex items-center gap-3 p-4 text-left border-l-4 ${
                   c.id === activeId ? "bg-surface border-accent-magenta" : "border-transparent hover:bg-surface-container-low"
                 }`}
@@ -168,29 +285,34 @@ export default function MessagesPage() {
                     <h3 className="font-label-lg text-label-lg truncate">{c.name}</h3>
                     <span className="text-[11px] text-tertiary">{c.time}</span>
                   </div>
-                  <p className="font-body-sm text-sm text-secondary truncate">{c.preview}</p>
+                  <p className={`font-body-sm text-sm truncate ${c.unread ? "text-on-surface font-semibold" : "text-secondary"}`}>
+                    {c.preview}
+                  </p>
                 </div>
+                {c.unread ? <span className="h-2.5 w-2.5 rounded-full bg-accent-magenta shrink-0" /> : null}
               </button>
             ))}
           </div>
         </div>
 
         <div className={`${!activeId && "hidden"} md:flex flex-1 flex-col h-full bg-surface-container-lowest`}>
-          {!active ? (
+          {!activeId ? (
             <div className="flex-1 flex items-center justify-center p-8">
               <EmptyState
                 variant="messages"
                 title="Your messages live here."
-                body="Razia Sultana Lina will welcome every new rider."
+                body="Razia Sultana Lina will welcome every new rider after admin approval."
               />
             </div>
           ) : (
             <>
               <div className="flex items-center gap-3 p-4 border-b border-surface-border">
-                <Avatar src={active.avatar} alt={active.name} size={40} />
-                <h2 className="font-label-lg text-label-lg">{active.name}</h2>
+                <BackButton className="md:hidden" onClick={() => openThread(null)} label="Chats" />
+                <Avatar src={active?.avatar} alt={active?.name ?? "Chat"} size={40} />
+                <h2 className="font-label-lg text-label-lg">{active?.name || "Conversation"}</h2>
               </div>
               <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-soft-off-white">
+                {loadingThread && <p className="font-body-sm text-tertiary">Loading messages…</p>}
                 {messages.map((m) => (
                   <div key={m.id} className={`flex ${m.fromMe ? "justify-end" : "justify-start"} animate-fade-in-up`}>
                     <div
@@ -207,6 +329,11 @@ export default function MessagesPage() {
                 ))}
               </div>
               <div className="p-4 border-t border-surface-border">
+                {sendError ? (
+                  <p className="mb-2 text-sm text-error" role="alert">
+                    {sendError}
+                  </p>
+                ) : null}
                 <div className="flex items-center gap-2 bg-soft-off-white border border-surface-border rounded-full px-2 py-1">
                   <input
                     value={draft}
@@ -225,5 +352,13 @@ export default function MessagesPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function MessagesRoute() {
+  return (
+    <Suspense fallback={<p className="p-6 font-body-sm text-tertiary">Loading messages…</p>}>
+      <MessagesPage />
+    </Suspense>
   );
 }

@@ -35,7 +35,7 @@ export function AdminGate({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (loading) return;
     if (!user) {
-      router.replace("/login?next=/admin");
+      router.replace("/admin-login");
       return;
     }
     if (user.role !== "admin") {

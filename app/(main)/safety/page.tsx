@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { BackLink } from "@/components/ui/BackLink";
 import { Icon } from "@/components/ui/Icon";
 
 export default function SafetyPage() {
@@ -21,6 +22,7 @@ export default function SafetyPage() {
   return (
     <div className="w-full max-w-[1280px] mx-auto px-container-margin-mobile lg:px-container-margin-desktop py-12">
       <div className="mb-12">
+        <BackLink href="/home" label="Home" className="mb-4" />
         <h1 className="font-headline-xl text-headline-xl text-on-background mb-2">Safety Center</h1>
         <p className="font-body-lg text-secondary max-w-2xl">
           Your well-being is our priority. Access immediate assistance, manage your ride visibility, and control your community experience with these essential tools.
