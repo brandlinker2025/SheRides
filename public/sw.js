@@ -1,7 +1,8 @@
-const CACHE = "sherides-v2";
+const CACHE = "sherides-static-v3";
+const PUBLIC_ASSETS = new Set(["/icon.svg", "/sherides-logo.svg"]);
 
 self.addEventListener("install", (event) => {
-  event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(["/"])));
+  event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll([...PUBLIC_ASSETS])));
   self.skipWaiting();
 });
 
@@ -18,25 +19,21 @@ self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
 
   const url = new URL(event.request.url);
-  const isDocument =
-    event.request.mode === "navigate" ||
-    event.request.destination === "document" ||
-    (event.request.headers.get("accept") || "").includes("text/html");
+  if (url.origin !== self.location.origin) return;
 
-  if (isDocument || url.pathname.startsWith("/home") || url.pathname.startsWith("/admin")) {
-    event.respondWith(fetch(event.request));
-    return;
-  }
+  const isSafeStaticAsset = url.pathname.startsWith("/_next/static/") || PUBLIC_ASSETS.has(url.pathname);
+  if (!isSafeStaticAsset) return;
 
   event.respondWith(
-    fetch(event.request)
-      .then((response) => {
-        if (response.ok && url.origin === self.location.origin) {
+    caches.match(event.request).then((cached) => {
+      if (cached) return cached;
+      return fetch(event.request).then((response) => {
+        if (response.ok) {
           const copy = response.clone();
-          caches.open(CACHE).then((cache) => cache.put(event.request, copy));
+          void caches.open(CACHE).then((cache) => cache.put(event.request, copy));
         }
         return response;
-      })
-      .catch(() => caches.match(event.request))
+      });
+    })
   );
 });

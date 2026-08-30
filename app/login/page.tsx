@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useState } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { createClient } from "@/lib/supabase/client";
 import { Icon } from "@/components/ui/Icon";
@@ -16,11 +16,15 @@ function translateAuthError(message: string): string {
   return message;
 }
 
+function safeNextPath(value: string | null) {
+  return value?.startsWith("/") && !value.startsWith("//") ? value : "/home";
+}
+
 function LoginForm() {
-  const { signIn, user, loading } = useAuth();
+  const { signIn } = useAuth();
   const router = useRouter();
   const params = useSearchParams();
-  const next = params.get("next") || "/home";
+  const next = safeNextPath(params.get("next"));
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -50,9 +54,11 @@ function LoginForm() {
       <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-primary-fixed-dim opacity-20 blur-[120px] rounded-full pointer-events-none" />
       <div className="w-full max-w-md bg-surface-container-lowest rounded-xl shadow-premium p-8 relative animate-fade-in-up">
         <Link href="/" className="block mb-6">
-          <span className="text-4xl font-bold text-accent-magenta" style={{ fontFamily: "cursive" }}>
-            SheRides
-          </span>
+          <svg width="160" height="48" viewBox="0 0 320 96" xmlns="http://www.w3.org/2000/svg" aria-label="SheRides">
+            <text x="10" y="72" fontFamily="Georgia, serif" fontSize="72" fontWeight="700" fill="#FF2D78" letterSpacing="-2">
+              SheRides
+            </text>
+          </svg>
         </Link>
         <h1 className="font-headline-xl text-headline-xl mb-2">Sign in</h1>
         <p className="font-body-sm text-body-sm text-secondary mb-6">
@@ -105,7 +111,7 @@ function LoginForm() {
               onClick={() => void handleForgotPassword()}
               className="font-body-sm text-body-sm text-accent-magenta hover:underline"
             >
-              পাসওয়ার্ড ভুলে গেছেন?
+              Forgot password?
             </button>
           </div>
           {resetMessage && <p className="font-body-sm text-accent-magenta">{resetMessage}</p>}
@@ -115,7 +121,7 @@ function LoginForm() {
             disabled={busy}
             className="h-[56px] bg-accent-magenta text-white font-label-lg rounded-full shadow-magenta hover:bg-primary-container transition-all duration-200 hover:-translate-y-0.5 active:scale-[0.98] disabled:opacity-60 disabled:pointer-events-none"
           >
-            {busy ? "সাইন ইন হচ্ছে..." : "সাইন ইন"}
+            {busy ? "Signing in..." : "Sign In"}
           </button>
         </form>
         <p className="mt-6 font-body-sm text-secondary">

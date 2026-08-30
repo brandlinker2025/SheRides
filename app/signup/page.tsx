@@ -2,16 +2,16 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useState } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { Icon } from "@/components/ui/Icon";
 
 function SignupForm() {
-  const { signUp, user, loading } = useAuth();
+  const { signUp } = useAuth();
   const router = useRouter();
   const params = useSearchParams();
   const [fullName, setFullName] = useState("");
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(() => params.get("email") ?? "");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -19,19 +19,16 @@ function SignupForm() {
   const [info, setInfo] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  useEffect(() => {
-    const emailParam = params.get("email");
-    if (emailParam) setEmail(emailParam);
-  }, [params]);
-
   return (
     <div className="min-h-screen bg-surface flex items-center justify-center px-container-margin-mobile py-section-gap relative overflow-hidden">
       <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-primary-fixed-dim opacity-20 blur-[120px] rounded-full pointer-events-none" />
       <div className="w-full max-w-md bg-surface-container-lowest rounded-xl shadow-premium p-8 relative animate-fade-in-up">
         <Link href="/" className="block mb-6">
-          <span className="text-4xl font-bold text-accent-magenta" style={{ fontFamily: "cursive" }}>
-            SheRides
-          </span>
+          <svg width="160" height="48" viewBox="0 0 320 96" xmlns="http://www.w3.org/2000/svg" aria-label="SheRides">
+            <text x="10" y="72" fontFamily="Georgia, serif" fontSize="72" fontWeight="700" fill="#FF2D78" letterSpacing="-2">
+              SheRides
+            </text>
+          </svg>
         </Link>
         <h1 className="font-headline-xl text-headline-xl mb-2">Join Community</h1>
         <p className="font-body-sm text-body-sm text-secondary mb-6">
@@ -44,7 +41,7 @@ function SignupForm() {
             setError(null);
             setInfo(null);
             if (password !== confirmPassword) {
-              setError("পাসওয়ার্ড মিলছে না");
+              setError("Passwords do not match.");
               return;
             }
             setBusy(true);
@@ -66,7 +63,7 @@ function SignupForm() {
             autoComplete="name"
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
-            placeholder="পূর্ণ নাম"
+            placeholder="Full name"
             className="w-full bg-soft-off-white border border-surface-border rounded-lg px-4 py-3 focus:outline-none focus:border-accent-magenta focus:ring-2 focus:ring-accent-magenta/20 transition-all duration-300"
           />
           <input
@@ -75,7 +72,7 @@ function SignupForm() {
             autoComplete="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="ইমেইল"
+            placeholder="Email address"
             className="w-full bg-soft-off-white border border-surface-border rounded-lg px-4 py-3 focus:outline-none focus:border-accent-magenta focus:ring-2 focus:ring-accent-magenta/20 transition-all duration-300"
           />
           <div className="relative">
@@ -86,7 +83,7 @@ function SignupForm() {
               autoComplete="new-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="পাসওয়ার্ড"
+              placeholder="Password (min. 6 characters)"
               className="w-full bg-soft-off-white border border-surface-border rounded-lg px-4 py-3 pr-12 focus:outline-none focus:border-accent-magenta focus:ring-2 focus:ring-accent-magenta/20 transition-all duration-300"
             />
             <button
@@ -105,7 +102,7 @@ function SignupForm() {
             autoComplete="new-password"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
-            placeholder="পাসওয়ার্ড নিশ্চিত করুন"
+            placeholder="Confirm password"
             className="w-full bg-soft-off-white border border-surface-border rounded-lg px-4 py-3 focus:outline-none focus:border-accent-magenta focus:ring-2 focus:ring-accent-magenta/20 transition-all duration-300"
           />
           {error && <p className="text-error font-body-sm">{error}</p>}
@@ -115,7 +112,7 @@ function SignupForm() {
             disabled={busy}
             className="h-[56px] bg-accent-magenta text-white font-label-lg rounded-full shadow-magenta hover:bg-primary-container transition-all duration-200 hover:-translate-y-0.5 active:scale-[0.98] disabled:opacity-60 disabled:pointer-events-none"
           >
-            {busy ? "অ্যাকাউন্ট তৈরি হচ্ছে..." : "অ্যাকাউন্ট তৈরি করুন"}
+            {busy ? "Creating account..." : "Create Account"}
           </button>
         </form>
         <p className="mt-6 font-body-sm text-secondary">

@@ -131,10 +131,8 @@ export function FeedProvider({ children }: { children: ReactNode }) {
     );
     if (nextLiked) {
       void supabase.from("post_likes").insert({ post_id: id, user_id: user.id });
-      void supabase.from("posts").update({ likes_count: current.likes + 1 }).eq("id", id);
     } else {
       void supabase.from("post_likes").delete().eq("post_id", id).eq("user_id", user.id);
-      void supabase.from("posts").update({ likes_count: Math.max(0, current.likes - 1) }).eq("id", id);
     }
   };
 
