@@ -29,7 +29,7 @@ function SignupForm() {
         </Link>
         <h1 className="font-headline-xl text-headline-xl mb-2">Join Community</h1>
         <p className="font-body-sm text-body-sm text-secondary mb-6">
-          Built for verified female riders.
+          Create your account, complete rider verification, then wait for admin approval.
         </p>
         <form
           className="flex flex-col gap-4"
@@ -37,26 +37,32 @@ function SignupForm() {
             e.preventDefault();
             setError(null);
             setInfo(null);
+            if (password.length < 10) {
+              setError("Use at least 10 characters for your password.");
+              return;
+            }
             if (password !== confirmPassword) {
               setError("Passwords do not match.");
               return;
             }
             setBusy(true);
-            const message = await signUp(fullName, email, password);
+            const message = await signUp(fullName.trim(), email.trim(), password);
             setBusy(false);
             if (message?.toLowerCase().includes("check your email")) {
-              setInfo("আপনার ইমেইল চেক করুন এবং অ্যাকাউন্ট নিশ্চিত করুন, তারপর সাইন ইন করুন।");
+              setInfo("Check your email to confirm the account. Then sign in and complete rider verification for admin approval.");
               return;
             }
             if (message) {
               setError(message);
               return;
             }
-            router.replace("/home");
+            router.replace("/verification");
           }}
         >
           <input
             required
+            minLength={2}
+            maxLength={100}
             autoComplete="name"
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
@@ -66,6 +72,7 @@ function SignupForm() {
           <input
             type="email"
             required
+            maxLength={254}
             autoComplete="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
@@ -76,11 +83,12 @@ function SignupForm() {
             <input
               type={showPassword ? "text" : "password"}
               required
-              minLength={6}
+              minLength={10}
+              maxLength={128}
               autoComplete="new-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Password (min. 6 characters)"
+              placeholder="Password (min. 10 characters)"
               className="w-full bg-soft-off-white border border-surface-border rounded-lg px-4 py-3 pr-12 focus:outline-none focus:border-accent-magenta focus:ring-2 focus:ring-accent-magenta/20 transition-all duration-300"
             />
             <button
@@ -95,14 +103,15 @@ function SignupForm() {
           <input
             type={showPassword ? "text" : "password"}
             required
-            minLength={6}
+            minLength={10}
+            maxLength={128}
             autoComplete="new-password"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
             placeholder="Confirm password"
             className="w-full bg-soft-off-white border border-surface-border rounded-lg px-4 py-3 focus:outline-none focus:border-accent-magenta focus:ring-2 focus:ring-accent-magenta/20 transition-all duration-300"
           />
-          {error && <p className="text-error font-body-sm">{error}</p>}
+          {error && <p className="text-error font-body-sm" role="alert">{error}</p>}
           {info && <p className="text-accent-magenta font-body-sm">{info}</p>}
           <button
             type="submit"
