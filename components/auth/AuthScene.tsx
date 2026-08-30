@@ -102,7 +102,7 @@ export function AuthScene({ children, mood, speech, admin = false }: AuthScenePr
               className="object-cover object-[42%_center] select-none"
             />
             <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[#0b090c]/35 via-transparent to-transparent lg:from-[#0b090c]/20" />
-            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_36%_78%,rgba(8,6,10,0.72)_0%,rgba(8,6,10,0.28)_42%,transparent_72%)]" />
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_34%_80%,rgba(8,6,10,0.94)_0%,rgba(8,6,10,0.62)_38%,rgba(8,6,10,0.18)_62%,transparent_78%)]" />
             <InteractivePanda mood={mood} speech={speech} admin={admin} />
             <p className="absolute bottom-3 left-1/2 z-20 flex -translate-x-1/2 items-center gap-1 rounded-full border border-white/20 bg-black/45 px-3 py-1 text-[11px] whitespace-nowrap text-white/90 backdrop-blur-md">
               <Icon name="verified_user" size={14} filled className="text-[#FF2D78]" />
