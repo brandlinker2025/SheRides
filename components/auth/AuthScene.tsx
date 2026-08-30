@@ -18,11 +18,10 @@ type AuthSceneProps = {
   children: ReactNode;
   mood: PandaMood;
   track?: number;
-  speech?: string;
   admin?: boolean;
 };
 
-export function AuthScene({ children, mood, track = 0, speech, admin = false }: AuthSceneProps) {
+export function AuthScene({ children, mood, track = 0, admin = false }: AuthSceneProps) {
   return (
     <div className="relative min-h-screen overflow-hidden bg-[#120d12] text-white">
       <Image
@@ -31,9 +30,12 @@ export function AuthScene({ children, mood, track = 0, speech, admin = false }: 
         fill
         priority
         sizes="100vw"
-        className="pointer-events-none object-cover object-center select-none"
+        className="pointer-events-none object-cover object-[72%_center] select-none"
       />
-      <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/45 to-black/70 lg:bg-gradient-to-r lg:from-black/78 lg:via-black/42 lg:to-black/20" />
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/80 via-transparent to-black/75" />
+      <div className="pointer-events-none absolute inset-y-0 left-0 w-full bg-gradient-to-r from-black/72 via-black/35 to-transparent lg:w-[58%]" />
+
+      <InteractivePanda mood={mood} track={track} />
 
       <div className="relative z-10 flex min-h-screen flex-col">
         <header className="flex items-center justify-between gap-3 px-4 py-4 sm:px-8">
@@ -64,11 +66,8 @@ export function AuthScene({ children, mood, track = 0, speech, admin = false }: 
           </div>
         </header>
 
-        <main className="mx-auto grid w-full max-w-6xl flex-1 grid-cols-1 items-center gap-6 px-4 py-4 sm:px-8 lg:grid-cols-[minmax(0,460px)_minmax(0,1fr)] lg:gap-10">
-          <section className="order-2 w-full lg:order-1">{children}</section>
-          <section className="order-1 h-[220px] w-full sm:h-[280px] lg:order-2 lg:h-[min(72vh,620px)]">
-            <InteractivePanda mood={mood} track={track} speech={speech} />
-          </section>
+        <main className="flex flex-1 items-center px-4 py-6 sm:px-8">
+          <section className="w-full max-w-[460px]">{children}</section>
         </main>
 
         <footer className="mt-auto flex flex-col items-center justify-between gap-3 px-4 py-4 text-center text-white/70 sm:flex-row sm:px-8 sm:text-left">

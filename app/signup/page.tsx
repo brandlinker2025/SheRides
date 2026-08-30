@@ -23,11 +23,7 @@ function SignupForm() {
   const panda = usePandaForm();
 
   return (
-    <AuthScene
-      mood={panda.mood}
-      track={panda.track}
-      speech={panda.mood === "idle" ? "Welcome, new rider! Let’s get you set up." : undefined}
-    >
+    <AuthScene mood={panda.mood} track={panda.track}>
       <div className="rounded-[28px] border border-[#E91E63]/45 bg-[rgba(18,14,20,0.72)] p-6 shadow-[0_20px_50px_rgba(0,0,0,0.35),0_0_0_1px_rgba(233,30,99,0.12)] backdrop-blur-xl sm:p-8">
         <h1
           className="mb-1 text-[34px] leading-none text-[#E91E63] sm:text-[40px]"
