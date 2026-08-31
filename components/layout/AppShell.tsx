@@ -5,6 +5,7 @@ import { useFeed } from "@/lib/feed-context";
 import { PANDA_HERO_SRC } from "@/lib/brand-art";
 import { AuthGate } from "../auth/AuthGate";
 import { CreatePostModal } from "../feed/CreatePostModal";
+import { ChatDock } from "../messages/ChatDock";
 import { BottomNav } from "./BottomNav";
 import { PresenceHeartbeat } from "./PresenceHeartbeat";
 import { SideNav } from "./SideNav";
@@ -35,6 +36,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </main>
         </div>
         <BottomNav />
+        <ChatDock />
         <CreatePostModal onPost={addPost} />
       </div>
     </AuthGate>
