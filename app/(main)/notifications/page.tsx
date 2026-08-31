@@ -72,7 +72,7 @@ export default function NotificationsPage() {
         <EmptyState
           variant="notifications"
           title="No notifications yet."
-          body="Welcome messages and community updates will show up here."
+          body="Messages, comments, reactions, and new followers will show up here."
         />
       ) : (
         <div className="card-surface divide-y divide-surface-border overflow-hidden">

@@ -20,6 +20,7 @@ type FeedContextValue = {
   addPost: (content: string, options?: AddPostOptions) => Promise<string | null>;
   toggleLike: (id: string) => void;
   toggleSave: (id: string) => void;
+  incrementComments: (id: string) => void;
 };
 
 const FeedContext = createContext<FeedContextValue | null>(null);
@@ -153,8 +154,12 @@ export function FeedProvider({ children }: { children: ReactNode }) {
     else void supabase.from("saved_posts").delete().eq("post_id", id).eq("user_id", user.id);
   };
 
+  const incrementComments = (id: string) => {
+    setPosts((prev) => prev.map((p) => (p.id === id ? { ...p, comments: p.comments + 1 } : p)));
+  };
+
   return (
-    <FeedContext.Provider value={{ posts, loading, addPost, toggleLike, toggleSave }}>
+    <FeedContext.Provider value={{ posts, loading, addPost, toggleLike, toggleSave, incrementComments }}>
       {children}
     </FeedContext.Provider>
   );
