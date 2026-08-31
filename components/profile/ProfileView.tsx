@@ -143,6 +143,13 @@ export function ProfileView({ rider, isSelf }: ProfileViewProps) {
                   >
                     Edit profile
                   </button>
+                  <button
+                    type="button"
+                    onClick={() => router.push("/messages")}
+                    className="flex-1 md:flex-none px-8 py-3 bg-deep-charcoal text-white rounded-lg font-label-lg"
+                  >
+                    Message
+                  </button>
                 </>
               ) : (
                 <>
