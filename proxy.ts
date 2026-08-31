@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { ADMIN_OPEN_ACCESS } from "./lib/admin/open-access";
 
-const PUBLIC_PATHS = new Set(["/", "/login", "/admin-login", "/signup", "/download"]);
+const PUBLIC_PATHS = new Set(["/", "/login", "/admin-login", "/signup", "/download", "/api/keep-alive"]);
 const AUTH_ONLY_PATHS = new Set(["/verification"]);
 const PUBLIC_METADATA_PATHS = new Set([
   "/manifest.webmanifest",
