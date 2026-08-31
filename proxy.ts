@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 const PUBLIC_PATHS = new Set(["/", "/login", "/admin-login", "/signup"]);
-const AUTH_ONLY_PATHS = new Set(["/pending-approval", "/verification"]);
+const AUTH_ONLY_PATHS = new Set(["/verification"]);
 const PUBLIC_METADATA_PATHS = new Set([
   "/manifest.webmanifest",
   "/robots.txt",
@@ -18,6 +18,10 @@ function isPublicPath(pathname: string) {
   if (PUBLIC_METADATA_PATHS.has(pathname)) return true;
   if (/\.(?:svg|png|jpg|jpeg|gif|webp|ico|js|css|woff2?|map)$/i.test(pathname)) return true;
   return false;
+}
+
+function isAdminAppPath(pathname: string) {
+  return pathname === "/admin" || pathname.startsWith("/admin/");
 }
 
 export async function proxy(request: NextRequest) {
@@ -56,28 +60,26 @@ export async function proxy(request: NextRequest) {
     return redirectToLogin(request, pathname);
   }
 
+  // Membership review is skipped: send leftover bookmarks into the app.
+  if (pathname === "/pending-approval") {
+    return NextResponse.redirect(new URL("/home", request.url));
+  }
+
   if (AUTH_ONLY_PATHS.has(pathname)) {
     return response;
   }
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("verified, role")
-    .eq("id", user.id)
-    .maybeSingle();
+  if (isAdminAppPath(pathname)) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .maybeSingle();
 
-  const isAdmin = profile?.role === "admin";
-  const isApproved = profile?.verified === true || isAdmin;
-
-  if (pathname.startsWith("/admin")) {
-    if (!isAdmin) {
-      return NextResponse.redirect(new URL(isApproved ? "/home" : "/pending-approval", request.url));
+    if (profile?.role !== "admin") {
+      return NextResponse.redirect(new URL("/home", request.url));
     }
     return response;
-  }
-
-  if (!isApproved) {
-    return NextResponse.redirect(new URL("/pending-approval", request.url));
   }
 
   return response;
@@ -85,7 +87,7 @@ export async function proxy(request: NextRequest) {
 
 function redirectToLogin(request: NextRequest, pathname: string) {
   const login = request.nextUrl.clone();
-  login.pathname = pathname.startsWith("/admin") ? "/admin-login" : "/login";
+  login.pathname = isAdminAppPath(pathname) ? "/admin-login" : "/login";
   login.search = "";
   if (pathname !== "/login" && pathname !== "/admin-login") {
     login.searchParams.set("next", pathname);

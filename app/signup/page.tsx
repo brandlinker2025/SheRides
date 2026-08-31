@@ -39,7 +39,7 @@ function SignupForm() {
           Join Community
         </h1>
         <p className="mb-6 text-sm text-white/70">
-          Create your account, complete rider verification, then wait for admin approval.
+          Create your account and start riding with the community.
         </p>
         <form
           className="flex flex-col gap-4"
@@ -61,7 +61,7 @@ function SignupForm() {
             const message = await signUp(fullName.trim(), email.trim(), password);
             setBusy(false);
             if (message?.toLowerCase().includes("check your email")) {
-              setInfo("Check your email to confirm the account. Then sign in and complete rider verification for admin approval.");
+              setInfo("Check your email to confirm the account, then sign in to join the ride.");
               panda.onSuccess();
               return;
             }
@@ -71,7 +71,7 @@ function SignupForm() {
               return;
             }
             panda.onSuccess();
-            window.setTimeout(() => router.replace("/verification"), 900);
+            window.setTimeout(() => router.replace("/home"), 900);
           }}
         >
           <label className="relative block">

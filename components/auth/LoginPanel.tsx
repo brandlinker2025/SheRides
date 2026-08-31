@@ -26,6 +26,7 @@ function translateAuthError(message: string): string {
 function safeUserNextPath(value: string | null) {
   if (!value?.startsWith("/") || value.startsWith("//")) return "/home";
   if (value === "/admin-login" || value.startsWith("/admin")) return "/home";
+  if (value === "/pending-approval") return "/home";
   return value;
 }
 

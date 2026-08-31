@@ -12,7 +12,7 @@ create table if not exists public.profiles (
   bike text default '',
   avatar_url text,
   cover_url text,
-  verified boolean not null default false,
+  verified boolean not null default true,
   role text not null default 'rider' check (role in ('rider', 'admin')),
   followers_count integer not null default 0,
   following_count integer not null default 0,
@@ -491,13 +491,14 @@ begin
     assigned_role := 'admin';
   end if;
 
-  insert into public.profiles (id, full_name, username, avatar_url, role)
+  insert into public.profiles (id, full_name, username, avatar_url, role, verified)
   values (
     new.id,
     coalesce(new.raw_user_meta_data->>'full_name', split_part(new.email, '@', 1)),
     coalesce(new.raw_user_meta_data->>'username', split_part(new.email, '@', 1)),
     new.raw_user_meta_data->>'avatar_url',
-    assigned_role
+    assigned_role,
+    true
   )
   on conflict (id) do nothing;
 
