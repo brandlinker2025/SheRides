@@ -17,15 +17,10 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
     }
   }, [loading, user, pathname, router]);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-surface flex items-center justify-center">
-        <p className="font-label-lg text-accent-magenta">Checking sign in...</p>
-      </div>
-    );
-  }
-
-  if (!user) return null;
+  // The signed-in layout already verified the session on the server. Never replace
+  // the app with the client spinner — a slow or hung getUser() was trapping
+  // /messages?c= on "Checking sign in..." while /home in the same session worked.
+  if (!loading && !user) return null;
   return <>{children}</>;
 }
 
