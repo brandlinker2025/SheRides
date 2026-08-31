@@ -1,7 +1,6 @@
 import type { ReactNode } from "react";
 import Image from "next/image";
 import { PANDA_HERO_SRC } from "@/lib/brand-art";
-import { PandaHeroBanner } from "./PandaHeroBanner";
 
 /** Colorful panda chrome for pages that sit outside AppShell / AdminShell. */
 export function PandaStandaloneFrame({ children }: { children: ReactNode }) {
@@ -12,8 +11,7 @@ export function PandaStandaloneFrame({ children }: { children: ReactNode }) {
         <div className="absolute inset-0 panda-app-veil" />
       </div>
       <div className="relative z-10 mx-auto w-full max-w-3xl px-container-margin-mobile py-section-gap">
-        <PandaHeroBanner />
-        <div className="mt-6">{children}</div>
+        {children}
       </div>
     </div>
   );
