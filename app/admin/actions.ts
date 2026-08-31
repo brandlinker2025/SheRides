@@ -58,24 +58,38 @@ function isMissingAuthUser(message: string, status?: number) {
 
 export async function removeMember(userId: string) {
   if (!validUuid(userId)) return { error: "Invalid request." };
-  const { user, profile, supabase } = await requireAdmin();
+  const { user, profile } = await requireAdmin();
   if (user.id === userId || profile?.id === userId) {
     return { error: "You cannot remove your own account." };
   }
 
-  const writer = createAdminClient() ?? supabase;
-
-  // This FK has no ON DELETE rule; clear only this member's review stamps so one row can go.
-  await writer.from("verifications").update({ reviewed_by: null }).eq("reviewed_by", userId);
-
-  const { error: profileError } = await writer.from("profiles").delete().eq("id", userId);
-  if (profileError) return { error: profileError.message };
-
+  // profiles has RLS and no DELETE policy, so a session client can "succeed" with 0 rows.
   const admin = createAdminClient();
-  if (admin) {
-    const { error: authError } = await admin.auth.admin.deleteUser(userId);
-    if (authError && !isMissingAuthUser(authError.message, authError.status)) {
-      return { error: authError.message };
+  if (!admin) {
+    return { error: "Member removal is not configured on this server." };
+  }
+
+  const { error: authError } = await admin.auth.admin.deleteUser(userId);
+  if (authError && !isMissingAuthUser(authError.message, authError.status)) {
+    return { error: authError.message };
+  }
+
+  const { data: leftover, error: leftoverError } = await admin
+    .from("profiles")
+    .select("id")
+    .eq("id", userId)
+    .maybeSingle();
+  if (leftoverError) return { error: leftoverError.message };
+
+  if (leftover) {
+    const { data: removed, error: profileError } = await admin
+      .from("profiles")
+      .delete()
+      .eq("id", userId)
+      .select("id");
+    if (profileError) return { error: profileError.message };
+    if (!removed?.length) {
+      return { error: "Could not remove this member." };
     }
   }
 

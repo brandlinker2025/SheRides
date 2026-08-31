@@ -28,6 +28,7 @@ export function UsersTable({
   const [query, setQuery] = useState("");
   const [busyId, setBusyId] = useState<string | null>(null);
   const [busyKind, setBusyKind] = useState<"access" | "remove" | null>(null);
+  const [confirmId, setConfirmId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const filtered = useMemo(() => {
@@ -55,16 +56,22 @@ export function UsersTable({
 
   async function remove(user: AdminUserRow) {
     if (user.id === currentUserId) return;
-    const name = user.full_name?.trim() || (user.username ? `@${user.username}` : "this rider");
-    if (!window.confirm(`Remove ${name} from SheRides? This cannot be undone.`)) return;
     setBusyId(user.id);
     setBusyKind("remove");
     setError(null);
-    const result = await removeMember(user.id);
-    setBusyId(null);
-    setBusyKind(null);
-    if (result.error) setError(result.error);
-    else router.refresh();
+    try {
+      const result = await removeMember(user.id);
+      if (result.error) setError(result.error);
+      else {
+        setConfirmId(null);
+        router.refresh();
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not remove this member.");
+    } finally {
+      setBusyId(null);
+      setBusyKind(null);
+    }
   }
 
   return (
@@ -139,16 +146,39 @@ export function UsersTable({
                         {busyId === user.id && busyKind === "access" ? "Saving..." : "Approve"}
                       </button>
                     )}
-                    {user.id !== currentUserId && (
-                      <button
-                        type="button"
-                        disabled={busyId === user.id}
-                        onClick={() => void remove(user)}
-                        className="px-4 py-2 rounded-lg font-label-lg text-label-lg bg-soft-off-white border border-error/50 text-error disabled:opacity-60"
-                      >
-                        {busyId === user.id && busyKind === "remove" ? "Removing..." : "Remove"}
-                      </button>
-                    )}
+                    {user.id !== currentUserId &&
+                      (confirmId === user.id ? (
+                        <>
+                          <button
+                            type="button"
+                            disabled={busyId === user.id}
+                            onClick={() => setConfirmId(null)}
+                            className="px-4 py-2 rounded-lg font-label-lg text-label-lg bg-soft-off-white border border-surface-border text-secondary disabled:opacity-60"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            type="button"
+                            disabled={busyId === user.id}
+                            onClick={() => void remove(user)}
+                            className="px-4 py-2 rounded-lg font-label-lg text-label-lg bg-soft-off-white border border-error/50 text-error disabled:opacity-60"
+                          >
+                            {busyId === user.id && busyKind === "remove" ? "Removing..." : "Confirm remove"}
+                          </button>
+                        </>
+                      ) : (
+                        <button
+                          type="button"
+                          disabled={busyId === user.id}
+                          onClick={() => {
+                            setError(null);
+                            setConfirmId(user.id);
+                          }}
+                          className="px-4 py-2 rounded-lg font-label-lg text-label-lg bg-soft-off-white border border-error/50 text-error disabled:opacity-60"
+                        >
+                          Remove
+                        </button>
+                      ))}
                   </div>
                 </td>
               </tr>
