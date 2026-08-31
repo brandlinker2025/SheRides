@@ -59,8 +59,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     ]);
     const rider = riderFromProfile(id, latest.data, fullName);
     rider.postsCount = count ?? 0;
-    rider.followers = followers.count ?? rider.followers;
-    rider.following = following.count ?? rider.following;
+    if (!followers.error) rider.followers = followers.count ?? rider.followers;
+    if (!following.error) rider.following = following.count ?? rider.following;
     setUser(rider);
   }, []);
 

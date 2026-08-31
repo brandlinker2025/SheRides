@@ -52,8 +52,8 @@ export function ProfileView({ rider, isSelf, onSignOut }: ProfileViewProps) {
     const supabase = createClient();
     if (!supabase) return;
     void fetchFollowStats(supabase, rider.id, user?.id).then((stats) => {
-      setFollowers(stats.followers);
-      setFollowingCount(stats.following);
+      if (stats.followers != null) setFollowers(stats.followers);
+      if (stats.following != null) setFollowingCount(stats.following);
       setIsFollowing(stats.isFollowing);
     });
   }, [rider.id, user?.id]);
@@ -73,8 +73,8 @@ export function ProfileView({ rider, isSelf, onSignOut }: ProfileViewProps) {
       setActionError(error);
     } else {
       const stats = await fetchFollowStats(supabase, rider.id, user.id);
-      setFollowers(stats.followers);
-      setFollowingCount(stats.following);
+      if (stats.followers != null) setFollowers(stats.followers);
+      if (stats.following != null) setFollowingCount(stats.following);
       setIsFollowing(stats.isFollowing);
     }
     setFollowBusy(false);
