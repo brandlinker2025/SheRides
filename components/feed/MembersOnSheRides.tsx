@@ -11,28 +11,29 @@ import { Icon } from "../ui/Icon";
 
 export function useUnfollowedRiders(limit = 24) {
   const { user } = useAuth();
+  const myId = user?.id;
   const [members, setMembers] = useState<Rider[]>([]);
 
   useEffect(() => {
     const supabase = createClient();
-    if (!supabase || !user?.id) return;
+    if (!supabase || !myId) return;
     let cancelled = false;
-    void fetchUnfollowedRiders(supabase, user.id, limit).then((riders) => {
+    void fetchUnfollowedRiders(supabase, myId, limit).then((riders) => {
       if (!cancelled) setMembers(riders);
     });
     return () => {
       cancelled = true;
     };
-  }, [user?.id, limit]);
+  }, [myId, limit]);
 
   const followRider = useCallback(
     async (riderId: string) => {
       const supabase = createClient();
-      if (!supabase || !user?.id) return;
-      const error = await setFollowing(supabase, user.id, riderId, true);
+      if (!supabase || !myId) return;
+      const error = await setFollowing(supabase, myId, riderId, true);
       if (!error) setMembers((current) => current.filter((rider) => rider.id !== riderId));
     },
-    [user?.id]
+    [myId]
   );
 
   return { members, followRider };
