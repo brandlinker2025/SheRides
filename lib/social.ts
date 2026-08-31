@@ -226,13 +226,3 @@ export async function addPostComment(
   if (!mapped.authorAvatar && author?.avatar) mapped.authorAvatar = author.avatar;
   return { comment: mapped, error: null as string | null };
 }
-
-export async function fetchUnreadNotificationCount(supabase: Client, userId: string) {
-  const { count, error } = await supabase
-    .from("notifications")
-    .select("*", { count: "exact", head: true })
-    .eq("user_id", userId)
-    .eq("read", false);
-  if (error) return 0;
-  return count ?? 0;
-}
