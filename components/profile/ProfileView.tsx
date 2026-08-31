@@ -84,7 +84,7 @@ export function ProfileView({ rider, isSelf, onSignOut }: ProfileViewProps) {
   return (
     <div className="max-w-[1280px] mx-auto px-container-margin-mobile md:px-container-margin-desktop w-full pb-section-gap">
       <div className="relative w-full bg-surface-container-lowest rounded-xl shadow-premium overflow-hidden mt-6">
-        <div className="w-full h-48 md:h-80 bg-soft-off-white relative">
+        <div className="w-full h-96 md:h-[36rem] bg-soft-off-white relative">
           {rider.cover ? (
             <img src={rider.cover} alt="" className="w-full h-full object-cover" />
           ) : (
