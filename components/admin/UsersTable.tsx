@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { removeMember, setRiderVerified } from "@/app/admin/actions";
+import { setRiderVerified } from "@/app/admin/actions";
 import type { AdminUserRow } from "@/lib/admin/queries";
 import { Avatar } from "@/components/ui/Avatar";
 import { Icon } from "@/components/ui/Icon";
@@ -55,17 +55,26 @@ export function UsersTable({
   }
 
   async function remove(user: AdminUserRow) {
-    if (user.id === currentUserId) return;
+    if (user.id === currentUserId) {
+      setError("You cannot remove your own account.");
+      return;
+    }
     setBusyId(user.id);
     setBusyKind("remove");
     setError(null);
     try {
-      const result = await removeMember(user.id);
-      if (result.error) setError(result.error);
-      else {
-        setConfirmId(null);
-        router.refresh();
+      const response = await fetch("/api/admin/remove-member", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: user.id }),
+      });
+      const payload = (await response.json().catch(() => null)) as { error?: string; ok?: boolean } | null;
+      if (!response.ok || payload?.error || !payload?.ok) {
+        setError(payload?.error || "Could not remove this member.");
+        return;
       }
+      setConfirmId(null);
+      router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not remove this member.");
     } finally {
@@ -85,7 +94,11 @@ export function UsersTable({
           className="w-full md:w-80 bg-soft-off-white border border-surface-border rounded-lg px-4 py-2 font-body-sm focus:outline-none focus:border-accent-magenta"
         />
       </div>
-      {error && <p className="px-4 pt-4 text-error font-body-sm">{error}</p>}
+      {error && (
+        <p className="px-4 pt-4 text-error font-body-sm" role="alert">
+          {error}
+        </p>
+      )}
       <div className="overflow-x-auto">
         <table className="w-full min-w-[720px] text-left">
           <thead className="bg-soft-off-white font-label-caps text-label-caps text-tertiary">
@@ -124,7 +137,8 @@ export function UsersTable({
                 </td>
                 <td className="px-4 py-3 font-body-sm text-secondary">{formatDate(user.created_at)}</td>
                 <td className="px-4 py-3 text-right">
-                  <div className="inline-flex flex-wrap items-center justify-end gap-2">
+                  <div className="flex flex-col items-end gap-2">
+                    <div className="inline-flex flex-wrap items-center justify-end gap-2">
                     {user.role === "admin" ? (
                       <span className="font-body-sm text-secondary">Admin</span>
                     ) : user.verified ? (
@@ -152,7 +166,10 @@ export function UsersTable({
                           <button
                             type="button"
                             disabled={busyId === user.id}
-                            onClick={() => setConfirmId(null)}
+                            onClick={() => {
+                              setConfirmId(null);
+                              setError(null);
+                            }}
                             className="px-4 py-2 rounded-lg font-label-lg text-label-lg bg-soft-off-white border border-surface-border text-secondary disabled:opacity-60"
                           >
                             Cancel
@@ -161,7 +178,7 @@ export function UsersTable({
                             type="button"
                             disabled={busyId === user.id}
                             onClick={() => void remove(user)}
-                            className="px-4 py-2 rounded-lg font-label-lg text-label-lg bg-soft-off-white border border-error/50 text-error disabled:opacity-60"
+                            className="px-4 py-2 rounded-lg font-label-lg text-label-lg border border-error text-error bg-soft-off-white disabled:opacity-60"
                           >
                             {busyId === user.id && busyKind === "remove" ? "Removing..." : "Confirm remove"}
                           </button>
@@ -174,11 +191,17 @@ export function UsersTable({
                             setError(null);
                             setConfirmId(user.id);
                           }}
-                          className="px-4 py-2 rounded-lg font-label-lg text-label-lg bg-soft-off-white border border-error/50 text-error disabled:opacity-60"
+                          className="px-4 py-2 rounded-lg font-label-lg text-label-lg bg-soft-off-white border border-error text-error disabled:opacity-60"
                         >
                           Remove
                         </button>
                       ))}
+                    </div>
+                    {error && confirmId === user.id ? (
+                      <p className="font-body-sm text-error max-w-xs text-right" role="alert">
+                        {error}
+                      </p>
+                    ) : null}
                   </div>
                 </td>
               </tr>
