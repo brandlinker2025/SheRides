@@ -10,7 +10,7 @@ import {
   type ReactNode,
 } from "react";
 import { riderFromProfile } from "./profile";
-import { siteOrigin } from "./site";
+import { authEmailForIdentifier, normalizeBdPhone, parseMemberIdentifier, phoneAuthEmail } from "./phone";
 import { createClient } from "./supabase/client";
 import type { Rider } from "./types";
 
@@ -29,12 +29,24 @@ type AuthContextValue = {
   loading: boolean;
   refreshUser: () => Promise<void>;
   updateProfile: (updates: ProfileUpdates) => Promise<string | null>;
-  signIn: (email: string, password: string) => Promise<string | null>;
-  signUp: (fullName: string, email: string, password: string) => Promise<string | null>;
+  signIn: (identifier: string, password: string) => Promise<string | null>;
+  signUp: (fullName: string, phone: string, password: string) => Promise<string | null>;
   signOut: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
+
+function alreadyRegistered(message: string) {
+  const lower = message.toLowerCase();
+  return (
+    lower.includes("already registered") ||
+    lower.includes("already been registered") ||
+    lower.includes("user already exists") ||
+    lower.includes("phone taken") ||
+    lower.includes("duplicate key") ||
+    lower.includes("unique constraint")
+  );
+}
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<Rider | null>(null);
@@ -149,32 +161,48 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         await mapUser(user.id, updates.fullName ?? user.fullName);
         return null;
       },
-      async signIn(email, password) {
+      async signIn(identifier, password) {
         const supabase = createClient();
         if (!supabase) return "Supabase is not configured.";
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        const parsed = parseMemberIdentifier(identifier);
+        if (!parsed) return "Enter a Bangladesh mobile number or your email.";
+        const { error } = await supabase.auth.signInWithPassword({
+          email: authEmailForIdentifier(parsed),
+          password,
+        });
         return error?.message ?? null;
       },
-      async signUp(fullName, email, password) {
+      async signUp(fullName, phoneInput, password) {
         const supabase = createClient();
         if (!supabase) return "Supabase is not configured.";
+        const phone = normalizeBdPhone(phoneInput);
+        if (!phone) return "Enter a valid Bangladesh mobile number (01XXXXXXXXX or +8801XXXXXXXXX).";
+
+        const { data: taken, error: takenError } = await supabase.rpc("is_member_phone_taken", { p_phone: phone });
+        if (!takenError && taken === true) {
+          return "This mobile number is already registered. Sign in instead.";
+        }
+
+        const email = phoneAuthEmail(phone);
+        const username = phone;
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: {
-            data: { full_name: fullName, username: email.split("@")[0] },
-            emailRedirectTo: `${siteOrigin()}/home`,
+            data: { full_name: fullName, username, phone },
           },
         });
-        if (error) return error.message;
-        if (data.user && !data.session) {
-          return "Check your email to confirm your account, then sign in.";
+        if (error) {
+          if (alreadyRegistered(error.message)) {
+            return "This mobile number is already registered. Sign in instead.";
+          }
+          return error.message;
         }
         if (data.user) {
           await supabase.from("profiles").upsert({
             id: data.user.id,
-            full_name: fullName,
-            username: email.split("@")[0],
+            full_name: fullName || "Rider",
+            username,
           });
         }
         return null;

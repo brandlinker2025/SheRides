@@ -52,7 +52,7 @@ const nextConfig = {
         ],
       },
       {
-        source: "/:path(home|explore|groups|events|rides|messages|notifications|saved|safety|profile|admin|verification|pending-approval)/:sub*",
+        source: "/:path(home|explore|groups|events|rides|messages|notifications|saved|safety|profile|admin|verification|verify-phone|pending-approval)/:sub*",
         headers: [{ key: "Cache-Control", value: "no-store, must-revalidate" }],
       },
     ];

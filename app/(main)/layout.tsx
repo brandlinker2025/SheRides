@@ -2,6 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { AppShell } from "@/components/layout/AppShell";
+import { memberNeedsPhoneOtp, verifiedCookieName } from "@/lib/member-phone";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -38,6 +39,10 @@ export default async function MainLayout({ children }: { children: React.ReactNo
 
   if (!user) {
     redirect("/login");
+  }
+
+  if (await memberNeedsPhoneOtp(supabase, user.id, cookieStore.get(verifiedCookieName)?.value)) {
+    redirect("/verify-phone");
   }
 
   return <AppShell>{children}</AppShell>;
