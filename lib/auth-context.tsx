@@ -52,9 +52,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
     }
     const latest = await supabase.from("profiles").select("*").eq("id", id).maybeSingle();
-    const { count } = await supabase.from("posts").select("*", { count: "exact", head: true }).eq("author_id", id);
+    const [{ count }, followers, following] = await Promise.all([
+      supabase.from("posts").select("*", { count: "exact", head: true }).eq("author_id", id),
+      supabase.from("follows").select("*", { count: "exact", head: true }).eq("following_id", id),
+      supabase.from("follows").select("*", { count: "exact", head: true }).eq("follower_id", id),
+    ]);
     const rider = riderFromProfile(id, latest.data, fullName);
     rider.postsCount = count ?? 0;
+    rider.followers = followers.count ?? rider.followers;
+    rider.following = following.count ?? rider.following;
     setUser(rider);
   }, []);
 

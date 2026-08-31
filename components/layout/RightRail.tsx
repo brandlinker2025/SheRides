@@ -31,7 +31,7 @@ export function RightRail() {
       .select("*")
       .neq("id", user?.id ?? "")
       .order("created_at", { ascending: false })
-      .limit(3)
+      .limit(8)
       .then(({ data }) =>
         setSuggested((data ?? []).map((row) => riderFromProfile(row.id as string, row as Record<string, unknown>)))
       );
@@ -95,7 +95,7 @@ export function RightRail() {
       </div>
 
       <div className="card-surface card-hover p-6">
-        <h3 className="font-headline-md text-body-lg font-bold text-on-surface mb-4">Suggested Riders</h3>
+        <h3 className="font-headline-md text-body-lg font-bold text-on-surface mb-4">Who&apos;s on SheRides</h3>
         <div className="flex flex-col gap-4">
           {suggested.length === 0 && <p className="font-body-sm text-tertiary">No other riders yet.</p>}
           {suggested.map((rider) => (
@@ -104,6 +104,7 @@ export function RightRail() {
               <div className="min-w-0">
                 <h4 className="font-label-lg text-label-lg text-on-surface truncate">{rider.fullName}</h4>
                 <p className="font-body-sm text-body-sm text-tertiary truncate">{rider.location || rider.bike || "SheRides member"}</p>
+                <p className="font-label-caps text-label-caps text-accent-magenta">Follow</p>
               </div>
             </Link>
           ))}

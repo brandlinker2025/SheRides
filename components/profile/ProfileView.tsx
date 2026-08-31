@@ -1,9 +1,11 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Rider } from "@/lib/types";
+import { useAuth } from "@/lib/auth-context";
 import { useFeed } from "@/lib/feed-context";
+import { BASS_GIFT_FOLLOWERS, fetchFollowStats, hasBassGift, setFollowing } from "@/lib/social";
 import { createClient } from "@/lib/supabase/client";
 import { EmptyState } from "../ui/EmptyState";
 import { Icon } from "../ui/Icon";
@@ -11,6 +13,7 @@ import { Avatar } from "../ui/Avatar";
 import { FeedPost } from "../feed/FeedPost";
 import { EditProfileModal } from "./EditProfileModal";
 import { RoleBadge } from "./RoleBadge";
+import { BassGiftBadge } from "./BassGiftBadge";
 
 const tabs = ["Posts", "Photos", "Rides", "Achievements"] as const;
 
@@ -23,15 +26,59 @@ type ProfileViewProps = {
 export function ProfileView({ rider, isSelf, onSignOut }: ProfileViewProps) {
   const [tab, setTab] = useState<(typeof tabs)[number]>("Posts");
   const [editing, setEditing] = useState(false);
-  const [following, setFollowing] = useState(false);
+  const [following, setIsFollowing] = useState(false);
+  const [followers, setFollowers] = useState(rider.followers);
+  const [followingCount, setFollowingCount] = useState(rider.following);
+  const [followBusy, setFollowBusy] = useState(false);
+  const [messageBusy, setMessageBusy] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
+  const { user } = useAuth();
   const { posts, toggleLike, toggleSave } = useFeed();
   const router = useRouter();
   const riderPosts = posts.filter((post) => post.author.id === rider.id);
   const photos = riderPosts.filter((post) => post.image);
+  const giftUnlocked = hasBassGift(followers);
   const rides = useMemo(
     () => posts.filter((post) => post.author.id === rider.id && /ride|tour|meetup/i.test(post.content)),
     [posts, rider.id]
   );
+
+  useEffect(() => {
+    setFollowers(rider.followers);
+    setFollowingCount(rider.following);
+  }, [rider.id, rider.followers, rider.following]);
+
+  useEffect(() => {
+    const supabase = createClient();
+    if (!supabase) return;
+    void fetchFollowStats(supabase, rider.id, user?.id).then((stats) => {
+      setFollowers(stats.followers);
+      setFollowingCount(stats.following);
+      setIsFollowing(stats.isFollowing);
+    });
+  }, [rider.id, user?.id]);
+
+  async function toggleFollow() {
+    const supabase = createClient();
+    if (!supabase || !user || followBusy) return;
+    const next = !following;
+    setFollowBusy(true);
+    setActionError(null);
+    setIsFollowing(next);
+    setFollowers((n) => Math.max(0, n + (next ? 1 : -1)));
+    const error = await setFollowing(supabase, user.id, rider.id, next);
+    if (error) {
+      setIsFollowing(!next);
+      setFollowers((n) => Math.max(0, n + (next ? -1 : 1)));
+      setActionError(error);
+    } else {
+      const stats = await fetchFollowStats(supabase, rider.id, user.id);
+      setFollowers(stats.followers);
+      setFollowingCount(stats.following);
+      setIsFollowing(stats.isFollowing);
+    }
+    setFollowBusy(false);
+  }
 
   return (
     <div className="max-w-[1280px] mx-auto px-container-margin-mobile md:px-container-margin-desktop w-full pb-section-gap">
@@ -54,6 +101,7 @@ export function ProfileView({ rider, isSelf, onSignOut }: ProfileViewProps) {
               <div className="flex items-center gap-2 mb-2 flex-wrap">
                 <h1 className="font-headline-xl text-headline-xl text-on-background">{rider.fullName}</h1>
                 {rider.verified && <Icon name="verified" filled className="text-emerald-600" />}
+                {giftUnlocked ? <BassGiftBadge /> : null}
               </div>
               <div className="mb-3">
                 <RoleBadge rider={rider} />
@@ -105,24 +153,24 @@ export function ProfileView({ rider, isSelf, onSignOut }: ProfileViewProps) {
                 <>
                   <button
                     type="button"
-                    onClick={() => setFollowing((v) => !v)}
-                    className="flex-1 md:flex-none px-8 py-3 bg-accent-magenta text-white rounded-lg font-label-lg"
+                    disabled={followBusy || !user}
+                    onClick={() => void toggleFollow()}
+                    className={`flex-1 md:flex-none px-8 py-3 rounded-lg font-label-lg disabled:opacity-60 ${
+                      following
+                        ? "border border-outline text-on-surface bg-surface-container-high"
+                        : "bg-accent-magenta text-white"
+                    }`}
                   >
                     {following ? "Following" : "Follow"}
                   </button>
                   <button
                     type="button"
-                    onClick={async () => {
-                      const supabase = createClient();
-                      if (!supabase) return;
-                      const { data, error } = await supabase.rpc("get_or_create_dm", { other_id: rider.id });
-                      if (error || !data) {
-                        window.alert(error?.message || "Could not open that conversation.");
-                        return;
-                      }
-                      router.push(`/messages?c=${data}`);
+                    disabled={messageBusy || !user}
+                    onClick={() => {
+                      setMessageBusy(true);
+                      router.push(`/messages?to=${rider.id}`);
                     }}
-                    className="flex-1 md:flex-none px-8 py-3 bg-deep-charcoal text-white rounded-lg font-label-lg"
+                    className="flex-1 md:flex-none px-8 py-3 bg-deep-charcoal text-white rounded-lg font-label-lg disabled:opacity-60"
                   >
                     Message
                   </button>
@@ -130,10 +178,15 @@ export function ProfileView({ rider, isSelf, onSignOut }: ProfileViewProps) {
               )}
             </div>
           </div>
+          {actionError ? (
+            <p className="mt-4 font-body-sm text-error" role="alert">
+              {actionError}
+            </p>
+          ) : null}
           <div className="flex gap-8 mt-8 pt-6 border-t border-surface-border">
             {[
-              [rider.followers, "Followers"],
-              [rider.following, "Following"],
+              [followers, "Followers"],
+              [followingCount, "Following"],
               [riderPosts.length || rider.postsCount, "Posts"],
               [rider.ridesCount, "Rides"],
             ].map(([n, label]) => (
@@ -196,6 +249,21 @@ export function ProfileView({ rider, isSelf, onSignOut }: ProfileViewProps) {
 
       {tab === "Achievements" && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div
+            className={`card-surface p-6 border ${
+              giftUnlocked
+                ? "border-amber-400 shadow-magenta bg-gradient-to-br from-amber-400/15 via-accent-magenta/10 to-transparent"
+                : "border-surface-border opacity-80"
+            }`}
+          >
+            <div className="mb-3">{giftUnlocked ? <BassGiftBadge /> : <Icon name="redeem" className="text-tertiary" />}</div>
+            <p className="font-label-lg">{giftUnlocked ? "Bass Gift unlocked" : "Bass Gift"}</p>
+            <p className="font-body-sm text-secondary mt-1">
+              {giftUnlocked
+                ? "A rare gift for reaching 1,000 followers in Bangladesh's women riders community."
+                : `Reach ${BASS_GIFT_FOLLOWERS.toLocaleString()} followers to unlock this gift badge.`}
+            </p>
+          </div>
           {(
             [
               rider.verified ? { icon: "verified", label: "Verified rider" } : null,
@@ -206,17 +274,11 @@ export function ProfileView({ rider, isSelf, onSignOut }: ProfileViewProps) {
           )
             .filter((item): item is { icon: string; label: string } => Boolean(item))
             .map((item) => (
-              <div
-                key={item.label}
-                className="card-surface card-hover p-6 border border-surface-border"
-              >
+              <div key={item.label} className="card-surface card-hover p-6 border border-surface-border">
                 <Icon name={item.icon} className="text-accent-magenta mb-2" />
                 <p className="font-label-lg">{item.label}</p>
               </div>
             ))}
-          {!rider.verified && riderPosts.length === 0 && !rider.bike && (
-            <EmptyState title="Achievements will appear as you ride and post." />
-          )}
         </div>
       )}
 

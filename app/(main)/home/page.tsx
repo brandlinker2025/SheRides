@@ -2,6 +2,7 @@
 
 import { FeedPost } from "@/components/feed/FeedPost";
 import { FeedPostSkeleton } from "@/components/feed/FeedPostSkeleton";
+import { MembersOnSheRides } from "@/components/feed/MembersOnSheRides";
 import { PostComposer } from "@/components/feed/PostComposer";
 import { StoriesRow } from "@/components/feed/StoriesRow";
 import { RightRail } from "@/components/layout/RightRail";
@@ -18,6 +19,7 @@ export default function HomeFeedPage() {
       <div className="w-full max-w-[1280px] grid grid-cols-1 lg:grid-cols-12 gap-gutter">
         <div className="col-span-1 lg:col-span-8 flex flex-col gap-component-gap">
           <StoriesRow />
+          <MembersOnSheRides />
           <PostComposer onPost={addPost} />
           {loading &&
             Array.from({ length: 3 }).map((_, i) => <FeedPostSkeleton key={i} />)}
