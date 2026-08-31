@@ -32,21 +32,56 @@ export async function heartbeatPresence(supabase: Client) {
   return error?.message ?? null;
 }
 
-export async function fetchOnlineRiders(supabase: Client, myId: string, limit = 24): Promise<Rider[]> {
-  const since = new Date(Date.now() - ONLINE_WINDOW_MS).toISOString();
-  const { data: rows, error } = await supabase
-    .from("user_presence")
-    .select("user_id")
-    .gte("last_seen_at", since)
-    .neq("user_id", myId)
-    .order("last_seen_at", { ascending: false })
-    .limit(40);
-  if (missingPresence(error) || error || !rows?.length) return [];
+export type MessengerFriend = Rider & { online: boolean };
 
-  const ids = rows.map((row) => row.user_id as string);
-  const { data: profiles } = await supabase.from("profiles").select("*").in("id", ids);
-  const order = new Map(ids.map((id, index) => [id, index]));
-  return toDiscoverableRiders((profiles ?? []) as Record<string, unknown>[], myId, limit).sort(
-    (a, b) => (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0)
-  );
+/** Followed members plus 1:1 DM partners. Self and tester/seed accounts stay hidden. */
+export async function fetchMessengerFriends(supabase: Client, myId: string, limit = 80): Promise<MessengerFriend[]> {
+  const [{ data: follows }, { data: memberships }] = await Promise.all([
+    supabase.from("follows").select("following_id").eq("follower_id", myId),
+    supabase.from("conversation_members").select("conversation_id").eq("user_id", myId),
+  ]);
+
+  const friendIds = new Set<string>();
+  for (const row of follows ?? []) {
+    const id = row.following_id as string;
+    if (id && id !== myId) friendIds.add(id);
+  }
+
+  const convIds = (memberships ?? []).map((row) => row.conversation_id as string).filter(Boolean);
+  if (convIds.length) {
+    const [{ data: convs }, { data: others }] = await Promise.all([
+      supabase.from("conversations").select("id, is_group").in("id", convIds),
+      supabase.from("conversation_members").select("conversation_id, user_id").in("conversation_id", convIds).neq("user_id", myId),
+    ]);
+    const dmIds = new Set(
+      (convs ?? []).filter((row) => row.is_group !== true).map((row) => row.id as string)
+    );
+    for (const row of others ?? []) {
+      const id = row.user_id as string;
+      if (!id || id === myId) continue;
+      if (convs?.length && !dmIds.has(row.conversation_id as string)) continue;
+      friendIds.add(id);
+    }
+  }
+
+  if (!friendIds.size) return [];
+
+  const ids = [...friendIds];
+  const since = new Date(Date.now() - ONLINE_WINDOW_MS).toISOString();
+  const [{ data: profiles }, presence] = await Promise.all([
+    supabase.from("profiles").select("*").in("id", ids),
+    supabase.from("user_presence").select("user_id").in("user_id", ids).gte("last_seen_at", since),
+  ]);
+
+  const onlineIds = new Set<string>();
+  if (!missingPresence(presence.error)) {
+    for (const row of presence.data ?? []) onlineIds.add(row.user_id as string);
+  }
+
+  return toDiscoverableRiders((profiles ?? []) as Record<string, unknown>[], myId, limit)
+    .map((rider) => ({ ...rider, online: onlineIds.has(rider.id) }))
+    .sort((a, b) => {
+      if (a.online !== b.online) return a.online ? -1 : 1;
+      return a.fullName.localeCompare(b.fullName);
+    });
 }

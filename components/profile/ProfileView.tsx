@@ -8,6 +8,7 @@ import { useFeed } from "@/lib/feed-context";
 import { isVideoUrl } from "@/lib/media";
 import { BASS_GIFT_FOLLOWERS, fetchFollowStats, hasBassGift, setFollowing } from "@/lib/social";
 import { createClient } from "@/lib/supabase/client";
+import { useUI } from "@/lib/ui-context";
 import { EmptyState } from "../ui/EmptyState";
 import { Icon } from "../ui/Icon";
 import { Avatar } from "../ui/Avatar";
@@ -21,10 +22,9 @@ const tabs = ["Posts", "Photos", "Rides", "Achievements"] as const;
 type ProfileViewProps = {
   rider: Rider;
   isSelf?: boolean;
-  onSignOut?: () => void;
 };
 
-export function ProfileView({ rider, isSelf, onSignOut }: ProfileViewProps) {
+export function ProfileView({ rider, isSelf }: ProfileViewProps) {
   const [tab, setTab] = useState<(typeof tabs)[number]>("Posts");
   const [editing, setEditing] = useState(false);
   const [following, setIsFollowing] = useState(false);
@@ -35,6 +35,7 @@ export function ProfileView({ rider, isSelf, onSignOut }: ProfileViewProps) {
   const [actionError, setActionError] = useState<string | null>(null);
   const { user } = useAuth();
   const { posts, toggleLike, toggleSave, incrementComments } = useFeed();
+  const { openChatDock } = useUI();
   const router = useRouter();
   const riderPosts = posts.filter((post) => post.author.id === rider.id);
   const photos = riderPosts.filter((post) => post.image && !isVideoUrl(post.image));
@@ -144,10 +145,10 @@ export function ProfileView({ rider, isSelf, onSignOut }: ProfileViewProps) {
                   </button>
                   <button
                     type="button"
-                    onClick={onSignOut}
+                    onClick={() => router.push("/messages")}
                     className="flex-1 md:flex-none px-8 py-3 bg-deep-charcoal text-white rounded-lg font-label-lg"
                   >
-                    Sign out
+                    Message
                   </button>
                 </>
               ) : (
@@ -168,6 +169,10 @@ export function ProfileView({ rider, isSelf, onSignOut }: ProfileViewProps) {
                     type="button"
                     disabled={messageBusy || !user}
                     onClick={() => {
+                      if (typeof window !== "undefined" && window.matchMedia("(min-width: 1024px)").matches) {
+                        openChatDock({ id: rider.id, fullName: rider.fullName, avatar: rider.avatar });
+                        return;
+                      }
                       setMessageBusy(true);
                       router.push(`/messages?to=${rider.id}`);
                     }}
