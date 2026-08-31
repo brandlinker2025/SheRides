@@ -79,7 +79,7 @@ export function MembersOnSheRides({ members }: { members: Rider[] }) {
     );
   }
 
-  const showArrows = canPrev || canNext;
+  const showArrows = members.length > 1;
 
   return (
     <section className="card-surface p-5">
