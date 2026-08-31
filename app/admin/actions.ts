@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { createClient } from "@supabase/supabase-js";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { deleteMemberById } from "@/lib/admin/remove-member";
 import { requireAdmin } from "@/lib/supabase/require-admin";
@@ -43,10 +44,29 @@ function refreshAdmin() {
 
 export async function setRiderVerified(userId: string, verified: boolean) {
   if (!validUuid(userId) || typeof verified !== "boolean") return { error: "Invalid request." };
-  const { supabase } = await requireAdmin();
-  const writer = createAdminClient() ?? supabase;
-  const { error } = await writer.from("profiles").update({ verified }).eq("id", userId);
-  if (error) return { error: error.message };
+  await requireAdmin();
+
+  const admin = createAdminClient();
+  if (admin) {
+    const { error } = await admin.from("profiles").update({ verified }).eq("id", userId);
+    if (error) return { error: error.message };
+  } else {
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    if (!url || !anonKey) {
+      return { error: "Member approval is not configured on this server." };
+    }
+
+    const supabase = createClient(url, anonKey, {
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
+    const { error } = await supabase.rpc("admin_set_verified", {
+      target_id: userId,
+      is_verified: verified,
+    });
+    if (error) return { error: error.message };
+  }
+
   refreshAdmin();
   revalidatePath("/home");
   revalidatePath("/pending-approval");

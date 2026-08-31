@@ -65,42 +65,33 @@ function missingTable(error: { message?: string; code?: string } | null) {
 }
 
 export async function loadAdminStats(supabase: SupabaseClient) {
-  const startOfDay = new Date();
-  startOfDay.setHours(0, 0, 0, 0);
-
-  const [users, verified, pendingApproval, posts, events, signupsToday] = await Promise.all([
-    supabase.from("profiles").select("*", { count: "exact", head: true }),
-    supabase.from("profiles").select("*", { count: "exact", head: true }).eq("verified", true),
-    supabase.from("profiles").select("*", { count: "exact", head: true }).eq("verified", false).neq("role", "admin"),
-    supabase.from("posts").select("*", { count: "exact", head: true }),
-    supabase.from("events").select("*", { count: "exact", head: true }),
-    supabase
-      .from("profiles")
-      .select("*", { count: "exact", head: true })
-      .gte("created_at", startOfDay.toISOString()),
-  ]);
-
-  const setupNeeded = [users, posts, events].some((r) => missingTable(r.error));
+  const { data, error } = await supabase.rpc("admin_dashboard_counts");
+  const row = (Array.isArray(data) ? data[0] : data) as {
+    users?: number | string | null;
+    verified?: number | string | null;
+    pending_approval?: number | string | null;
+    posts?: number | string | null;
+    events?: number | string | null;
+    signups_today?: number | string | null;
+  } | null;
+  const setupNeeded = missingTable(error);
 
   return {
-    users: users.count ?? 0,
-    verified: verified.count ?? 0,
-    pendingApproval: pendingApproval.count ?? 0,
-    posts: posts.count ?? 0,
-    events: events.count ?? 0,
-    signupsToday: signupsToday.count ?? 0,
+    users: Number(row?.users ?? 0),
+    verified: Number(row?.verified ?? 0),
+    pendingApproval: Number(row?.pending_approval ?? 0),
+    posts: Number(row?.posts ?? 0),
+    events: Number(row?.events ?? 0),
+    signupsToday: Number(row?.signups_today ?? 0),
     setupNeeded,
     error: setupNeeded
       ? "Database tables are not set up yet. Run supabase/schema.sql (or supabase/admin.sql) in the Supabase SQL editor."
-      : users.error?.message ?? posts.error?.message ?? events.error?.message ?? null,
+      : error?.message ?? null,
   };
 }
 
 export async function loadAdminUsers(supabase: SupabaseClient) {
-  const { data, error } = await supabase
-    .from("profiles")
-    .select("id, username, full_name, location, bike, avatar_url, verified, role, created_at")
-    .order("created_at", { ascending: true });
+  const { data, error } = await supabase.rpc("admin_list_members");
   return { users: (data ?? []) as AdminUserRow[], error: error?.message ?? null };
 }
 
