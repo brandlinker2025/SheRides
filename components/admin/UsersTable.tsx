@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { setRiderVerified } from "@/app/admin/actions";
+import { removeMember, setRiderVerified } from "@/app/admin/actions";
 import type { AdminUserRow } from "@/lib/admin/queries";
 import { Avatar } from "@/components/ui/Avatar";
 import { Icon } from "@/components/ui/Icon";
@@ -17,14 +17,17 @@ function formatDate(value: string) {
 
 export function UsersTable({
   users,
+  currentUserId = null,
   emptyLabel = "No riders match this search.",
 }: {
   users: AdminUserRow[];
+  currentUserId?: string | null;
   emptyLabel?: string;
 }) {
   const router = useRouter();
   const [query, setQuery] = useState("");
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [busyKind, setBusyKind] = useState<"access" | "remove" | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const filtered = useMemo(() => {
@@ -41,9 +44,25 @@ export function UsersTable({
 
   async function setAccess(user: AdminUserRow, verified: boolean) {
     setBusyId(user.id);
+    setBusyKind("access");
     setError(null);
     const result = await setRiderVerified(user.id, verified);
     setBusyId(null);
+    setBusyKind(null);
+    if (result.error) setError(result.error);
+    else router.refresh();
+  }
+
+  async function remove(user: AdminUserRow) {
+    if (user.id === currentUserId) return;
+    const name = user.full_name?.trim() || (user.username ? `@${user.username}` : "this rider");
+    if (!window.confirm(`Remove ${name} from SheRides? This cannot be undone.`)) return;
+    setBusyId(user.id);
+    setBusyKind("remove");
+    setError(null);
+    const result = await removeMember(user.id);
+    setBusyId(null);
+    setBusyKind(null);
     if (result.error) setError(result.error);
     else router.refresh();
   }
@@ -98,27 +117,39 @@ export function UsersTable({
                 </td>
                 <td className="px-4 py-3 font-body-sm text-secondary">{formatDate(user.created_at)}</td>
                 <td className="px-4 py-3 text-right">
-                  {user.role === "admin" ? (
-                    <span className="font-body-sm text-secondary">Admin</span>
-                  ) : user.verified ? (
-                    <button
-                      type="button"
-                      disabled={busyId === user.id}
-                      onClick={() => void setAccess(user, false)}
-                      className="px-4 py-2 rounded-lg font-label-lg text-label-lg bg-soft-off-white border border-surface-border text-secondary disabled:opacity-60"
-                    >
-                      {busyId === user.id ? "Saving..." : "Revoke access"}
-                    </button>
-                  ) : (
-                    <button
-                      type="button"
-                      disabled={busyId === user.id}
-                      onClick={() => void setAccess(user, true)}
-                      className="inline-flex px-4 py-2 rounded-lg font-label-lg text-label-lg bg-accent-magenta text-white disabled:opacity-60"
-                    >
-                      {busyId === user.id ? "Saving..." : "Approve"}
-                    </button>
-                  )}
+                  <div className="inline-flex flex-wrap items-center justify-end gap-2">
+                    {user.role === "admin" ? (
+                      <span className="font-body-sm text-secondary">Admin</span>
+                    ) : user.verified ? (
+                      <button
+                        type="button"
+                        disabled={busyId === user.id}
+                        onClick={() => void setAccess(user, false)}
+                        className="px-4 py-2 rounded-lg font-label-lg text-label-lg bg-soft-off-white border border-surface-border text-secondary disabled:opacity-60"
+                      >
+                        {busyId === user.id && busyKind === "access" ? "Saving..." : "Revoke access"}
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        disabled={busyId === user.id}
+                        onClick={() => void setAccess(user, true)}
+                        className="inline-flex px-4 py-2 rounded-lg font-label-lg text-label-lg bg-accent-magenta text-white disabled:opacity-60"
+                      >
+                        {busyId === user.id && busyKind === "access" ? "Saving..." : "Approve"}
+                      </button>
+                    )}
+                    {user.id !== currentUserId && (
+                      <button
+                        type="button"
+                        disabled={busyId === user.id}
+                        onClick={() => void remove(user)}
+                        className="px-4 py-2 rounded-lg font-label-lg text-label-lg bg-soft-off-white border border-error/50 text-error disabled:opacity-60"
+                      >
+                        {busyId === user.id && busyKind === "remove" ? "Removing..." : "Remove"}
+                      </button>
+                    )}
+                  </div>
                 </td>
               </tr>
             ))}
