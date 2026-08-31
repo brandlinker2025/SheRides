@@ -59,6 +59,19 @@ function isSafariBrowser() {
   return /Safari/i.test(ua) && !/CriOS|FxiOS|EdgiOS|Android/i.test(ua) && !/Chrome|Edg|OPR/i.test(ua);
 }
 
+function needsSafariHomeScreenGuide() {
+  if (typeof navigator === "undefined") return false;
+  return detectPlatform() === "ios" || isSafariBrowser();
+}
+
+const INSTALL_PROMPT_WAIT_MS = 1500;
+
+function waitMs(ms: number) {
+  return new Promise<void>((resolve) => {
+    window.setTimeout(resolve, ms);
+  });
+}
+
 export function DownloadInstall({ target }: { target: Target }) {
   const [platform, setPlatform] = useState<Platform>("desktop");
   const [installEvent, setInstallEvent] = useState<BeforeInstallPromptEvent | null>(null);
@@ -70,6 +83,7 @@ export function DownloadInstall({ target }: { target: Target }) {
   const [iosGuideOpen, setIosGuideOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const fallbackRef = useRef<HTMLElement>(null);
+  const installEventRef = useRef<BeforeInstallPromptEvent | null>(null);
 
   useEffect(() => {
     setPlatform(detectPlatform());
@@ -77,13 +91,19 @@ export function DownloadInstall({ target }: { target: Target }) {
     setSafari(isSafariBrowser());
 
     const queued = (window as Window & { __sheridesBIP?: BeforeInstallPromptEvent }).__sheridesBIP;
-    if (queued) setInstallEvent(queued);
+    if (queued) {
+      installEventRef.current = queued;
+      setInstallEvent(queued);
+    }
     const onPrompt = (event: Event) => {
       event.preventDefault();
-      setInstallEvent(event as BeforeInstallPromptEvent);
+      const bip = event as BeforeInstallPromptEvent;
+      installEventRef.current = bip;
+      setInstallEvent(bip);
     };
     const onInstalled = () => {
       setJustInstalled(true);
+      installEventRef.current = null;
       setInstallEvent(null);
     };
     window.addEventListener("beforeinstallprompt", onPrompt);
@@ -140,49 +160,68 @@ export function DownloadInstall({ target }: { target: Target }) {
   };
 
   const showIosGuide = () => {
+    setBusy(false);
     setCopied(false);
+    setHint(null);
+    setPlatform(detectPlatform());
+    setSafari(isSafariBrowser());
     setIosGuideOpen(true);
   };
 
+  const queuedInstallEvent = () =>
+    installEventRef.current ??
+    (window as Window & { __sheridesBIP?: BeforeInstallPromptEvent }).__sheridesBIP ??
+    null;
+
+  const promptNativeInstall = async (event: BeforeInstallPromptEvent) => {
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
+    setBusy(true);
+    const promptPromise = event.prompt();
+    void promptPromise.catch(() => undefined);
+    try {
+      await Promise.race([
+        promptPromise,
+        new Promise<void>((_, reject) => {
+          timeoutId = setTimeout(() => reject(new Error("install-prompt-timeout")), INSTALL_PROMPT_WAIT_MS);
+        }),
+      ]);
+      if (timeoutId !== undefined) clearTimeout(timeoutId);
+      const choice = await event.userChoice;
+      if (choice.outcome === "accepted") setJustInstalled(true);
+      installEventRef.current = null;
+      setInstallEvent(null);
+    } catch {
+      showIosGuide();
+    } finally {
+      if (timeoutId !== undefined) clearTimeout(timeoutId);
+      setBusy(false);
+    }
+  };
+
   const install = async () => {
-    if (platform === "ios") {
-      const canShare = safari && typeof navigator.share === "function";
-      if (canShare) {
-        try {
-          await navigator.share({
-            title: "SheRides",
-            text: "Add SheRides to Home Screen",
-            url: installUrl(),
-          });
-          return;
-        } catch {
-          showIosGuide();
-          return;
-        }
-      }
+    // Detect at tap time. Safari has no beforeinstallprompt, and iPhone "desktop site"
+    // can look like a Mac — never wait on Installing for those.
+    if (needsSafariHomeScreenGuide()) {
       showIosGuide();
       return;
     }
-    if (installEvent) {
+
+    let event = queuedInstallEvent();
+    if (!event) {
       setBusy(true);
-      try {
-        await installEvent.prompt();
-        const choice = await installEvent.userChoice;
-        if (choice.outcome === "accepted") setJustInstalled(true);
-        setInstallEvent(null);
-      } catch {
-        setHint("Install was cancelled. You can also use the browser menu.");
-      } finally {
-        setBusy(false);
+      await waitMs(INSTALL_PROMPT_WAIT_MS);
+      if (needsSafariHomeScreenGuide()) {
+        showIosGuide();
+        return;
       }
-      return;
+      event = queuedInstallEvent();
+      if (!event) {
+        showIosGuide();
+        return;
+      }
     }
-    fallbackRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-    setHint(
-      platform === "android"
-        ? "If Install does not appear, open the Chrome menu and tap Install app."
-        : "If Install does not appear, use the install icon in the address bar, or the browser menu.",
-    );
+
+    await promptNativeInstall(event);
   };
 
   const installLabel = `Install ${selected.name}`;
@@ -345,11 +384,11 @@ export function DownloadInstall({ target }: { target: Target }) {
           </div>
           <div className="flex flex-1 flex-col overflow-y-auto px-6 py-8">
             <h2 id="ios-install-title" className="mb-3 font-headline-xl text-headline-xl">
-              Safari required
+              Add to Home Screen
             </h2>
             <p className="mb-8 font-body-md text-secondary">
               {safari
-                ? "SheRides is not in the App Store. Add it from Safari’s Share sheet."
+                ? "iPhone installs from Safari’s Add to Home Screen — not the App Store."
                 : "This browser cannot add SheRides to your Home Screen. Open this page in Safari."}
             </p>
             <ol className="mb-10 space-y-6 font-body-md text-on-surface">
@@ -358,9 +397,8 @@ export function DownloadInstall({ target }: { target: Target }) {
                   1
                 </span>
                 <span className="pt-1.5">
-                  Tap <strong>Share</strong>{" "}
-                  <Icon name="ios_share" size={22} className="align-middle text-accent-magenta" /> (square with an
-                  arrow).
+                  Open this page in <strong>Safari</strong>
+                  {platform === "ios" && !safari ? " (this browser cannot add it — tap Share → Open in Safari)" : ""}.
                 </span>
               </li>
               <li className="flex gap-4">
@@ -368,7 +406,9 @@ export function DownloadInstall({ target }: { target: Target }) {
                   2
                 </span>
                 <span className="pt-1.5">
-                  Tap <strong>Add to Home Screen</strong>.
+                  Tap the <strong>Share</strong> button{" "}
+                  <Icon name="ios_share" size={22} className="align-middle text-accent-magenta" /> (square with an
+                  arrow).
                 </span>
               </li>
               <li className="flex gap-4">
@@ -376,7 +416,15 @@ export function DownloadInstall({ target }: { target: Target }) {
                   3
                 </span>
                 <span className="pt-1.5">
-                  Tap <strong>Add</strong>. SheRides opens from your Home Screen in its own window.
+                  Scroll and tap <strong>Add to Home Screen</strong>.
+                </span>
+              </li>
+              <li className="flex gap-4">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-accent-magenta font-label-lg text-on-primary">
+                  4
+                </span>
+                <span className="pt-1.5">
+                  Tap <strong>Add</strong>. {selected.name} appears on your Home Screen and opens in its own window.
                 </span>
               </li>
             </ol>
