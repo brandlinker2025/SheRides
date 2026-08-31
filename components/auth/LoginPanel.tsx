@@ -4,12 +4,11 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState, type FormEvent } from "react";
 import { useAuth } from "@/lib/auth-context";
-import { isEmailIdentifier, normalizeBdPhone, parseMemberIdentifier } from "@/lib/phone";
+import { isEmailIdentifier, normalizeBdPhone } from "@/lib/phone";
 import { siteOrigin } from "@/lib/site";
 import { createClient } from "@/lib/supabase/client";
 import { Icon } from "@/components/ui/Icon";
 import { AuthScene, authFieldClass } from "./AuthScene";
-import { AuthOrDivider, AuthSocialButtons } from "./AuthSocialButtons";
 import { DustumiSubmitButton } from "./DustumiSubmitButton";
 import { PhoneOtpFields, postAuthJson } from "./PhoneOtpFields";
 import { usePandaForm } from "./usePandaForm";
@@ -54,23 +53,36 @@ export function LoginPanel({ admin = false }: { admin?: boolean }) {
   const panda = usePandaForm();
   const identifierValid = admin
     ? EMAIL_PATTERN.test(identifier.trim())
-    : Boolean(parseMemberIdentifier(identifier));
+    : Boolean(normalizeBdPhone(identifier));
 
   useEffect(() => {
     try {
       const saved = window.localStorage.getItem(REMEMBER_KEY);
-      if (saved) {
+      if (!saved) return;
+      if (admin) {
         setIdentifier(saved);
         setRememberMe(true);
+        return;
+      }
+      if (normalizeBdPhone(saved)) {
+        setIdentifier(saved);
+        setRememberMe(true);
+      } else {
+        window.localStorage.removeItem(REMEMBER_KEY);
       }
     } catch {
       /* storage unavailable */
     }
-  }, []);
+  }, [admin]);
 
   function persistRememberedIdentifier(value: string, remember: boolean) {
     try {
-      if (remember && value) window.localStorage.setItem(REMEMBER_KEY, value);
+      if (admin) {
+        if (remember && value) window.localStorage.setItem(REMEMBER_KEY, value);
+        else window.localStorage.removeItem(REMEMBER_KEY);
+        return;
+      }
+      if (remember && normalizeBdPhone(value)) window.localStorage.setItem(REMEMBER_KEY, value);
       else window.localStorage.removeItem(REMEMBER_KEY);
     } catch {
       /* storage unavailable */
@@ -199,15 +211,8 @@ export function LoginPanel({ admin = false }: { admin?: boolean }) {
       return;
     }
 
-    if (!identifier.trim() || !password.trim()) {
+    if (!normalizeBdPhone(identifier) || !password.trim()) {
       dodge();
-      return;
-    }
-
-    const parsed = parseMemberIdentifier(identifier);
-    if (!parsed) {
-      setError("Enter a valid Bangladesh mobile number (01XXXXXXXXX or +8801XXXXXXXXX).");
-      panda.onError();
       return;
     }
 
@@ -228,7 +233,7 @@ export function LoginPanel({ admin = false }: { admin?: boolean }) {
     }, 900);
   }
 
-  const joinHref = identifier.trim()
+  const joinHref = normalizeBdPhone(identifier)
     ? `/signup?phone=${encodeURIComponent(identifier.trim())}`
     : "/signup";
 
@@ -295,6 +300,7 @@ export function LoginPanel({ admin = false }: { admin?: boolean }) {
                 <input
                   type={admin ? "email" : "tel"}
                   required={admin}
+                  name={admin ? "email" : "mobile"}
                   autoComplete={admin ? "email" : "tel"}
                   inputMode={admin ? "email" : "tel"}
                   value={identifier}
@@ -392,17 +398,6 @@ export function LoginPanel({ admin = false }: { admin?: boolean }) {
             )}
           </form>
         )}
-        {!admin ? (
-          <div className="mt-5 flex flex-col gap-4">
-            <AuthOrDivider />
-            <AuthSocialButtons
-              onError={(message) => {
-                setError(message);
-                panda.onError();
-              }}
-            />
-          </div>
-        ) : null}
         {admin ? (
           <p className="mt-6 text-sm text-white/70">
             Community member?{" "}

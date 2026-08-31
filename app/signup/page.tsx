@@ -7,7 +7,6 @@ import { useAuth } from "@/lib/auth-context";
 import { normalizeBdPhone } from "@/lib/phone";
 import { Icon } from "@/components/ui/Icon";
 import { AuthScene, authFieldClass } from "@/components/auth/AuthScene";
-import { AuthOrDivider, AuthSocialButtons } from "@/components/auth/AuthSocialButtons";
 import { DustumiSubmitButton } from "@/components/auth/DustumiSubmitButton";
 import { PhoneOtpFields, postAuthJson } from "@/components/auth/PhoneOtpFields";
 import { usePandaForm } from "@/components/auth/usePandaForm";
@@ -130,14 +129,9 @@ function SignupForm() {
               e.preventDefault();
               setError(null);
               setInfo(null);
-              if (!phone.trim() || !password.trim()) {
-                dodge();
-                return;
-              }
               const normalized = normalizeBdPhone(phone);
-              if (!normalized) {
-                setError("Enter a valid Bangladesh mobile number (01XXXXXXXXX or +8801XXXXXXXXX).");
-                panda.onError();
+              if (!normalized || !password.trim()) {
+                dodge();
                 return;
               }
               if (password.length < 6) {
@@ -253,17 +247,6 @@ function SignupForm() {
             </DustumiSubmitButton>
           </form>
         )}
-        {step === "form" ? (
-          <div className="mt-5 flex flex-col gap-4">
-            <AuthOrDivider />
-            <AuthSocialButtons
-              onError={(message) => {
-                setError(message);
-                panda.onError();
-              }}
-            />
-          </div>
-        ) : null}
         <p className="mt-6 text-sm text-white/70">
           Already a member?{" "}
           <Link href="/login" className="font-label-lg text-[#FF2D78]">
