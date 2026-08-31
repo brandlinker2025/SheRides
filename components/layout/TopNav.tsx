@@ -11,7 +11,7 @@ export function TopNav() {
   const { user } = useAuth();
 
   return (
-    <header className="fixed top-0 w-full z-50 flex justify-between items-center px-gutter py-base bg-deep-charcoal shadow-nav">
+    <header className="panda-topnav fixed top-0 w-full z-50 flex justify-between items-center px-gutter py-base shadow-nav">
       <div className="flex items-center gap-gutter">
         <Link href="/home" aria-label="SheRides home">
           <BrandLogo className="text-[36px] sm:text-[40px]" />

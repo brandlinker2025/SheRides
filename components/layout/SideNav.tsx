@@ -6,6 +6,7 @@ import { useAuth } from "@/lib/auth-context";
 import { sidebarCommunities } from "@/lib/data";
 import { img } from "@/lib/images";
 import { useUI } from "@/lib/ui-context";
+import { PandaNavBackdrop } from "@/components/brand/PandaNavBackdrop";
 import { Icon } from "../ui/Icon";
 
 const items = [
@@ -26,8 +27,9 @@ export function SideNav() {
   const { user } = useAuth();
 
   return (
-    <nav className="hidden lg:flex flex-col h-screen fixed left-0 top-0 w-64 bg-deep-charcoal shadow-xl z-40 border-r border-white/5 pt-[96px] pb-6">
-      <div className="px-gutter mb-6">
+    <nav className="hidden lg:flex flex-col h-screen fixed left-0 top-0 w-64 shadow-xl z-40 border-r border-white/10 pt-[96px] pb-6 overflow-hidden">
+      <PandaNavBackdrop />
+      <div className="relative z-10 px-gutter mb-6">
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 rounded-full bg-accent-magenta flex items-center justify-center overflow-hidden shrink-0">
             <img src={img.logo} alt="SheRides crest" className="w-full h-full object-cover" />
@@ -39,7 +41,7 @@ export function SideNav() {
         </div>
       </div>
 
-      <div className="flex-1 flex flex-col gap-1 overflow-y-auto px-4">
+      <div className="relative z-10 flex-1 flex flex-col gap-1 overflow-y-auto px-4">
         {items.map((item) => {
           const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
           return (
@@ -48,7 +50,7 @@ export function SideNav() {
               href={item.href}
               className={
                 active
-                  ? "flex items-center gap-4 px-4 py-3 rounded-lg text-accent-magenta font-bold border-r-4 border-accent-magenta bg-white/5 hover:bg-white/10 transition-all"
+                  ? "flex items-center gap-4 px-4 py-3 rounded-lg text-accent-magenta font-bold border-r-4 border-accent-magenta bg-white/15 hover:bg-white/20 transition-all"
                   : "flex items-center gap-4 px-4 py-3 rounded-lg text-on-primary opacity-70 hover:opacity-100 hover:bg-white/10 hover:text-white transition-all"
               }
             >
@@ -72,7 +74,7 @@ export function SideNav() {
         )}
       </div>
 
-      <div className="mt-auto px-4">
+      <div className="relative z-10 mt-auto px-4">
         <div className="mb-6">
           <h3 className="font-label-caps text-label-caps text-on-primary opacity-50 px-4 mb-2">
             POPULAR COMMUNITIES
