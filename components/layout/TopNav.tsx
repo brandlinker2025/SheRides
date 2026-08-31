@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { toDiscoverableRiders } from "@/lib/profile";
+import { fetchUnreadNotificationCount } from "@/lib/social";
 import { createClient } from "@/lib/supabase/client";
 import type { Rider } from "@/lib/types";
 import { Icon } from "../ui/Icon";
@@ -16,7 +17,37 @@ export function TopNav() {
   const [query, setQuery] = useState("");
   const [hits, setHits] = useState<Rider[]>([]);
   const [open, setOpen] = useState(false);
+  const [unread, setUnread] = useState(0);
   const searchRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const supabase = createClient();
+    if (!supabase || !user?.id) {
+      setUnread(0);
+      return;
+    }
+    let cancelled = false;
+    const refresh = () => {
+      void fetchUnreadNotificationCount(supabase, user.id).then((count) => {
+        if (!cancelled) setUnread(count);
+      });
+    };
+    refresh();
+    const timer = window.setInterval(refresh, 45000);
+    const channel = supabase
+      .channel(`notifications-bell:${user.id}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "notifications", filter: `user_id=eq.${user.id}` },
+        refresh
+      )
+      .subscribe();
+    return () => {
+      cancelled = true;
+      window.clearInterval(timer);
+      void supabase.removeChannel(channel);
+    };
+  }, [user?.id]);
 
   useEffect(() => {
     const q = query.trim().toLowerCase();
@@ -121,13 +152,15 @@ export function TopNav() {
         <Link
           href="/notifications"
           className="w-10 h-10 rounded-full flex items-center justify-center text-on-primary hover:bg-white/10 transition-colors relative"
-          aria-label="Notifications"
+          aria-label={unread > 0 ? `Notifications, ${unread} unread` : "Notifications"}
         >
           <Icon name="notifications" />
-          <span className="absolute top-2 right-2 flex h-2.5 w-2.5">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent-magenta opacity-75" />
-            <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-accent-magenta" />
-          </span>
+          {unread > 0 ? (
+            <span className="absolute top-2 right-2 flex h-2.5 w-2.5">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent-magenta opacity-75" />
+              <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-accent-magenta" />
+            </span>
+          ) : null}
         </Link>
         <Link href="/profile" className="flex items-center gap-2 min-w-0">
           <span className="hidden sm:block text-on-primary font-label-lg text-label-lg truncate max-w-[160px]">

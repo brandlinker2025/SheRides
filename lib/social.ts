@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { toDiscoverableRiders } from "./profile";
+import { formatRelativeTime, toDiscoverableRiders } from "./profile";
 import type { Rider } from "./types";
 
 export const BASS_GIFT_FOLLOWERS = 1000;
@@ -163,4 +163,76 @@ export async function toggleMessageReaction(
   if (error && error.code === "23505") return null;
   if (missingRelation(error)) return null;
   return error?.message ?? null;
+}
+
+export type PostComment = {
+  id: string;
+  authorId: string;
+  authorName: string;
+  authorAvatar: string;
+  content: string;
+  createdAt: string;
+};
+
+function mapPostComment(row: Record<string, unknown>): PostComment {
+  const author = (Array.isArray(row.author) ? row.author[0] : row.author) as {
+    id?: string;
+    full_name?: string;
+    avatar_url?: string;
+  } | null;
+  return {
+    id: String(row.id),
+    authorId: author?.id ? String(author.id) : "",
+    authorName: author?.full_name || "Rider",
+    authorAvatar: author?.avatar_url || "",
+    content: (row.content as string) || "",
+    createdAt: formatRelativeTime(row.created_at as string),
+  };
+}
+
+export async function fetchPostComments(supabase: Client, postId: string) {
+  const { data, error } = await supabase
+    .from("comments")
+    .select("id, content, created_at, author:profiles!author_id(id, full_name, avatar_url)")
+    .eq("post_id", postId)
+    .order("created_at", { ascending: true });
+  if (error) return { comments: [] as PostComment[], error: error.message };
+  return { comments: (data ?? []).map((row) => mapPostComment(row as Record<string, unknown>)), error: null as string | null };
+}
+
+export async function addPostComment(
+  supabase: Client,
+  postId: string,
+  authorId: string,
+  content: string,
+  author?: { fullName?: string; avatar?: string }
+) {
+  const body = content.trim().slice(0, 2000);
+  if (!body) return { comment: null as PostComment | null, error: "Write a comment first." };
+  const { data, error } = await supabase
+    .from("comments")
+    .insert({ post_id: postId, author_id: authorId, content: body })
+    .select("id, content, created_at, author:profiles!author_id(id, full_name, avatar_url)")
+    .single();
+  if (error || !data) {
+    if (error && /row-level security/i.test(error.message)) {
+      return { comment: null as PostComment | null, error: "Could not post this comment. Please try again." };
+    }
+    return { comment: null as PostComment | null, error: error?.message || "Could not post this comment." };
+  }
+  const mapped = mapPostComment(data as Record<string, unknown>);
+  if (!mapped.authorId) mapped.authorId = authorId;
+  if (mapped.authorName === "Rider" && author?.fullName) mapped.authorName = author.fullName;
+  if (!mapped.authorAvatar && author?.avatar) mapped.authorAvatar = author.avatar;
+  return { comment: mapped, error: null as string | null };
+}
+
+export async function fetchUnreadNotificationCount(supabase: Client, userId: string) {
+  const { count, error } = await supabase
+    .from("notifications")
+    .select("*", { count: "exact", head: true })
+    .eq("user_id", userId)
+    .eq("read", false);
+  if (error) return 0;
+  return count ?? 0;
 }

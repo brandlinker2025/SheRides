@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { FeedPost } from "@/components/feed/FeedPost";
 import { FeedPostSkeleton } from "@/components/feed/FeedPostSkeleton";
 import { MembersOnSheRides, useUnfollowedRiders } from "@/components/feed/MembersOnSheRides";
@@ -11,9 +12,21 @@ import { useFeed } from "@/lib/feed-context";
 import { useUI } from "@/lib/ui-context";
 
 export default function HomeFeedPage() {
-  const { posts, loading, addPost, toggleLike, toggleSave } = useFeed();
+  const { posts, loading, addPost, toggleLike, toggleSave, incrementComments } = useFeed();
   const { setCreateOpen } = useUI();
   const { members } = useUnfollowedRiders();
+  const [focusPostId, setFocusPostId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    setFocusPostId(params.get("post"));
+  }, []);
+
+  useEffect(() => {
+    if (!focusPostId || loading) return;
+    const el = document.getElementById(`post-${focusPostId}`);
+    el?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [focusPostId, loading, posts]);
 
   return (
     <div className="p-gutter flex justify-center">
@@ -40,7 +53,14 @@ export default function HomeFeedPage() {
             />
           )}
           {posts.map((post) => (
-            <FeedPost key={post.id} post={post} onToggleLike={toggleLike} onToggleSave={toggleSave} />
+            <FeedPost
+              key={post.id}
+              post={post}
+              onToggleLike={toggleLike}
+              onToggleSave={toggleSave}
+              onCommented={incrementComments}
+              startOpen={focusPostId === post.id}
+            />
           ))}
         </div>
         <RightRail />

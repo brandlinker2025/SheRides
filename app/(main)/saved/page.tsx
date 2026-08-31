@@ -6,7 +6,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { useFeed } from "@/lib/feed-context";
 
 export default function SavedPage() {
-  const { posts, toggleLike, toggleSave } = useFeed();
+  const { posts, toggleLike, toggleSave, incrementComments } = useFeed();
   const saved = posts.filter((p) => p.saved);
 
   return (
@@ -17,7 +17,13 @@ export default function SavedPage() {
         <EmptyState variant="saved" title="No saved posts yet." body="Bookmark a post from the feed and it will live here." />
       ) : (
         saved.map((post) => (
-          <FeedPost key={post.id} post={post} onToggleLike={toggleLike} onToggleSave={toggleSave} />
+          <FeedPost
+            key={post.id}
+            post={post}
+            onToggleLike={toggleLike}
+            onToggleSave={toggleSave}
+            onCommented={incrementComments}
+          />
         ))
       )}
     </div>

@@ -34,7 +34,7 @@ export function ProfileView({ rider, isSelf, onSignOut }: ProfileViewProps) {
   const [messageBusy, setMessageBusy] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
   const { user } = useAuth();
-  const { posts, toggleLike, toggleSave } = useFeed();
+  const { posts, toggleLike, toggleSave, incrementComments } = useFeed();
   const router = useRouter();
   const riderPosts = posts.filter((post) => post.author.id === rider.id);
   const photos = riderPosts.filter((post) => post.image && !isVideoUrl(post.image));
@@ -219,7 +219,13 @@ export function ProfileView({ rider, isSelf, onSignOut }: ProfileViewProps) {
         (riderPosts.length ? (
           <div className="flex flex-col gap-6 max-w-3xl">
             {riderPosts.map((post) => (
-              <FeedPost key={post.id} post={post} onToggleLike={toggleLike} onToggleSave={toggleSave} />
+              <FeedPost
+                key={post.id}
+                post={post}
+                onToggleLike={toggleLike}
+                onToggleSave={toggleSave}
+                onCommented={incrementComments}
+              />
             ))}
           </div>
         ) : (
@@ -241,7 +247,13 @@ export function ProfileView({ rider, isSelf, onSignOut }: ProfileViewProps) {
         (rides.length ? (
           <div className="flex flex-col gap-4 max-w-3xl">
             {rides.map((post) => (
-              <FeedPost key={post.id} post={post} onToggleLike={toggleLike} onToggleSave={toggleSave} />
+              <FeedPost
+                key={post.id}
+                post={post}
+                onToggleLike={toggleLike}
+                onToggleSave={toggleSave}
+                onCommented={incrementComments}
+              />
             ))}
           </div>
         ) : (
