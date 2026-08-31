@@ -35,8 +35,8 @@ export function SideNav() {
             <img src={img.logo} alt="SheRides crest" className="w-full h-full object-cover" />
           </div>
           <div>
-            <h2 className="font-label-lg text-label-lg text-on-primary">SheRides Community</h2>
-            <p className="font-body-sm text-body-sm text-on-primary opacity-70">Bangladesh Women Riders Community</p>
+            <h2 className="panda-nav-kicker font-label-lg text-label-lg">SheRides Community</h2>
+            <p className="panda-nav-kicker font-body-sm text-body-sm">Bangladesh Women Riders Community</p>
           </div>
         </div>
       </div>
@@ -48,11 +48,9 @@ export function SideNav() {
             <Link
               key={item.href}
               href={item.href}
-              className={
-                active
-                  ? "flex items-center gap-4 px-4 py-3 rounded-lg text-accent-magenta font-bold border-r-4 border-accent-magenta bg-white/15 hover:bg-white/20 transition-all"
-                  : "flex items-center gap-4 px-4 py-3 rounded-lg text-on-primary opacity-70 hover:opacity-100 hover:bg-white/10 hover:text-white transition-all"
-              }
+              className={`panda-nav-item flex items-center gap-4 px-4 py-3 rounded-lg transition-all ${
+                active ? "panda-nav-item-active" : ""
+              }`}
             >
               <Icon name={item.icon} filled={active} />
               <span className="font-label-lg text-label-lg">{item.label}</span>
@@ -62,11 +60,9 @@ export function SideNav() {
         {user?.role === "admin" && (
           <Link
             href="/admin"
-            className={
-              pathname.startsWith("/admin")
-                ? "flex items-center gap-4 px-4 py-3 rounded-lg text-accent-magenta font-bold border-r-4 border-accent-magenta bg-white/5 hover:bg-white/10 transition-all"
-                : "flex items-center gap-4 px-4 py-3 rounded-lg text-on-primary opacity-70 hover:opacity-100 hover:bg-white/10 hover:text-white transition-all"
-            }
+            className={`panda-nav-item flex items-center gap-4 px-4 py-3 rounded-lg transition-all ${
+              pathname.startsWith("/admin") ? "panda-nav-item-active" : ""
+            }`}
           >
             <Icon name="admin_panel_settings" filled={pathname.startsWith("/admin")} />
             <span className="font-label-lg text-label-lg">Admin Panel</span>
@@ -76,14 +72,12 @@ export function SideNav() {
 
       <div className="relative z-10 mt-auto px-4">
         <div className="mb-6">
-          <h3 className="font-label-caps text-label-caps text-on-primary opacity-50 px-4 mb-2">
-            POPULAR COMMUNITIES
-          </h3>
+          <h3 className="panda-nav-kicker font-label-caps text-label-caps px-4 mb-2">POPULAR COMMUNITIES</h3>
           {sidebarCommunities.map((c) => (
             <Link
               key={c.name}
               href={c.href}
-              className="flex items-center gap-4 px-4 py-2 rounded-lg text-on-primary opacity-70 hover:opacity-100 hover:bg-white/10 transition-all"
+              className="panda-nav-item flex items-center gap-4 px-4 py-2 rounded-lg transition-all"
             >
               <Icon name="star" />
               <span className="font-body-sm text-body-sm">{c.name}</span>
@@ -93,7 +87,7 @@ export function SideNav() {
         <button
           type="button"
           onClick={() => setCreateOpen(true)}
-          className="w-full bg-accent-magenta text-on-primary font-label-lg text-label-lg py-3 rounded-full hover:bg-primary-container transition-colors shadow-lg"
+          className="w-full bg-accent-magenta text-white font-label-lg text-label-lg py-3 rounded-full hover:bg-primary-container transition-colors shadow-lg"
         >
           Start a Ride
         </button>
@@ -113,7 +107,7 @@ function LogoutButton() {
         await signOut();
         router.push("/");
       }}
-      className="w-full mt-3 text-secondary font-body-sm py-2 rounded-full hover:text-red-400 hover:bg-red-500/10 transition-colors flex items-center justify-center gap-2"
+      className="panda-nav-item w-full mt-3 font-body-sm py-2 rounded-full hover:text-red-200 hover:bg-red-950/70 transition-colors flex items-center justify-center gap-2"
     >
       <span>🚪</span> লগআউট
     </button>

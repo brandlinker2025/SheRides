@@ -38,10 +38,10 @@ export function AdminShell({
         <PandaNavBackdrop />
         <div className="relative z-10 px-base mb-section-gap">
           <Link href="/home" aria-label="SheRides community home">
-            <BrandLogo className="text-[46px]" />
+            <BrandLogo className="text-[46px] drop-shadow-[0_1px_3px_rgba(0,0,0,0.85)]" />
           </Link>
-          <div className="text-on-primary opacity-70 font-label-caps text-label-caps mt-2">Admin Panel</div>
-          {adminName && <p className="text-on-primary/50 font-body-sm text-body-sm mt-2">{adminName}</p>}
+          <div className="panda-nav-kicker font-label-caps text-label-caps mt-2">Admin Panel</div>
+          {adminName && <p className="panda-nav-kicker font-body-sm text-body-sm mt-2">{adminName}</p>}
         </div>
         <div className="relative z-10 flex-1 flex flex-col gap-2 px-4">
           {nav.map((item) => {
@@ -50,10 +50,8 @@ export function AdminShell({
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex items-center gap-4 p-3 rounded-lg font-label-lg ${
-                  active
-                    ? "text-accent-magenta font-bold border-r-4 border-accent-magenta bg-white/15"
-                    : "text-on-primary opacity-80 hover:bg-white/10"
+                className={`panda-nav-item flex items-center gap-4 p-3 rounded-lg font-label-lg ${
+                  active ? "panda-nav-item-active" : ""
                 }`}
               >
                 <Icon name={item.icon} filled={active} /> {item.label}
@@ -62,10 +60,7 @@ export function AdminShell({
           })}
         </div>
         <div className="relative z-10 px-4">
-          <Link
-            href="/home"
-            className="flex items-center gap-4 p-3 rounded-lg text-on-primary opacity-80 hover:bg-white/10 font-label-lg"
-          >
+          <Link href="/home" className="panda-nav-item flex items-center gap-4 p-3 rounded-lg font-label-lg">
             <Icon name="arrow_back" /> Community
           </Link>
         </div>
