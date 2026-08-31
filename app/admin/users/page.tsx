@@ -4,8 +4,9 @@ import { loadAdminUsers } from "@/lib/admin/queries";
 import { requireAdmin } from "@/lib/supabase/require-admin";
 
 export default async function AdminUsersPage() {
-  const { supabase } = await requireAdmin();
+  const { user, profile, supabase } = await requireAdmin();
   const { users, error } = await loadAdminUsers(supabase);
+  const currentUserId = profile?.id ?? (user.id !== "open-access" ? user.id : null);
 
   return (
     <div>
@@ -17,7 +18,7 @@ export default async function AdminUsersPage() {
         </p>
       </div>
       {error && <p className="mb-4 text-error font-body-sm">{error}</p>}
-      <UsersTable users={users} />
+      <UsersTable users={users} currentUserId={currentUserId} />
     </div>
   );
 }

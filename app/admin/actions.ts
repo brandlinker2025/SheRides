@@ -52,6 +52,39 @@ export async function setRiderVerified(userId: string, verified: boolean) {
   return {};
 }
 
+function isMissingAuthUser(message: string, status?: number) {
+  return status === 404 || /user not found/i.test(message);
+}
+
+export async function removeMember(userId: string) {
+  if (!validUuid(userId)) return { error: "Invalid request." };
+  const { user, profile, supabase } = await requireAdmin();
+  if (user.id === userId || profile?.id === userId) {
+    return { error: "You cannot remove your own account." };
+  }
+
+  const writer = createAdminClient() ?? supabase;
+
+  // This FK has no ON DELETE rule; clear only this member's review stamps so one row can go.
+  await writer.from("verifications").update({ reviewed_by: null }).eq("reviewed_by", userId);
+
+  const { error: profileError } = await writer.from("profiles").delete().eq("id", userId);
+  if (profileError) return { error: profileError.message };
+
+  const admin = createAdminClient();
+  if (admin) {
+    const { error: authError } = await admin.auth.admin.deleteUser(userId);
+    if (authError && !isMissingAuthUser(authError.message, authError.status)) {
+      return { error: authError.message };
+    }
+  }
+
+  refreshAdmin();
+  revalidatePath("/home");
+  revalidatePath("/pending-approval");
+  return {};
+}
+
 export async function reviewRiderVerification(
   verificationId: string,
   approve: boolean,

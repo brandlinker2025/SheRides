@@ -8,7 +8,8 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export default async function AdminVerificationsPage() {
-  const { supabase } = await requireAdmin();
+  const { user, profile, supabase } = await requireAdmin();
+  const currentUserId = profile?.id ?? (user.id !== "open-access" ? user.id : null);
   const [{ users, error: usersError }, { verifications, error }] = await Promise.all([
     loadAdminUsers(supabase),
     loadAdminVerifications(supabase),
@@ -45,7 +46,7 @@ export default async function AdminVerificationsPage() {
         </div>
       </div>
       <h2 className="font-headline-md text-headline-md mb-4">Waiting for approval</h2>
-      <UsersTable users={pendingMembers} emptyLabel="No members waiting for approval." />
+      <UsersTable users={pendingMembers} currentUserId={currentUserId} emptyLabel="No members waiting for approval." />
       {pendingDocs.length > 0 && (
         <div className="mt-10">
           <h2 className="font-headline-md text-headline-md mb-4">Document applications</h2>
