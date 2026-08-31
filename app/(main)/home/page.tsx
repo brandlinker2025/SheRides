@@ -2,7 +2,7 @@
 
 import { FeedPost } from "@/components/feed/FeedPost";
 import { FeedPostSkeleton } from "@/components/feed/FeedPostSkeleton";
-import { MembersOnSheRides } from "@/components/feed/MembersOnSheRides";
+import { MembersOnSheRides, useUnfollowedRiders } from "@/components/feed/MembersOnSheRides";
 import { PostComposer } from "@/components/feed/PostComposer";
 import { StoriesRow } from "@/components/feed/StoriesRow";
 import { RightRail } from "@/components/layout/RightRail";
@@ -13,13 +13,14 @@ import { useUI } from "@/lib/ui-context";
 export default function HomeFeedPage() {
   const { posts, loading, addPost, toggleLike, toggleSave } = useFeed();
   const { setCreateOpen } = useUI();
+  const { members, followRider } = useUnfollowedRiders();
 
   return (
     <div className="p-gutter flex justify-center">
       <div className="w-full max-w-[1280px] grid grid-cols-1 lg:grid-cols-12 gap-gutter">
         <div className="col-span-1 lg:col-span-8 flex flex-col gap-component-gap">
           <StoriesRow />
-          <MembersOnSheRides />
+          <MembersOnSheRides members={members} />
           <PostComposer onPost={addPost} />
           {loading &&
             Array.from({ length: 3 }).map((_, i) => <FeedPostSkeleton key={i} />)}
@@ -42,7 +43,7 @@ export default function HomeFeedPage() {
             <FeedPost key={post.id} post={post} onToggleLike={toggleLike} onToggleSave={toggleSave} />
           ))}
         </div>
-        <RightRail />
+        <RightRail suggested={members} onFollow={followRider} />
       </div>
     </div>
   );

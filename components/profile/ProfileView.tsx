@@ -92,12 +92,12 @@ export function ProfileView({ rider, isSelf, onSignOut }: ProfileViewProps) {
           )}
         </div>
         <div className="px-6 md:px-12 pb-8 relative">
-          <div className="absolute -top-16 md:-top-24 left-6 md:left-12">
-            <div className="w-32 h-32 md:w-48 md:h-48 rounded-full border-4 border-surface-container-lowest bg-soft-off-white overflow-hidden shadow-md">
-              <Avatar src={rider.avatar} alt={rider.fullName} size={192} className="w-full h-full" />
+          <div className="absolute -top-20 md:-top-32 left-6 md:left-12">
+            <div className="w-40 h-40 md:w-64 md:h-64 rounded-full border-4 border-surface-container-lowest bg-soft-off-white overflow-hidden shadow-md">
+              <Avatar src={rider.avatar} alt={rider.fullName} size={256} className="h-full w-full object-cover" />
             </div>
           </div>
-          <div className="pt-20 md:pt-4 flex flex-col md:flex-row justify-between items-start md:items-end gap-6 md:pl-56">
+          <div className="pt-24 md:pt-6 flex flex-col md:flex-row justify-between items-start md:items-end gap-6 md:pl-80">
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-2 flex-wrap">
                 <h1 className="font-headline-xl text-headline-xl text-on-background">{rider.fullName}</h1>

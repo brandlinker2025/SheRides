@@ -1,4 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { toDiscoverableRiders } from "./profile";
+import type { Rider } from "./types";
 
 export const BASS_GIFT_FOLLOWERS = 1000;
 
@@ -51,6 +53,20 @@ export async function setFollowing(supabase: Client, myId: string, riderId: stri
   return error?.message ?? null;
 }
 
+/** Home "Who's on SheRides" only: newest riders the current user does not already follow. */
+export async function fetchUnfollowedRiders(supabase: Client, myId: string, limit = 24): Promise<Rider[]> {
+  const [{ data: rows }, { data: follows }] = await Promise.all([
+    supabase.from("profiles").select("*").order("created_at", { ascending: false }).limit(64),
+    supabase.from("follows").select("following_id").eq("follower_id", myId),
+  ]);
+  const followed = new Set((follows ?? []).map((row) => row.following_id as string));
+  return toDiscoverableRiders(
+    (rows ?? []).filter((row) => !followed.has(row.id as string)) as Record<string, unknown>[],
+    myId,
+    limit
+  );
+}
+
 export async function openDirectMessage(supabase: Client, otherId: string) {
   const { data, error } = await supabase.rpc("get_or_create_dm", { other_id: otherId });
   if (error || !data) {
@@ -86,4 +102,65 @@ export async function sendConversationMessage(
   }
   await supabase.from("conversations").update({ updated_at: new Date().toISOString() }).eq("id", conversationId);
   return { id: inserted.data.id as string, error: null as string | null };
+}
+
+export type MessageReactionRow = {
+  message_id: string;
+  user_id: string;
+  emoji: string;
+};
+
+function missingRelation(error: { message?: string; code?: string } | null) {
+  if (!error) return false;
+  return (
+    error.code === "PGRST205" ||
+    error.code === "PGRST202" ||
+    /could not find the (table|function)|schema cache|message_reactions|toggle_message_reaction/i.test(
+      error.message ?? ""
+    )
+  );
+}
+
+export async function fetchMessageReactions(supabase: Client, messageIds: string[]) {
+  if (!messageIds.length) return { rows: [] as MessageReactionRow[], error: null as string | null };
+  const { data, error } = await supabase
+    .from("message_reactions")
+    .select("message_id, user_id, emoji")
+    .in("message_id", messageIds);
+  if (missingRelation(error)) return { rows: [] as MessageReactionRow[], error: null as string | null };
+  if (error) return { rows: [] as MessageReactionRow[], error: error.message };
+  return { rows: (data ?? []) as MessageReactionRow[], error: null as string | null };
+}
+
+export async function toggleMessageReaction(
+  supabase: Client,
+  messageId: string,
+  userId: string,
+  emoji: string,
+  currentlyOn: boolean
+) {
+  const rpc = await supabase.rpc("toggle_message_reaction", {
+    target_message_id: messageId,
+    reaction_emoji: emoji,
+  });
+  if (!rpc.error) return null;
+  if (!missingRelation(rpc.error)) return rpc.error.message;
+
+  if (currentlyOn) {
+    const { error } = await supabase
+      .from("message_reactions")
+      .delete()
+      .eq("message_id", messageId)
+      .eq("user_id", userId)
+      .eq("emoji", emoji);
+    if (missingRelation(error)) return null;
+    return error?.message ?? null;
+  }
+
+  const { error } = await supabase
+    .from("message_reactions")
+    .insert({ message_id: messageId, user_id: userId, emoji });
+  if (error && error.code === "23505") return null;
+  if (missingRelation(error)) return null;
+  return error?.message ?? null;
 }

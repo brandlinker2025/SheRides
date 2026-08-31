@@ -7,6 +7,7 @@ import { sidebarCommunities } from "@/lib/data";
 import { img } from "@/lib/images";
 import { useUI } from "@/lib/ui-context";
 import { PandaNavBackdrop } from "@/components/brand/PandaNavBackdrop";
+import { Avatar } from "../ui/Avatar";
 import { Icon } from "../ui/Icon";
 
 const items = [
@@ -30,15 +31,29 @@ export function SideNav() {
     <nav className="hidden lg:flex flex-col h-screen fixed left-0 top-0 w-64 shadow-xl z-40 border-r border-white/10 pt-[96px] pb-6 overflow-hidden">
       <PandaNavBackdrop />
       <div className="relative z-10 px-gutter mb-6">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-full bg-accent-magenta flex items-center justify-center overflow-hidden shrink-0">
-            <img src={img.logo} alt="SheRides crest" className="w-full h-full object-cover" />
+        {user ? (
+          <Link href="/profile" className="flex items-center gap-4 min-w-0 rounded-lg hover:bg-black/40 transition-colors">
+            <div className="w-12 h-12 rounded-full bg-accent-magenta overflow-hidden shrink-0 border border-white/20">
+              <Avatar src={user.avatar} alt={user.fullName} size={48} className="h-full w-full object-cover" />
+            </div>
+            <div className="min-w-0">
+              <h2 className="font-label-lg text-label-lg text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)] truncate">
+                {user.fullName || "Rider"}
+              </h2>
+              <p className="font-body-sm text-body-sm text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">View profile</p>
+            </div>
+          </Link>
+        ) : (
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-full bg-accent-magenta flex items-center justify-center overflow-hidden shrink-0">
+              <img src={img.logo} alt="SheRides crest" className="w-full h-full object-cover" />
+            </div>
+            <div>
+              <h2 className="font-label-lg text-label-lg text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">SheRides Community</h2>
+              <p className="font-body-sm text-body-sm text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">Bangladesh Women Riders Community</p>
+            </div>
           </div>
-          <div>
-            <h2 className="font-label-lg text-label-lg text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">SheRides Community</h2>
-            <p className="font-body-sm text-body-sm text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">Bangladesh Women Riders Community</p>
-          </div>
-        </div>
+        )}
       </div>
 
       <div className="relative z-10 flex-1 flex flex-col gap-1 overflow-y-auto px-4">
