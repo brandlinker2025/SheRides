@@ -25,8 +25,7 @@ export function InstallPrompt() {
   }, []);
 
   useEffect(() => {
-    const onPrompt = (e: Event) => {
-      e.preventDefault();
+    const take = (e: BeforeInstallPromptEvent) => {
       try {
         const dismissedAt = Number(localStorage.getItem(DISMISS_KEY) ?? 0);
         const daysSince = (Date.now() - dismissedAt) / (1000 * 60 * 60 * 24);
@@ -34,7 +33,13 @@ export function InstallPrompt() {
       } catch {
         /* storage unavailable */
       }
-      setEvent(e as BeforeInstallPromptEvent);
+      setEvent(e);
+    };
+    const queued = (window as Window & { __sheridesBIP?: BeforeInstallPromptEvent }).__sheridesBIP;
+    if (queued) take(queued);
+    const onPrompt = (e: Event) => {
+      e.preventDefault();
+      take(e as BeforeInstallPromptEvent);
     };
     window.addEventListener("beforeinstallprompt", onPrompt);
     return () => window.removeEventListener("beforeinstallprompt", onPrompt);
