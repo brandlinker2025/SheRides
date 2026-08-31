@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { riderFromProfile } from "./profile";
+import { toDiscoverableRiders } from "./profile";
 import type { Rider } from "./types";
 
 export const BASS_GIFT_FOLLOWERS = 1000;
@@ -59,11 +59,12 @@ export async function fetchUnfollowedRiders(supabase: Client, myId: string, limi
     supabase.from("profiles").select("*").order("created_at", { ascending: false }).limit(64),
     supabase.from("follows").select("following_id").eq("follower_id", myId),
   ]);
-  const hidden = new Set<string>([myId, ...(follows ?? []).map((row) => row.following_id as string)]);
-  return (rows ?? [])
-    .filter((row) => !hidden.has(row.id as string))
-    .slice(0, limit)
-    .map((row) => riderFromProfile(row.id as string, row as Record<string, unknown>));
+  const followed = new Set((follows ?? []).map((row) => row.following_id as string));
+  return toDiscoverableRiders(
+    (rows ?? []).filter((row) => !followed.has(row.id as string)) as Record<string, unknown>[],
+    myId,
+    limit
+  );
 }
 
 export async function openDirectMessage(supabase: Client, otherId: string) {
