@@ -5,7 +5,6 @@ import { usePathname } from "next/navigation";
 import Image from "next/image";
 import { Icon } from "@/components/ui/Icon";
 import { BrandLogo } from "@/components/ui/BrandLogo";
-import { PandaHeroBanner } from "@/components/brand/PandaHeroBanner";
 import { PandaNavBackdrop } from "@/components/brand/PandaNavBackdrop";
 import { PANDA_HERO_SRC } from "@/lib/brand-art";
 
@@ -90,9 +89,6 @@ export function AdminShell({
             className="object-cover object-[42%_40%] opacity-[0.22]"
           />
           <div className="absolute inset-0 panda-app-veil" />
-        </div>
-        <div className="relative z-10 mb-6">
-          <PandaHeroBanner />
         </div>
         <div className="relative z-10">{children}</div>
       </main>
