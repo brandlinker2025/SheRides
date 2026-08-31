@@ -35,7 +35,7 @@ export async function proxy(request: NextRequest) {
     if (pathname === "/admin-login") {
       return NextResponse.redirect(new URL("/admin", request.url));
     }
-    if (isAdminAppPath(pathname)) {
+    if (isAdminAppPath(pathname) || pathname.startsWith("/api/admin/")) {
       return NextResponse.next();
     }
   }

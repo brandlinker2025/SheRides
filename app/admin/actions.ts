@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { deleteMemberById } from "@/lib/admin/remove-member";
 import { requireAdmin } from "@/lib/supabase/require-admin";
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -52,51 +53,19 @@ export async function setRiderVerified(userId: string, verified: boolean) {
   return {};
 }
 
-function isMissingAuthUser(message: string, status?: number) {
-  return status === 404 || /user not found/i.test(message);
-}
-
 export async function removeMember(userId: string) {
-  if (!validUuid(userId)) return { error: "Invalid request." };
-  const { user, profile } = await requireAdmin();
-  if (user.id === userId || profile?.id === userId) {
-    return { error: "You cannot remove your own account." };
+  try {
+    const { user, profile } = await requireAdmin();
+    const actorId = profile?.id ?? (user.id !== "open-access" ? user.id : null);
+    const result = await deleteMemberById(userId, actorId);
+    if (result.error) return result;
+    refreshAdmin();
+    revalidatePath("/home");
+    revalidatePath("/pending-approval");
+    return {};
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : "Could not remove this member." };
   }
-
-  // profiles has RLS and no DELETE policy, so a session client can "succeed" with 0 rows.
-  const admin = createAdminClient();
-  if (!admin) {
-    return { error: "Member removal is not configured on this server." };
-  }
-
-  const { error: authError } = await admin.auth.admin.deleteUser(userId);
-  if (authError && !isMissingAuthUser(authError.message, authError.status)) {
-    return { error: authError.message };
-  }
-
-  const { data: leftover, error: leftoverError } = await admin
-    .from("profiles")
-    .select("id")
-    .eq("id", userId)
-    .maybeSingle();
-  if (leftoverError) return { error: leftoverError.message };
-
-  if (leftover) {
-    const { data: removed, error: profileError } = await admin
-      .from("profiles")
-      .delete()
-      .eq("id", userId)
-      .select("id");
-    if (profileError) return { error: profileError.message };
-    if (!removed?.length) {
-      return { error: "Could not remove this member." };
-    }
-  }
-
-  refreshAdmin();
-  revalidatePath("/home");
-  revalidatePath("/pending-approval");
-  return {};
 }
 
 export async function reviewRiderVerification(
