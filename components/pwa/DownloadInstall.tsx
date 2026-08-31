@@ -32,15 +32,6 @@ const TARGETS: {
     openHref: "/",
     openLabel: "Open in browser",
   },
-  {
-    id: "admin",
-    href: "/download?app=admin",
-    name: "Admin",
-    eyebrow: "Dashboard",
-    description: "Manage riders, posts, events, and verifications.",
-    openHref: "/admin",
-    openLabel: "Open admin",
-  },
 ];
 
 function detectPlatform(): Platform {
@@ -162,7 +153,7 @@ export function DownloadInstall({ target }: { target: Target }) {
         this is a Home Screen / desktop web app.
       </p>
 
-      <div className="mb-8 grid gap-4 sm:grid-cols-2">
+      <div className="mb-8 grid gap-4 sm:max-w-md">
         {TARGETS.map((item) => {
           const active = item.id === target;
           return (
@@ -239,11 +230,9 @@ export function DownloadInstall({ target }: { target: Target }) {
           <h2 className="font-headline-md text-headline-md">PC, Mac, and Android</h2>
         </div>
         <p className="mb-3 font-body-sm text-secondary">
-          Select SheRides or Admin above, then use the Install button. Chrome, Edge, and Samsung Internet can add a real
-          app window (standalone).
+          Use the Install button above. Chrome, Edge, and Samsung Internet can add a real app window (standalone).
         </p>
         <ol className="list-decimal space-y-2 pl-5 font-body-sm text-on-surface">
-          <li>Choose SheRides (community) or Admin on this page.</li>
           <li>Tap or click <strong>Install</strong> when the browser offers it.</li>
           <li>
             If no prompt appears, open the browser menu and choose <strong>Install app</strong> or look for the install
@@ -271,8 +260,7 @@ export function DownloadInstall({ target }: { target: Target }) {
           <h2 className="font-headline-md text-headline-md">iPhone</h2>
         </div>
         <p className="mb-3 font-body-sm text-secondary">
-          iPhone installs from Safari’s Add to Home Screen — not the App Store. Select SheRides or Admin above first,
-          then:
+          iPhone installs from Safari’s Add to Home Screen — not the App Store. Then:
         </p>
         <ol className="list-decimal space-y-2 pl-5 font-body-sm text-on-surface">
           <li>
