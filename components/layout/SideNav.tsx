@@ -12,11 +12,11 @@ import { Icon } from "../ui/Icon";
 
 const items = [
   { href: "/home", label: "Home", icon: "home" },
+  { href: "/messages", label: "Messages", icon: "chat" },
   { href: "/explore", label: "Explore", icon: "explore" },
   { href: "/groups", label: "Groups", icon: "group" },
   { href: "/events", label: "Events & Rides", icon: "event" },
   { href: "/rides", label: "Rides", icon: "motorcycle" },
-  { href: "/messages", label: "Messages", icon: "chat" },
   { href: "/notifications", label: "Notifications", icon: "notifications" },
   { href: "/saved", label: "Saved", icon: "bookmark" },
   { href: "/safety", label: "Safety Center", icon: "shield" },
