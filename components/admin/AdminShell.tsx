@@ -40,8 +40,8 @@ export function AdminShell({
           <Link href="/home" aria-label="SheRides community home">
             <BrandLogo className="text-[46px] drop-shadow-[0_1px_3px_rgba(0,0,0,0.85)]" />
           </Link>
-          <div className="panda-nav-kicker font-label-caps text-label-caps mt-2">Admin Panel</div>
-          {adminName && <p className="panda-nav-kicker font-body-sm text-body-sm mt-2">{adminName}</p>}
+          <div className="text-white font-label-caps text-label-caps mt-2 drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">Admin Panel</div>
+          {adminName && <p className="text-white font-body-sm text-body-sm mt-2 drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">{adminName}</p>}
         </div>
         <div className="relative z-10 flex-1 flex flex-col gap-2 px-4">
           {nav.map((item) => {
@@ -50,8 +50,8 @@ export function AdminShell({
               <Link
                 key={item.href}
                 href={item.href}
-                className={`panda-nav-item flex items-center gap-4 p-3 rounded-lg font-label-lg ${
-                  active ? "panda-nav-item-active" : ""
+                className={`flex items-center gap-4 p-3 rounded-lg font-label-lg bg-black/90 hover:bg-black ${
+                  active ? "font-bold border-r-4 border-accent-magenta text-pink-200" : "text-white"
                 }`}
               >
                 <Icon name={item.icon} filled={active} /> {item.label}
@@ -60,7 +60,7 @@ export function AdminShell({
           })}
         </div>
         <div className="relative z-10 px-4">
-          <Link href="/home" className="panda-nav-item flex items-center gap-4 p-3 rounded-lg font-label-lg">
+          <Link href="/home" className="flex items-center gap-4 p-3 rounded-lg font-label-lg bg-black/90 text-white hover:bg-black">
             <Icon name="arrow_back" /> Community
           </Link>
         </div>

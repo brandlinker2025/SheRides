@@ -35,8 +35,8 @@ export function SideNav() {
             <img src={img.logo} alt="SheRides crest" className="w-full h-full object-cover" />
           </div>
           <div>
-            <h2 className="panda-nav-kicker font-label-lg text-label-lg">SheRides Community</h2>
-            <p className="panda-nav-kicker font-body-sm text-body-sm">Bangladesh Women Riders Community</p>
+            <h2 className="font-label-lg text-label-lg text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">SheRides Community</h2>
+            <p className="font-body-sm text-body-sm text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">Bangladesh Women Riders Community</p>
           </div>
         </div>
       </div>
@@ -48,8 +48,8 @@ export function SideNav() {
             <Link
               key={item.href}
               href={item.href}
-              className={`panda-nav-item flex items-center gap-4 px-4 py-3 rounded-lg transition-all ${
-                active ? "panda-nav-item-active" : ""
+              className={`flex items-center gap-4 px-4 py-3 rounded-lg bg-black/90 hover:bg-black transition-all ${
+                active ? "font-bold border-r-4 border-accent-magenta text-pink-200" : "text-white"
               }`}
             >
               <Icon name={item.icon} filled={active} />
@@ -60,8 +60,8 @@ export function SideNav() {
         {user?.role === "admin" && (
           <Link
             href="/admin"
-            className={`panda-nav-item flex items-center gap-4 px-4 py-3 rounded-lg transition-all ${
-              pathname.startsWith("/admin") ? "panda-nav-item-active" : ""
+            className={`flex items-center gap-4 px-4 py-3 rounded-lg bg-black/90 hover:bg-black transition-all ${
+              pathname.startsWith("/admin") ? "font-bold border-r-4 border-accent-magenta text-pink-200" : "text-white"
             }`}
           >
             <Icon name="admin_panel_settings" filled={pathname.startsWith("/admin")} />
@@ -72,12 +72,12 @@ export function SideNav() {
 
       <div className="relative z-10 mt-auto px-4">
         <div className="mb-6">
-          <h3 className="panda-nav-kicker font-label-caps text-label-caps px-4 mb-2">POPULAR COMMUNITIES</h3>
+          <h3 className="font-label-caps text-label-caps text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)] px-4 mb-2">POPULAR COMMUNITIES</h3>
           {sidebarCommunities.map((c) => (
             <Link
               key={c.name}
               href={c.href}
-              className="panda-nav-item flex items-center gap-4 px-4 py-2 rounded-lg transition-all"
+              className="flex items-center gap-4 px-4 py-2 rounded-lg bg-black/90 text-white hover:bg-black transition-all"
             >
               <Icon name="star" />
               <span className="font-body-sm text-body-sm">{c.name}</span>
@@ -107,7 +107,7 @@ function LogoutButton() {
         await signOut();
         router.push("/");
       }}
-      className="panda-nav-item w-full mt-3 font-body-sm py-2 rounded-full hover:text-red-200 hover:bg-red-950/70 transition-colors flex items-center justify-center gap-2"
+      className="w-full mt-3 font-body-sm py-2 rounded-full bg-black/90 text-white hover:text-red-200 hover:bg-black transition-colors flex items-center justify-center gap-2"
     >
       <span>🚪</span> লগআউট
     </button>
