@@ -67,7 +67,8 @@ export function DownloadInstall({ target }: { target: Target }) {
   const [hint, setHint] = useState<string | null>(null);
   const [justInstalled, setJustInstalled] = useState(false);
   const [safari, setSafari] = useState(true);
-  const iosRef = useRef<HTMLElement>(null);
+  const [iosGuideOpen, setIosGuideOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
   const fallbackRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
@@ -111,10 +112,55 @@ export function DownloadInstall({ target }: { target: Target }) {
 
   const selected = TARGETS.find((item) => item.id === target) ?? TARGETS[0];
 
+  const installUrl = () => {
+    if (typeof window === "undefined") return "https://sherides.online/download";
+    return window.location.href;
+  };
+
+  const copyInstallLink = async () => {
+    const url = installUrl();
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopied(true);
+      return;
+    } catch {
+      /* fall through */
+    }
+    try {
+      const input = document.createElement("input");
+      input.value = url;
+      document.body.appendChild(input);
+      input.select();
+      document.execCommand("copy");
+      document.body.removeChild(input);
+      setCopied(true);
+    } catch {
+      setHint(url);
+    }
+  };
+
+  const showIosGuide = () => {
+    setCopied(false);
+    setIosGuideOpen(true);
+  };
+
   const install = async () => {
     if (platform === "ios") {
-      iosRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-      setHint("Use Safari’s Share menu to Add to Home Screen.");
+      const canShare = safari && typeof navigator.share === "function";
+      if (canShare) {
+        try {
+          await navigator.share({
+            title: "SheRides",
+            text: "Add SheRides to Home Screen",
+            url: installUrl(),
+          });
+          return;
+        } catch {
+          showIosGuide();
+          return;
+        }
+      }
+      showIosGuide();
       return;
     }
     if (installEvent) {
@@ -139,7 +185,7 @@ export function DownloadInstall({ target }: { target: Target }) {
     );
   };
 
-  const installLabel = platform === "ios" ? "Show iPhone steps" : `Install ${selected.name}`;
+  const installLabel = `Install ${selected.name}`;
 
   return (
     <section className="w-full rounded-xl bg-surface-container-lowest p-6 shadow-premium sm:p-8">
@@ -251,7 +297,6 @@ export function DownloadInstall({ target }: { target: Target }) {
       </section>
 
       <section
-        ref={iosRef}
         id="iphone-steps"
         className={`rounded-2xl p-5 ${platform === "ios" ? "bg-primary-fixed/80" : "bg-soft-off-white"}`}
       >
@@ -279,6 +324,72 @@ export function DownloadInstall({ target }: { target: Target }) {
           </li>
         </ol>
       </section>
+
+      {iosGuideOpen && (
+        <div
+          className="fixed inset-0 z-[100] flex flex-col bg-surface text-on-surface"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="ios-install-title"
+        >
+          <div className="flex items-center justify-between border-b border-surface-border px-5 py-4">
+            <p className="font-label-lg text-accent-magenta">INSTALL ON IPHONE</p>
+            <button
+              type="button"
+              onClick={() => setIosGuideOpen(false)}
+              className="rounded-full p-2 text-secondary hover:bg-surface-container-low"
+              aria-label="Close"
+            >
+              <Icon name="close" />
+            </button>
+          </div>
+          <div className="flex flex-1 flex-col overflow-y-auto px-6 py-8">
+            <h2 id="ios-install-title" className="mb-3 font-headline-xl text-headline-xl">
+              Safari required
+            </h2>
+            <p className="mb-8 font-body-md text-secondary">
+              {safari
+                ? "SheRides is not in the App Store. Add it from Safari’s Share sheet."
+                : "This browser cannot add SheRides to your Home Screen. Open this page in Safari."}
+            </p>
+            <ol className="mb-10 space-y-6 font-body-md text-on-surface">
+              <li className="flex gap-4">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-accent-magenta font-label-lg text-on-primary">
+                  1
+                </span>
+                <span className="pt-1.5">
+                  Tap <strong>Share</strong>{" "}
+                  <Icon name="ios_share" size={22} className="align-middle text-accent-magenta" /> (square with an
+                  arrow).
+                </span>
+              </li>
+              <li className="flex gap-4">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-accent-magenta font-label-lg text-on-primary">
+                  2
+                </span>
+                <span className="pt-1.5">
+                  Tap <strong>Add to Home Screen</strong>.
+                </span>
+              </li>
+              <li className="flex gap-4">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-accent-magenta font-label-lg text-on-primary">
+                  3
+                </span>
+                <span className="pt-1.5">
+                  Tap <strong>Add</strong>. SheRides opens from your Home Screen in its own window.
+                </span>
+              </li>
+            </ol>
+            <button
+              type="button"
+              onClick={() => void copyInstallLink()}
+              className="flex h-12 items-center justify-center rounded-full border-2 border-outline px-6 font-label-lg text-on-surface"
+            >
+              {copied ? "Link copied" : "Copy link"}
+            </button>
+          </div>
+        </div>
+      )}
     </section>
   );
 }
