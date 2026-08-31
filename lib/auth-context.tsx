@@ -43,25 +43,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const mapUser = useCallback(async (id: string, fullName?: string) => {
     const supabase = createClient();
     if (!supabase) return;
-    const { data } = await supabase.from("profiles").select("*").eq("id", id).maybeSingle();
-    if (!data) {
-      await supabase.from("profiles").upsert({
-        id,
-        full_name: fullName ?? "",
-        username: fullName?.toLowerCase().replace(/\s+/g, "") || id.slice(0, 8),
-      });
+    try {
+      const { data } = await supabase.from("profiles").select("*").eq("id", id).maybeSingle();
+      if (!data) {
+        await supabase.from("profiles").upsert({
+          id,
+          full_name: fullName ?? "",
+          username: fullName?.toLowerCase().replace(/\s+/g, "") || id.slice(0, 8),
+        });
+      }
+      const latest = await supabase.from("profiles").select("*").eq("id", id).maybeSingle();
+      const [{ count }, followers, following] = await Promise.all([
+        supabase.from("posts").select("*", { count: "exact", head: true }).eq("author_id", id),
+        supabase.from("follows").select("*", { count: "exact", head: true }).eq("following_id", id),
+        supabase.from("follows").select("*", { count: "exact", head: true }).eq("follower_id", id),
+      ]);
+      const rider = riderFromProfile(id, latest.data, fullName);
+      rider.postsCount = count ?? 0;
+      if (!followers.error) rider.followers = followers.count ?? rider.followers;
+      if (!following.error) rider.following = following.count ?? rider.following;
+      setUser(rider);
+    } catch {
+      setUser((prev) => prev ?? riderFromProfile(id, null, fullName));
     }
-    const latest = await supabase.from("profiles").select("*").eq("id", id).maybeSingle();
-    const [{ count }, followers, following] = await Promise.all([
-      supabase.from("posts").select("*", { count: "exact", head: true }).eq("author_id", id),
-      supabase.from("follows").select("*", { count: "exact", head: true }).eq("following_id", id),
-      supabase.from("follows").select("*", { count: "exact", head: true }).eq("follower_id", id),
-    ]);
-    const rider = riderFromProfile(id, latest.data, fullName);
-    rider.postsCount = count ?? 0;
-    if (!followers.error) rider.followers = followers.count ?? rider.followers;
-    if (!following.error) rider.following = following.count ?? rider.following;
-    setUser(rider);
   }, []);
 
   useEffect(() => {
@@ -71,14 +75,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    supabase.auth.getUser().then(async ({ data }) => {
-      if (data.user) {
-        await mapUser(data.user.id, data.user.user_metadata?.full_name as string | undefined);
-      } else {
-        setUser(null);
+    let cancelled = false;
+    const stopLoading = () => {
+      if (!cancelled) setLoading(false);
+    };
+
+    void (async () => {
+      try {
+        const { data: sessionData } = await supabase.auth.getSession();
+        if (cancelled) return;
+        const sessionUser = sessionData.session?.user;
+        if (sessionUser) {
+          await mapUser(sessionUser.id, sessionUser.user_metadata?.full_name as string | undefined);
+          stopLoading();
+        }
+        const { data } = await supabase.auth.getUser();
+        if (cancelled) return;
+        if (data.user) {
+          await mapUser(data.user.id, data.user.user_metadata?.full_name as string | undefined);
+        } else if (!sessionUser) {
+          setUser(null);
+        }
+      } catch {
+        if (!cancelled) setUser(null);
+      } finally {
+        stopLoading();
       }
-      setLoading(false);
-    });
+    })();
 
     const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
@@ -89,7 +112,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     });
 
-    return () => sub.subscription.unsubscribe();
+    return () => {
+      cancelled = true;
+      sub.subscription.unsubscribe();
+    };
   }, [mapUser]);
 
   const value = useMemo<AuthContextValue>(
