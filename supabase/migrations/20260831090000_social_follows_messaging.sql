@@ -146,6 +146,7 @@ as $$
 declare
   me uuid := (select auth.uid());
   new_id uuid;
+  -- Unicode as-is: Bangla and any other script are valid message bodies.
   body text := left(btrim(coalesce(message_text, '')), 5000);
 begin
   if me is null then

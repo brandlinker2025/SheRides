@@ -357,7 +357,7 @@ function MessagesPage() {
                           : "bg-surface-container-lowest border border-surface-border rounded-bl-none"
                       }`}
                     >
-                      <p className="font-body-md text-sm whitespace-pre-wrap">{m.text}</p>
+                      <p className="font-body-md text-sm whitespace-pre-wrap" dir="auto">{m.text}</p>
                       <span className="text-[11px] text-tertiary block mt-1">{m.time}</span>
                     </div>
                   </div>
@@ -373,7 +373,16 @@ function MessagesPage() {
                   <input
                     value={draft}
                     onChange={(e) => setDraft(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && void send()}
+                    onKeyDown={(e) => {
+                      if (e.key !== "Enter") return;
+                      if (e.nativeEvent.isComposing || e.keyCode === 229) return;
+                      e.preventDefault();
+                      void send();
+                    }}
+                    dir="auto"
+                    autoCapitalize="off"
+                    autoCorrect="off"
+                    spellCheck
                     className="flex-1 bg-transparent border-none focus:ring-0 focus:outline-none font-body-sm px-2 py-2"
                     placeholder="Type a message..."
                   />
