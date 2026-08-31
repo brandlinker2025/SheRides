@@ -236,7 +236,7 @@ function MessagesPage() {
   }
 
   return (
-    <div className="lg:p-6 p-0 max-w-[1600px] mx-auto h-[calc(100dvh-72px)]">
+    <div className="lg:p-6 p-0 max-w-[1600px] mx-auto h-full min-h-[480px]">
       <div className="flex bg-surface-container-lowest lg:rounded-xl lg:shadow-premium border-y lg:border border-surface-border overflow-hidden w-full h-full">
         <div className={`${activeId && "hidden md:flex"} w-full md:w-[320px] xl:w-[360px] flex-shrink-0 border-r border-surface-border bg-soft-off-white flex flex-col h-full`}>
           <div className="p-4 border-b border-surface-border bg-surface-container-lowest">

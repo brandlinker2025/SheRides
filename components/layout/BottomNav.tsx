@@ -32,7 +32,7 @@ export function BottomNav() {
   };
 
   return (
-    <nav className="lg:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center bg-surface px-2 py-2 rounded-t-xl border-t border-surface-border shadow-bottom-nav pb-safe">
+    <nav className="panda-bottomnav lg:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-2 py-2 rounded-t-xl border-t shadow-bottom-nav pb-safe">
       <div className="relative">{item("/home", "home", "Home")}</div>
       <div className="relative">{item("/explore", "explore", "Explore")}</div>
       <button
