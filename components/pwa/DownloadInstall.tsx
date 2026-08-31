@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import Image from "next/image";
 import Link from "next/link";
 import { BrandLogo } from "@/components/ui/BrandLogo";
@@ -364,9 +365,10 @@ export function DownloadInstall({ target }: { target: Target }) {
         </ol>
       </section>
 
-      {iosGuideOpen && (
+      {iosGuideOpen &&
+        createPortal(
         <div
-          className="fixed inset-0 z-[100] flex flex-col bg-surface text-on-surface"
+          className="fixed inset-0 z-[200] flex flex-col bg-surface text-on-surface"
           role="dialog"
           aria-modal="true"
           aria-labelledby="ios-install-title"
@@ -436,7 +438,8 @@ export function DownloadInstall({ target }: { target: Target }) {
               {copied ? "Link copied" : "Copy link"}
             </button>
           </div>
-        </div>
+        </div>,
+        document.body,
       )}
     </section>
   );
