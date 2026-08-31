@@ -6,6 +6,7 @@ import { PANDA_HERO_SRC } from "@/lib/brand-art";
 import { AuthGate } from "../auth/AuthGate";
 import { CreatePostModal } from "../feed/CreatePostModal";
 import { BottomNav } from "./BottomNav";
+import { PresenceHeartbeat } from "./PresenceHeartbeat";
 import { SideNav } from "./SideNav";
 import { TopNav } from "./TopNav";
 
@@ -14,6 +15,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <AuthGate>
+      <PresenceHeartbeat />
       <div className="panda-app-bg text-on-surface font-body-md antialiased min-h-screen">
         <TopNav />
         <div className="flex pt-[72px]">
