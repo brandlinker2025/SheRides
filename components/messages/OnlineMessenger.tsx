@@ -3,16 +3,15 @@
 import { useEffect, useState } from "react";
 import { Avatar } from "@/components/ui/Avatar";
 import { useAuth } from "@/lib/auth-context";
-import { ONLINE_POLL_MS, fetchOnlineRiders } from "@/lib/presence";
+import { ONLINE_POLL_MS, fetchMessengerFriends, type MessengerFriend } from "@/lib/presence";
 import { createClient } from "@/lib/supabase/client";
-import type { Rider } from "@/lib/types";
 import { useUI } from "@/lib/ui-context";
 
 export function OnlineMessenger() {
   const { user } = useAuth();
   const { openChatDock, chatDocks } = useUI();
   const myId = user?.id;
-  const [riders, setRiders] = useState<Rider[]>([]);
+  const [riders, setRiders] = useState<MessengerFriend[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -25,7 +24,7 @@ export function OnlineMessenger() {
     let cancelled = false;
 
     const load = () => {
-      void fetchOnlineRiders(supabase, myId).then((next) => {
+      void fetchMessengerFriends(supabase, myId).then((next) => {
         if (cancelled) return;
         setRiders(next);
         setLoading(false);
@@ -51,7 +50,7 @@ export function OnlineMessenger() {
       </div>
       <div className="flex flex-col gap-3 max-h-[360px] overflow-y-auto">
         {loading && <p className="font-body-sm text-tertiary">Loading…</p>}
-        {!loading && riders.length === 0 && <p className="font-body-sm text-tertiary">No riders online.</p>}
+        {!loading && riders.length === 0 && <p className="font-body-sm text-tertiary">No friends yet.</p>}
         {riders.map((rider) => {
           const open = chatDocks.some((dock) => dock.id === rider.id);
           return (
@@ -65,15 +64,17 @@ export function OnlineMessenger() {
             >
               <span className="relative shrink-0">
                 <Avatar src={rider.avatar} alt={rider.fullName} size={40} />
-                <span
-                  className="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-green-500 border-2 border-surface-container-lowest"
-                  aria-hidden="true"
-                />
+                {rider.online ? (
+                  <span
+                    className="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-green-500 border-2 border-surface-container-lowest"
+                    aria-hidden="true"
+                  />
+                ) : null}
               </span>
               <span className="min-w-0">
                 <span className="block font-label-lg text-label-lg text-on-surface truncate">{rider.fullName}</span>
                 <span className="block font-body-sm text-body-sm text-tertiary truncate">
-                  {rider.location || rider.bike || "Online"}
+                  {rider.online ? "Online" : rider.location || rider.bike || ""}
                 </span>
               </span>
             </button>

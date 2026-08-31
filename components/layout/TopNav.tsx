@@ -13,7 +13,7 @@ import { BrandLogo } from "../ui/BrandLogo";
 import { NotificationsBell } from "./NotificationsBell";
 
 export function TopNav() {
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const [query, setQuery] = useState("");
   const [hits, setHits] = useState<Rider[]>([]);
   const [open, setOpen] = useState(false);
@@ -107,7 +107,7 @@ export function TopNav() {
           ) : null}
         </div>
       </div>
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-2 sm:gap-4">
         {user?.role === "admin" && (
           <Link
             href="/admin"
@@ -127,6 +127,13 @@ export function TopNav() {
           <Icon name="chat" />
         </Link>
         <NotificationsBell />
+        <button
+          type="button"
+          onClick={() => void signOut()}
+          className="h-10 px-3 rounded-full flex items-center text-on-primary hover:bg-white/10 transition-colors font-label-lg shrink-0"
+        >
+          Sign out
+        </button>
         <Link href="/profile" className="flex items-center gap-2 min-w-0">
           <span className="hidden sm:block text-on-primary font-label-lg text-label-lg truncate max-w-[160px]">
             {user?.fullName || "Rider"}
