@@ -1,42 +1,84 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useAuth } from "@/lib/auth-context";
-import { riderFromProfile } from "@/lib/profile";
+import { fetchUnfollowedRiders, setFollowing } from "@/lib/social";
 import { createClient } from "@/lib/supabase/client";
 import type { Rider } from "@/lib/types";
 import { Avatar } from "../ui/Avatar";
+import { Icon } from "../ui/Icon";
 
-export function MembersOnSheRides() {
+export function useUnfollowedRiders(limit = 24) {
   const { user } = useAuth();
   const [members, setMembers] = useState<Rider[]>([]);
 
   useEffect(() => {
     const supabase = createClient();
-    if (!supabase) return;
-    void supabase
-      .from("profiles")
-      .select("*")
-      .order("created_at", { ascending: false })
-      .limit(24)
-      .then(({ data }) => {
-        setMembers(
-          (data ?? [])
-            .filter((row) => row.id !== user?.id)
-            .map((row) => riderFromProfile(row.id as string, row as Record<string, unknown>))
-        );
-      });
-  }, [user?.id]);
+    if (!supabase || !user?.id) return;
+    let cancelled = false;
+    void fetchUnfollowedRiders(supabase, user.id, limit).then((riders) => {
+      if (!cancelled) setMembers(riders);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.id, limit]);
+
+  const followRider = useCallback(
+    async (riderId: string) => {
+      const supabase = createClient();
+      if (!supabase || !user?.id) return;
+      const error = await setFollowing(supabase, user.id, riderId, true);
+      if (!error) setMembers((current) => current.filter((rider) => rider.id !== riderId));
+    },
+    [user?.id]
+  );
+
+  return { members, followRider };
+}
+
+export function MembersOnSheRides({ members }: { members: Rider[] }) {
+  const scrollerRef = useRef<HTMLDivElement>(null);
+  const [canPrev, setCanPrev] = useState(false);
+  const [canNext, setCanNext] = useState(false);
+
+  const updateArrows = useCallback(() => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    setCanPrev(el.scrollLeft > 2);
+    setCanNext(el.scrollLeft + el.clientWidth < el.scrollWidth - 2);
+  }, []);
+
+  useEffect(() => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    updateArrows();
+    const observer = new ResizeObserver(updateArrows);
+    observer.observe(el);
+    el.addEventListener("scroll", updateArrows, { passive: true });
+    return () => {
+      observer.disconnect();
+      el.removeEventListener("scroll", updateArrows);
+    };
+  }, [members, updateArrows]);
+
+  function scrollByPage(direction: -1 | 1) {
+    const el = scrollerRef.current;
+    if (!el) return;
+    el.scrollBy({ left: direction * Math.max(el.clientWidth * 0.75, 160), behavior: "smooth" });
+  }
 
   if (members.length === 0) {
     return (
       <section className="card-surface p-5">
         <h2 className="font-headline-md text-body-lg font-bold text-on-surface mb-1">Who&apos;s on SheRides</h2>
-        <p className="font-body-sm text-tertiary">You&apos;re the first rider here. Invite a friend to follow you.</p>
+        <p className="font-body-sm text-tertiary">No new riders to follow right now.</p>
       </section>
     );
   }
+
+  const showArrows = canPrev || canNext;
 
   return (
     <section className="card-surface p-5">
@@ -47,21 +89,48 @@ export function MembersOnSheRides() {
         </div>
         <span className="font-label-caps text-label-caps text-secondary">{members.length} riders</span>
       </div>
-      <div className="flex gap-4 overflow-x-auto snap-x hide-scrollbar pb-1">
-        {members.map((rider) => (
-          <Link
-            key={rider.id}
-            href={`/profile/${rider.id}`}
-            className="snap-start flex-shrink-0 w-36 card-hover rounded-xl border border-surface-border bg-surface-container-low p-3 text-center"
+      <div className="relative">
+        {showArrows ? (
+          <button
+            type="button"
+            aria-label="Previous riders"
+            disabled={!canPrev}
+            onClick={() => scrollByPage(-1)}
+            className="absolute left-0 top-1/2 z-10 -translate-y-1/2 rounded-full border border-surface-border bg-surface-container-lowest p-1 text-on-surface shadow-md hover:bg-accent-magenta hover:text-white disabled:pointer-events-none disabled:opacity-30"
           >
-            <Avatar src={rider.avatar} alt={rider.fullName} size={64} className="mx-auto mb-2" />
-            <p className="font-label-lg text-label-lg text-on-surface truncate">{rider.fullName}</p>
-            <p className="font-body-sm text-body-sm text-tertiary truncate">
-              {rider.location || rider.bike || "SheRides member"}
-            </p>
-            <span className="mt-2 inline-block font-label-caps text-label-caps text-accent-magenta">View profile</span>
-          </Link>
-        ))}
+            <Icon name="chevron_left" size={24} />
+          </button>
+        ) : null}
+        <div
+          ref={scrollerRef}
+          className={`flex gap-4 overflow-x-auto snap-x hide-scrollbar pb-1 ${showArrows ? "px-8" : ""}`}
+        >
+          {members.map((rider) => (
+            <Link
+              key={rider.id}
+              href={`/profile/${rider.id}`}
+              className="snap-start flex-shrink-0 w-36 card-hover rounded-xl border border-surface-border bg-surface-container-low p-3 text-center"
+            >
+              <Avatar src={rider.avatar} alt={rider.fullName} size={64} className="mx-auto mb-2" />
+              <p className="font-label-lg text-label-lg text-on-surface truncate">{rider.fullName}</p>
+              <p className="font-body-sm text-body-sm text-tertiary truncate">
+                {rider.location || rider.bike || "SheRides member"}
+              </p>
+              <span className="mt-2 inline-block font-label-caps text-label-caps text-accent-magenta">View profile</span>
+            </Link>
+          ))}
+        </div>
+        {showArrows ? (
+          <button
+            type="button"
+            aria-label="Next riders"
+            disabled={!canNext}
+            onClick={() => scrollByPage(1)}
+            className="absolute right-0 top-1/2 z-10 -translate-y-1/2 rounded-full border border-surface-border bg-surface-container-lowest p-1 text-on-surface shadow-md hover:bg-accent-magenta hover:text-white disabled:pointer-events-none disabled:opacity-30"
+          >
+            <Icon name="chevron_right" size={24} />
+          </button>
+        ) : null}
       </div>
     </section>
   );

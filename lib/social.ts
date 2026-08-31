@@ -1,4 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { riderFromProfile } from "./profile";
+import type { Rider } from "./types";
 
 export const BASS_GIFT_FOLLOWERS = 1000;
 
@@ -49,6 +51,19 @@ export async function setFollowing(supabase: Client, myId: string, riderId: stri
   }
   const { error } = await supabase.from("follows").delete().eq("follower_id", myId).eq("following_id", riderId);
   return error?.message ?? null;
+}
+
+/** Home "Who's on SheRides" only: newest riders the current user does not already follow. */
+export async function fetchUnfollowedRiders(supabase: Client, myId: string, limit = 24): Promise<Rider[]> {
+  const [{ data: rows }, { data: follows }] = await Promise.all([
+    supabase.from("profiles").select("*").order("created_at", { ascending: false }).limit(64),
+    supabase.from("follows").select("following_id").eq("follower_id", myId),
+  ]);
+  const hidden = new Set<string>([myId, ...(follows ?? []).map((row) => row.following_id as string)]);
+  return (rows ?? [])
+    .filter((row) => !hidden.has(row.id as string))
+    .slice(0, limit)
+    .map((row) => riderFromProfile(row.id as string, row as Record<string, unknown>));
 }
 
 export async function openDirectMessage(supabase: Client, otherId: string) {
