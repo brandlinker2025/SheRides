@@ -102,3 +102,64 @@ export async function sendConversationMessage(
   await supabase.from("conversations").update({ updated_at: new Date().toISOString() }).eq("id", conversationId);
   return { id: inserted.data.id as string, error: null as string | null };
 }
+
+export type MessageReactionRow = {
+  message_id: string;
+  user_id: string;
+  emoji: string;
+};
+
+function missingRelation(error: { message?: string; code?: string } | null) {
+  if (!error) return false;
+  return (
+    error.code === "PGRST205" ||
+    error.code === "PGRST202" ||
+    /could not find the (table|function)|schema cache|message_reactions|toggle_message_reaction/i.test(
+      error.message ?? ""
+    )
+  );
+}
+
+export async function fetchMessageReactions(supabase: Client, messageIds: string[]) {
+  if (!messageIds.length) return { rows: [] as MessageReactionRow[], error: null as string | null };
+  const { data, error } = await supabase
+    .from("message_reactions")
+    .select("message_id, user_id, emoji")
+    .in("message_id", messageIds);
+  if (missingRelation(error)) return { rows: [] as MessageReactionRow[], error: null as string | null };
+  if (error) return { rows: [] as MessageReactionRow[], error: error.message };
+  return { rows: (data ?? []) as MessageReactionRow[], error: null as string | null };
+}
+
+export async function toggleMessageReaction(
+  supabase: Client,
+  messageId: string,
+  userId: string,
+  emoji: string,
+  currentlyOn: boolean
+) {
+  const rpc = await supabase.rpc("toggle_message_reaction", {
+    target_message_id: messageId,
+    reaction_emoji: emoji,
+  });
+  if (!rpc.error) return null;
+  if (!missingRelation(rpc.error)) return rpc.error.message;
+
+  if (currentlyOn) {
+    const { error } = await supabase
+      .from("message_reactions")
+      .delete()
+      .eq("message_id", messageId)
+      .eq("user_id", userId)
+      .eq("emoji", emoji);
+    if (missingRelation(error)) return null;
+    return error?.message ?? null;
+  }
+
+  const { error } = await supabase
+    .from("message_reactions")
+    .insert({ message_id: messageId, user_id: userId, emoji });
+  if (error && error.code === "23505") return null;
+  if (missingRelation(error)) return null;
+  return error?.message ?? null;
+}

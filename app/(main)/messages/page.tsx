@@ -1,14 +1,21 @@
 "use client";
 
-import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { EmojiPicker } from "@/components/messages/EmojiPicker";
+import { MessageBubble, type ChatBubbleMessage } from "@/components/messages/MessageBubble";
 import { Avatar } from "@/components/ui/Avatar";
 import { BackButton } from "@/components/ui/BackLink";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Icon } from "@/components/ui/Icon";
 import { useAuth } from "@/lib/auth-context";
 import { formatRelativeTime } from "@/lib/profile";
-import { openDirectMessage, sendConversationMessage } from "@/lib/social";
+import {
+  fetchMessageReactions,
+  openDirectMessage,
+  sendConversationMessage,
+  toggleMessageReaction,
+} from "@/lib/social";
 import { createClient } from "@/lib/supabase/client";
 
 type ConversationItem = {
@@ -20,12 +27,7 @@ type ConversationItem = {
   unread: boolean;
 };
 
-type MessageItem = {
-  id: string;
-  fromMe: boolean;
-  text: string;
-  time: string;
-};
+type MessageItem = ChatBubbleMessage;
 
 function isUnread(lastAt?: string, lastReadAt?: string | null, lastFromMe?: boolean) {
   if (!lastAt || lastFromMe) return false;
@@ -48,6 +50,10 @@ function MessagesPage() {
   const [loadingThread, setLoadingThread] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [sendError, setSendError] = useState<string | null>(null);
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [reactionBarId, setReactionBarId] = useState<string | null>(null);
+  const draftRef = useRef<HTMLInputElement>(null);
+  const pandaBtnRef = useRef<HTMLButtonElement>(null);
 
   const openThread = useCallback(
     (id: string | null) => {
@@ -172,12 +178,25 @@ function MessagesPage() {
           setLoadingThread(false);
           return;
         }
+        const rows = data ?? [];
+        const { rows: reactionRows } = await fetchMessageReactions(
+          supabase,
+          rows.map((row) => row.id as string)
+        );
+        if (cancelled) return;
+        const reactionsByMessage = new Map<string, ChatBubbleMessage["reactions"]>();
+        for (const row of reactionRows) {
+          const list = reactionsByMessage.get(row.message_id) ?? [];
+          list.push({ emoji: row.emoji, userId: row.user_id });
+          reactionsByMessage.set(row.message_id, list);
+        }
         setMessages(
-          (data ?? []).map((row) => ({
+          rows.map((row) => ({
             id: row.id as string,
             fromMe: row.sender_id === user.id,
             text: (row.content as string) || "",
             time: formatRelativeTime(row.created_at as string),
+            reactions: reactionsByMessage.get(row.id as string) ?? [],
           }))
         );
         setLoadingThread(false);
@@ -205,6 +224,7 @@ function MessagesPage() {
                 fromMe: row.sender_id === user.id,
                 text: row.content || "",
                 time: formatRelativeTime(row.created_at),
+                reactions: [],
               },
             ];
           });
@@ -217,6 +237,36 @@ function MessagesPage() {
           );
         }
       )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "message_reactions" },
+        (payload) => {
+          const row = (payload.eventType === "DELETE" ? payload.old : payload.new) as {
+            message_id?: string;
+            user_id?: string;
+            emoji?: string;
+          };
+          if (!row.message_id || !row.user_id || !row.emoji) return;
+          const messageId = row.message_id;
+          const userId = row.user_id;
+          const emoji = row.emoji;
+          setMessages((prev) => {
+            if (!prev.some((item) => item.id === messageId)) return prev;
+            return prev.map((item) => {
+              if (item.id !== messageId) return item;
+              const exists = item.reactions.some((r) => r.userId === userId && r.emoji === emoji);
+              if (payload.eventType === "DELETE") {
+                return {
+                  ...item,
+                  reactions: item.reactions.filter((r) => !(r.userId === userId && r.emoji === emoji)),
+                };
+              }
+              if (exists) return item;
+              return { ...item, reactions: [...item.reactions, { userId, emoji }] };
+            });
+          });
+        }
+      )
       .subscribe();
 
     return () => {
@@ -224,6 +274,11 @@ function MessagesPage() {
       void supabase.removeChannel(channel);
     };
   }, [activeId, user]);
+
+  useEffect(() => {
+    setPickerOpen(false);
+    setReactionBarId(null);
+  }, [activeId]);
 
   const active = conversations.find((c) => c.id === activeId);
   const list = useMemo(
@@ -244,7 +299,7 @@ function MessagesPage() {
       return;
     }
     setMessages((prev) =>
-      prev.some((item) => item.id === id) ? prev : [...prev, { id, fromMe: true, text, time: "Just now" }]
+      prev.some((item) => item.id === id) ? prev : [...prev, { id, fromMe: true, text, time: "Just now", reactions: [] }]
     );
     setConversations((prev) => {
       if (prev.some((c) => c.id === activeId)) {
@@ -255,6 +310,56 @@ function MessagesPage() {
         ...prev,
       ];
     });
+    setPickerOpen(false);
+  }
+
+  function insertEmoji(emoji: string) {
+    const el = draftRef.current;
+    const start = el?.selectionStart ?? draft.length;
+    const end = el?.selectionEnd ?? draft.length;
+    const next = draft.slice(0, start) + emoji + draft.slice(end);
+    setDraft(next);
+    requestAnimationFrame(() => {
+      el?.focus();
+      const pos = start + emoji.length;
+      el?.setSelectionRange(pos, pos);
+    });
+  }
+
+  async function reactTo(messageId: string, emoji: string) {
+    const supabase = createClient();
+    if (!supabase || !user) return;
+    const currentlyOn = messages
+      .find((item) => item.id === messageId)
+      ?.reactions.some((row) => row.userId === user.id && row.emoji === emoji);
+    setMessages((prev) =>
+      prev.map((item) => {
+        if (item.id !== messageId) return item;
+        const mine = item.reactions.some((row) => row.userId === user.id && row.emoji === emoji);
+        return {
+          ...item,
+          reactions: mine
+            ? item.reactions.filter((row) => !(row.userId === user.id && row.emoji === emoji))
+            : [...item.reactions, { userId: user.id, emoji }],
+        };
+      })
+    );
+    const error = await toggleMessageReaction(supabase, messageId, user.id, emoji, Boolean(currentlyOn));
+    if (error) {
+      setSendError(error);
+      setMessages((prev) =>
+        prev.map((item) => {
+          if (item.id !== messageId) return item;
+          const mine = item.reactions.some((row) => row.userId === user.id && row.emoji === emoji);
+          return {
+            ...item,
+            reactions: mine
+              ? item.reactions.filter((row) => !(row.userId === user.id && row.emoji === emoji))
+              : [...item.reactions, { userId: user.id, emoji }],
+          };
+        })
+      );
+    }
   }
 
   if (!user) {
@@ -346,21 +451,20 @@ function MessagesPage() {
                 <Avatar src={active?.avatar} alt={active?.name ?? "Chat"} size={40} />
                 <h2 className="font-label-lg text-label-lg">{active?.name || "Conversation"}</h2>
               </div>
-              <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-soft-off-white">
+              <div className="flex-1 overflow-y-auto p-6 pt-12 space-y-4 bg-soft-off-white">
                 {loadingThread && <p className="font-body-sm text-tertiary">Loading messages…</p>}
                 {messages.map((m) => (
-                  <div key={m.id} className={`flex ${m.fromMe ? "justify-end" : "justify-start"} animate-fade-in-up`}>
-                    <div
-                      className={`max-w-[85%] p-3 rounded-2xl ${
-                        m.fromMe
-                          ? "bg-primary-container text-on-primary-container rounded-br-none"
-                          : "bg-surface-container-lowest border border-surface-border rounded-bl-none"
-                      }`}
-                    >
-                      <p className="font-body-md text-sm whitespace-pre-wrap" dir="auto">{m.text}</p>
-                      <span className="text-[11px] text-tertiary block mt-1">{m.time}</span>
-                    </div>
-                  </div>
+                  <MessageBubble
+                    key={m.id}
+                    message={m}
+                    currentUserId={user.id}
+                    barOpen={reactionBarId === m.id}
+                    onToggleBar={() => setReactionBarId((id) => (id === m.id ? null : m.id))}
+                    onToggleReaction={(emoji) => {
+                      void reactTo(m.id, emoji);
+                      setReactionBarId(null);
+                    }}
+                  />
                 ))}
               </div>
               <div className="p-4 border-t border-surface-border">
@@ -369,26 +473,46 @@ function MessagesPage() {
                     {sendError}
                   </p>
                 ) : null}
-                <div className="flex items-center gap-2 bg-soft-off-white border border-surface-border rounded-full px-2 py-1">
-                  <input
-                    value={draft}
-                    onChange={(e) => setDraft(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key !== "Enter") return;
-                      if (e.nativeEvent.isComposing || e.keyCode === 229) return;
-                      e.preventDefault();
-                      void send();
-                    }}
-                    dir="auto"
-                    autoCapitalize="off"
-                    autoCorrect="off"
-                    spellCheck
-                    className="flex-1 bg-transparent border-none focus:ring-0 focus:outline-none font-body-sm px-2 py-2"
-                    placeholder="Type a message..."
+                <div className="relative">
+                  <EmojiPicker
+                    open={pickerOpen}
+                    onClose={() => setPickerOpen(false)}
+                    onSelect={insertEmoji}
+                    ignoreRef={pandaBtnRef}
                   />
-                  <button type="button" onClick={() => void send()} className="p-2 bg-accent-magenta text-white rounded-full">
-                    <Icon name="send" size={20} />
-                  </button>
+                  <div className="flex items-center gap-2 bg-soft-off-white border border-surface-border rounded-full px-2 py-1">
+                    <button
+                      ref={pandaBtnRef}
+                      type="button"
+                      onClick={() => setPickerOpen((open) => !open)}
+                      className="h-9 w-9 shrink-0 text-lg leading-none rounded-full hover:bg-surface-container-high"
+                      aria-label="Emoji"
+                      aria-expanded={pickerOpen}
+                      title="Emoji"
+                    >
+                      🐼
+                    </button>
+                    <input
+                      ref={draftRef}
+                      value={draft}
+                      onChange={(e) => setDraft(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key !== "Enter") return;
+                        if (e.nativeEvent.isComposing || e.keyCode === 229) return;
+                        e.preventDefault();
+                        void send();
+                      }}
+                      dir="auto"
+                      autoCapitalize="off"
+                      autoCorrect="off"
+                      spellCheck
+                      className="flex-1 bg-transparent border-none focus:ring-0 focus:outline-none font-body-sm px-2 py-2"
+                      placeholder="Type a message..."
+                    />
+                    <button type="button" onClick={() => void send()} className="p-2 bg-accent-magenta text-white rounded-full">
+                      <Icon name="send" size={20} />
+                    </button>
+                  </div>
                 </div>
               </div>
             </>
