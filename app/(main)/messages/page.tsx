@@ -8,6 +8,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { Icon } from "@/components/ui/Icon";
 import { useAuth } from "@/lib/auth-context";
 import { formatRelativeTime } from "@/lib/profile";
+import { openDirectMessage, sendConversationMessage } from "@/lib/social";
 import { createClient } from "@/lib/supabase/client";
 
 type ConversationItem = {
@@ -37,6 +38,7 @@ function MessagesPage() {
   const router = useRouter();
   const params = useSearchParams();
   const queryId = params.get("c");
+  const toId = params.get("to");
   const [conversations, setConversations] = useState<ConversationItem[]>([]);
   const [activeId, setActiveId] = useState<string | null>(queryId);
   const [messages, setMessages] = useState<MessageItem[]>([]);
@@ -65,7 +67,7 @@ function MessagesPage() {
 
     const { data: memberships, error: membershipError } = await supabase
       .from("conversation_members")
-      .select("conversation_id, last_read_at, conversations(id, updated_at, is_group, title)")
+      .select("conversation_id, last_read_at")
       .eq("user_id", user.id);
     if (membershipError) {
       setError(membershipError.message);
@@ -121,6 +123,33 @@ function MessagesPage() {
   useEffect(() => {
     if (queryId && queryId !== activeId) setActiveId(queryId);
   }, [queryId, activeId]);
+
+  useEffect(() => {
+    if (!toId || !user || queryId) return;
+    if (toId === user.id) {
+      setSendError("You cannot message yourself.");
+      return;
+    }
+    const supabase = createClient();
+    if (!supabase) {
+      setSendError("Messaging is not configured.");
+      return;
+    }
+    let cancelled = false;
+    void openDirectMessage(supabase, toId).then(({ id, error: openError }) => {
+      if (cancelled) return;
+      if (!id) {
+        setSendError(openError || "Could not open that conversation.");
+        return;
+      }
+      setActiveId(id);
+      router.replace(`/messages?c=${id}`, { scroll: false });
+      void loadConversations();
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [toId, queryId, user, router, loadConversations]);
 
   useEffect(() => {
     const supabase = createClient();
@@ -208,23 +237,24 @@ function MessagesPage() {
     if (!text || !supabase || !user || !activeId) return;
     setSendError(null);
     setDraft("");
-    const { data, error: insertError } = await supabase
-      .from("messages")
-      .insert({ conversation_id: activeId, sender_id: user.id, content: text })
-      .select("id, created_at")
-      .single();
-    if (insertError || !data) {
+    const { id, error: insertError } = await sendConversationMessage(supabase, activeId, user.id, text);
+    if (!id) {
       setDraft(text);
-      setSendError(insertError?.message || "Message could not be sent.");
+      setSendError(insertError || "Message could not be sent.");
       return;
     }
-    await supabase.from("conversations").update({ updated_at: new Date().toISOString() }).eq("id", activeId);
     setMessages((prev) =>
-      prev.some((item) => item.id === data.id)
-        ? prev
-        : [...prev, { id: data.id as string, fromMe: true, text, time: "Just now" }]
+      prev.some((item) => item.id === id) ? prev : [...prev, { id, fromMe: true, text, time: "Just now" }]
     );
-    setConversations((prev) => prev.map((c) => (c.id === activeId ? { ...c, preview: text, time: "Just now", unread: false } : c)));
+    setConversations((prev) => {
+      if (prev.some((c) => c.id === activeId)) {
+        return prev.map((c) => (c.id === activeId ? { ...c, preview: text, time: "Just now", unread: false } : c));
+      }
+      return [
+        { id: activeId, name: "SheRides chat", avatar: "", preview: text, time: "Just now", unread: false },
+        ...prev,
+      ];
+    });
   }
 
   if (!user) {
@@ -267,9 +297,14 @@ function MessagesPage() {
               <p className="p-6 font-body-sm text-tertiary">
                 {filter === "Unread"
                   ? "No unread messages."
-                  : "No conversations yet. Approved riders get a welcome from Razia."}
+                  : "No conversations yet. Open a rider from Home and tap Message."}
               </p>
             )}
+            {sendError && !activeId ? (
+              <p className="px-6 pb-4 font-body-sm text-error" role="alert">
+                {sendError}
+              </p>
+            ) : null}
             {list.map((c) => (
               <button
                 key={c.id}
@@ -322,7 +357,7 @@ function MessagesPage() {
                           : "bg-surface-container-lowest border border-surface-border rounded-bl-none"
                       }`}
                     >
-                      <p className="font-body-md text-sm whitespace-pre-wrap">{m.text}</p>
+                      <p className="font-body-md text-sm whitespace-pre-wrap" dir="auto">{m.text}</p>
                       <span className="text-[11px] text-tertiary block mt-1">{m.time}</span>
                     </div>
                   </div>
@@ -338,7 +373,16 @@ function MessagesPage() {
                   <input
                     value={draft}
                     onChange={(e) => setDraft(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && void send()}
+                    onKeyDown={(e) => {
+                      if (e.key !== "Enter") return;
+                      if (e.nativeEvent.isComposing || e.keyCode === 229) return;
+                      e.preventDefault();
+                      void send();
+                    }}
+                    dir="auto"
+                    autoCapitalize="off"
+                    autoCorrect="off"
+                    spellCheck
                     className="flex-1 bg-transparent border-none focus:ring-0 focus:outline-none font-body-sm px-2 py-2"
                     placeholder="Type a message..."
                   />

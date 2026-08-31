@@ -109,7 +109,7 @@ function LogoutButton() {
       }}
       className="w-full mt-3 font-body-sm py-2 rounded-full bg-black/90 text-white hover:text-red-200 hover:bg-black transition-colors flex items-center justify-center gap-2"
     >
-      <span>🚪</span> লগআউট
+      <span>🚪</span> Log out
     </button>
   );
 }

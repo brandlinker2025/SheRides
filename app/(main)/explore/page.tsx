@@ -56,7 +56,7 @@ export default function ExplorePage() {
       <h2 className="font-headline-md text-headline-md mb-4">Trending posts</h2>
       {posts.length === 0 ? (
         <div className="mb-12">
-          <EmptyState variant="feed" title="এখনো কোনো পোস্ট নেই। প্রথম পোস্ট করুন! 🏍️" />
+          <EmptyState variant="feed" title="No posts yet. Create the first post! 🏍️" />
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
