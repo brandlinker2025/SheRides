@@ -11,7 +11,7 @@ export function oauthProviderLabel(provider: OAuthProvider) {
 }
 
 export function oauthUnavailableMessage(provider: OAuthProvider) {
-  return `${oauthProviderLabel(provider)} sign-in isn’t available yet. Please use your email and password.`;
+  return `${oauthProviderLabel(provider)} sign-in isn’t available yet. Please use your mobile number and password.`;
 }
 
 export async function isOAuthProviderEnabled(provider: OAuthProvider): Promise<boolean> {

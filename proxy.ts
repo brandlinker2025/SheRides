@@ -2,9 +2,10 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { ADMIN_OPEN_ACCESS } from "./lib/admin/open-access";
+import { memberNeedsPhoneOtp, verifiedCookieName } from "./lib/member-phone";
 
 const PUBLIC_PATHS = new Set(["/", "/login", "/admin-login", "/signup", "/download", "/api/keep-alive"]);
-const AUTH_ONLY_PATHS = new Set(["/verification"]);
+const AUTH_ONLY_PATHS = new Set(["/verification", "/verify-phone"]);
 const PUBLIC_METADATA_PATHS = new Set([
   "/manifest.webmanifest",
   "/admin.webmanifest",
@@ -17,6 +18,7 @@ const PUBLIC_METADATA_PATHS = new Set([
 function isPublicPath(pathname: string) {
   if (PUBLIC_PATHS.has(pathname)) return true;
   if (pathname.startsWith("/_next/")) return true;
+  if (pathname.startsWith("/api/auth/")) return true;
   if (PUBLIC_METADATA_PATHS.has(pathname)) return true;
   if (/\.(?:svg|png|jpg|jpeg|gif|webp|ico|js|css|woff2?|map)$/i.test(pathname)) return true;
   return false;
@@ -79,6 +81,15 @@ export async function proxy(request: NextRequest) {
 
   if (AUTH_ONLY_PATHS.has(pathname)) {
     return response;
+  }
+
+  if (
+    await memberNeedsPhoneOtp(supabase, user.id, request.cookies.get(verifiedCookieName)?.value)
+  ) {
+    const verify = request.nextUrl.clone();
+    verify.pathname = "/verify-phone";
+    verify.search = "";
+    return NextResponse.redirect(verify);
   }
 
   if (isAdminAppPath(pathname)) {
