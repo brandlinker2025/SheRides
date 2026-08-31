@@ -62,17 +62,26 @@ export function OnlineMessenger() {
                 open ? "bg-surface-container-low" : ""
               }`}
             >
-              <span className="relative shrink-0">
-                <Avatar src={rider.avatar} alt={rider.fullName} size={40} />
+              <span className="relative inline-block h-10 w-10 shrink-0">
+                <Avatar src={rider.avatar} alt={rider.fullName} size={40} className="block h-10 w-10" />
                 {rider.online ? (
                   <span
-                    className="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-green-500 border-2 border-surface-container-lowest"
+                    className="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-green-500 ring-2 ring-white"
                     aria-hidden="true"
                   />
                 ) : null}
               </span>
               <span className="min-w-0">
-                <span className="block font-label-lg text-label-lg text-on-surface truncate">{rider.fullName}</span>
+                <span className="flex items-center gap-1.5 min-w-0">
+                  <span className="min-w-0 font-label-lg text-label-lg text-on-surface truncate">{rider.fullName}</span>
+                  {rider.online ? (
+                    <span
+                      className="h-2 w-2 rounded-full bg-green-500 shrink-0"
+                      title="Online"
+                      aria-label="Online"
+                    />
+                  ) : null}
+                </span>
                 <span className="block font-body-sm text-body-sm text-tertiary truncate">
                   {rider.online ? "Online" : rider.location || rider.bike || ""}
                 </span>

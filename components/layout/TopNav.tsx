@@ -119,13 +119,6 @@ export function TopNav() {
           </Link>
         )}
         <ThemeToggle />
-        <Link
-          href="/messages"
-          className="w-10 h-10 rounded-full flex items-center justify-center text-on-primary hover:bg-white/10 transition-colors"
-          aria-label="Messages"
-        >
-          <Icon name="chat" />
-        </Link>
         <NotificationsBell />
         <button
           type="button"
