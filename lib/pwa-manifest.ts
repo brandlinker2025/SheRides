@@ -30,7 +30,6 @@ export function communityManifest(): MetadataRoute.Manifest {
     short_name: "SheRides",
     description: "Bangladesh Women Riders Community",
     start_url: "/home",
-    related_applications: [{ platform: "webapp", url: `${SITE_URL}/admin.webmanifest` }],
   };
 }
 
