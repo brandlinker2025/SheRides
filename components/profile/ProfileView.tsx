@@ -222,7 +222,7 @@ export function ProfileView({ rider, isSelf, onSignOut }: ProfileViewProps) {
             ))}
           </div>
         ) : (
-          <EmptyState variant="feed" title="এখনো কোনো পোস্ট নেই। প্রথম পোস্ট করুন! 🏍️" />
+          <EmptyState variant="feed" title="No posts yet. Create the first post! 🏍️" />
         ))}
 
       {tab === "Photos" &&
@@ -233,7 +233,7 @@ export function ProfileView({ rider, isSelf, onSignOut }: ProfileViewProps) {
             ))}
           </div>
         ) : (
-          <EmptyState title="এখনো কোনো ছবি নেই।" body="Upload a photo with your next post." />
+          <EmptyState title="No photos yet." body="Upload a photo with your next post." />
         ))}
 
       {tab === "Rides" &&

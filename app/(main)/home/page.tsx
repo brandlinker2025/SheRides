@@ -26,7 +26,7 @@ export default function HomeFeedPage() {
           {!loading && posts.length === 0 && (
             <EmptyState
               variant="feed"
-              title="এখনো কোনো পোস্ট নেই। প্রথম পোস্ট করুন! 🏍️"
+              title="No posts yet. Create the first post! 🏍️"
               action={
                 <button
                   type="button"
