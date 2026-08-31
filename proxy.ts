@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { ADMIN_OPEN_ACCESS } from "./lib/admin/open-access";
 
 const PUBLIC_PATHS = new Set(["/", "/login", "/admin-login", "/signup"]);
 const AUTH_ONLY_PATHS = new Set(["/verification"]);
@@ -26,6 +27,16 @@ function isAdminAppPath(pathname: string) {
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  if (ADMIN_OPEN_ACCESS) {
+    if (pathname === "/admin-login") {
+      return NextResponse.redirect(new URL("/admin", request.url));
+    }
+    if (isAdminAppPath(pathname)) {
+      return NextResponse.next();
+    }
+  }
+
   if (isPublicPath(pathname)) {
     return NextResponse.next();
   }
