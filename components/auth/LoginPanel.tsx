@@ -10,7 +10,6 @@ import { createClient } from "@/lib/supabase/client";
 import { Icon } from "@/components/ui/Icon";
 import { AuthScene, authFieldClass } from "./AuthScene";
 import { DustumiSubmitButton } from "./DustumiSubmitButton";
-import { PhoneOtpFields, postAuthJson } from "./PhoneOtpFields";
 import { usePandaForm } from "./usePandaForm";
 
 const REMEMBER_KEY = "sherides-remember-email";
@@ -19,7 +18,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 function translateAuthError(message: string, member: boolean): string {
   const lower = message.toLowerCase();
   if (lower.includes("email not confirmed")) {
-    return member ? "Please verify your mobile number first." : "Please verify your email first.";
+    return member ? "Please confirm your account first." : "Please verify your email first.";
   }
   if (lower.includes("invalid login credentials") || lower.includes("invalid credentials")) {
     return member ? "The mobile number or password is incorrect." : "The email or password is incorrect.";
@@ -30,7 +29,6 @@ function translateAuthError(message: string, member: boolean): string {
 function safeUserNextPath(value: string | null) {
   if (!value?.startsWith("/") || value.startsWith("//")) return "/home";
   if (value === "/admin-login" || value.startsWith("/admin")) return "/home";
-  if (value === "/pending-approval") return "/home";
   return value;
 }
 
@@ -47,9 +45,6 @@ export function LoginPanel({ admin = false }: { admin?: boolean }) {
   const [resetMessage, setResetMessage] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [dodgeToken, setDodgeToken] = useState(0);
-  const [resetStep, setResetStep] = useState<"idle" | "otp">("idle");
-  const [otpCode, setOtpCode] = useState("");
-  const [newPassword, setNewPassword] = useState("");
   const panda = usePandaForm();
   const identifierValid = admin
     ? EMAIL_PATTERN.test(identifier.trim())
@@ -117,61 +112,27 @@ export function LoginPanel({ admin = false }: { admin?: boolean }) {
     setError(null);
     setResetMessage(null);
     if (!identifier.trim()) {
-      setResetMessage("Enter your mobile number first.");
+      setResetMessage("Enter your mobile number or email first.");
       panda.onError();
       return;
     }
-    if (isEmailIdentifier(identifier)) {
-      setResetMessage("Enter the mobile number on the account. Members reset with an SMS code, not email.");
+    if (!isEmailIdentifier(identifier)) {
+      setResetMessage("Enter the email on the account to receive a reset link, or sign in with your mobile number and password.");
       panda.onError();
       return;
     }
-    const phone = normalizeBdPhone(identifier);
-    if (!phone) {
-      setResetMessage("Enter a valid Bangladesh mobile number first.");
-      panda.onError();
-      return;
-    }
+    const supabase = createClient();
+    if (!supabase) return;
     setBusy(true);
-    const message = await postAuthJson("/api/auth/otp/send", { phone, purpose: "reset" });
+    const { error: resetError } = await supabase.auth.resetPasswordForEmail(identifier.trim(), {
+      redirectTo: `${siteOrigin()}/login`,
+    });
     setBusy(false);
-    if (message) {
-      setResetMessage(message);
-      panda.onError();
-      return;
-    }
-    setResetStep("otp");
-    setResetMessage("We sent a verification code to your mobile.");
-    panda.onSuccess();
-  }
-
-  async function handleResetWithOtp(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setError(null);
-    const phone = normalizeBdPhone(identifier);
-    if (!phone || !otpCode.trim() || !newPassword.trim()) {
-      dodge();
-      return;
-    }
-    if (newPassword.length < 6) {
-      setError("Use at least 6 characters for your password.");
-      panda.onError();
-      return;
-    }
-    setBusy(true);
-    const message = await postAuthJson("/api/auth/password", { phone, code: otpCode, password: newPassword });
-    setBusy(false);
-    if (message) {
-      setError(message);
-      panda.onError();
-      return;
-    }
-    setResetStep("idle");
-    setOtpCode("");
-    setNewPassword("");
-    setPassword(newPassword);
-    setResetMessage("Password updated. Sign in with your mobile number.");
-    panda.onSuccess();
+    setResetMessage(
+      resetError ? translateAuthError(resetError.message, true) : "A password reset link has been sent to your email."
+    );
+    if (resetError) panda.onError();
+    else panda.onSuccess();
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -211,7 +172,7 @@ export function LoginPanel({ admin = false }: { admin?: boolean }) {
       return;
     }
 
-    if (!normalizeBdPhone(identifier) || !password.trim()) {
+    if (!password.trim() || (!normalizeBdPhone(identifier) && !isEmailIdentifier(identifier))) {
       dodge();
       return;
     }
@@ -226,9 +187,22 @@ export function LoginPanel({ admin = false }: { admin?: boolean }) {
     }
 
     persistRememberedIdentifier(identifier.trim(), rememberMe);
+    let dest = next;
+    const supabase = createClient();
+    if (supabase) {
+      const { data: authData } = await supabase.auth.getUser();
+      if (authData.user) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("verified, role")
+          .eq("id", authData.user.id)
+          .maybeSingle();
+        if (profile && profile.role !== "admin" && !profile.verified) dest = "/pending-approval";
+      }
+    }
     panda.onSuccess();
     window.setTimeout(() => {
-      router.replace(next);
+      router.replace(dest);
       router.refresh();
     }, 900);
   }
@@ -249,46 +223,7 @@ export function LoginPanel({ admin = false }: { admin?: boolean }) {
         <p className="mb-6 text-sm text-white/70">
           {admin ? "Restricted access for authorized SheRides administrators." : "Log in to your SheRides account"}
         </p>
-        {resetStep === "otp" && !admin ? (
-          <form className="flex flex-col gap-4" onSubmit={(event) => void handleResetWithOtp(event)} noValidate>
-            <PhoneOtpFields
-              code={otpCode}
-              onCodeChange={setOtpCode}
-              onFocus={panda.onTextFocus}
-              onBlur={panda.onBlur}
-            />
-            <label className="relative block">
-              <Icon name="lock" size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/45" />
-              <input
-                type={showPassword ? "text" : "password"}
-                autoComplete="new-password"
-                value={newPassword}
-                onChange={(event) => setNewPassword(event.target.value)}
-                onFocus={() => panda.onPasswordFocus(showPassword)}
-                onBlur={panda.onBlur}
-                placeholder="New password"
-                className={`${authFieldClass} pl-11 pr-12`}
-              />
-            </label>
-            {error && (
-              <p className="text-sm text-[#ff8a80]" role="alert">
-                {error}
-              </p>
-            )}
-            {resetMessage && <p className="text-sm text-[#FF2D78]">{resetMessage}</p>}
-            <DustumiSubmitButton dodgeToken={dodgeToken} busy={busy}>
-              {busy ? "Updating..." : "Set new password"}
-            </DustumiSubmitButton>
-            <button
-              type="button"
-              onClick={() => void handleMemberForgotPassword()}
-              className="text-sm text-[#FF2D78] hover:underline"
-            >
-              Resend code
-            </button>
-          </form>
-        ) : (
-          <form className="flex flex-col gap-4" onSubmit={(event) => void handleSubmit(event)} noValidate={!admin}>
+        <form className="flex flex-col gap-4" onSubmit={(event) => void handleSubmit(event)} noValidate={!admin}>
             <label className="block">
               <span className="mb-1.5 block text-sm text-white/70">{admin ? "Email" : "Mobile number"}</span>
               <span className="relative block">
@@ -397,7 +332,6 @@ export function LoginPanel({ admin = false }: { admin?: boolean }) {
               </DustumiSubmitButton>
             )}
           </form>
-        )}
         {admin ? (
           <p className="mt-6 text-sm text-white/70">
             Community member?{" "}

@@ -18,6 +18,7 @@ export default async function AdminDashboardPage() {
     { label: "Total events", value: stats.events, href: "/admin/events", icon: "event" },
     { label: "New signups today", value: stats.signupsToday, href: "/admin/users", icon: "person_add" },
   ];
+  const pendingApproval = stats.pendingApproval;
 
   return (
     <div>
@@ -27,6 +28,24 @@ export default async function AdminDashboardPage() {
       </div>
       {stats.error && (
         <div className="mb-6 p-4 rounded-lg bg-error-container text-on-error-container font-body-sm">{stats.error}</div>
+      )}
+      {pendingApproval > 0 && (
+        <Link
+          href="/admin/verifications"
+          className="mb-6 flex items-start gap-3 rounded-xl border border-accent-magenta/40 bg-accent-magenta/10 p-4 hover:bg-accent-magenta/15 transition-colors"
+        >
+          <Icon name="notifications" filled className="text-accent-magenta mt-0.5" />
+          <span>
+            <span className="block font-label-lg text-on-surface">
+              {pendingApproval === 1
+                ? "1 member is waiting for approval"
+                : `${pendingApproval} members are waiting for approval`}
+            </span>
+            <span className="block font-body-sm text-secondary mt-1">
+              Open Verifications to approve new joins. They cannot use the community until you approve them.
+            </span>
+          </span>
+        </Link>
       )}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-gutter mb-section-gap">
         {cards.map((card) => (
@@ -59,7 +78,9 @@ export default async function AdminDashboardPage() {
                 {user.verified ? (
                   <Icon name="verified" filled className="text-accent-magenta" />
                 ) : (
-                  <span className="font-label-caps text-[10px] text-tertiary">Unverified</span>
+                  <Link href="/admin/verifications" className="font-label-caps text-[10px] text-accent-magenta">
+                    Pending
+                  </Link>
                 )}
               </div>
             ))}

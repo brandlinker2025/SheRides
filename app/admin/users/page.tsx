@@ -12,7 +12,9 @@ export default async function AdminUsersPage() {
       <div className="mb-section-gap">
         <BackLink href="/admin" label="Dashboard" className="mb-3" />
         <h1 className="font-headline-xl text-headline-xl mb-2">Users</h1>
-        <p className="font-body-lg text-secondary">View registered riders and grant or remove the verified badge.</p>
+        <p className="font-body-lg text-secondary">
+          All registered riders. New joins wait on Verifications until you approve them.
+        </p>
       </div>
       {error && <p className="mb-4 text-error font-body-sm">{error}</p>}
       <UsersTable users={users} />

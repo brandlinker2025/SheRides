@@ -63,6 +63,10 @@ export function initialsFromName(name?: string | null) {
   return ((parts[0]?.[0] ?? "R") + (parts[1]?.[0] ?? "")).toUpperCase();
 }
 
+export function isApprovedProfile(profile: { verified?: boolean | null; role?: string | null } | null | undefined) {
+  return profile?.role === "admin" || profile?.verified === true;
+}
+
 export function riderFromProfile(
   id: string,
   data: Record<string, unknown> | null,
