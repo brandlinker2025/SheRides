@@ -4,11 +4,12 @@ import { createContext, useCallback, useContext, useEffect, useState, type React
 import { useAuth } from "./auth-context";
 import { formatRelativeTime, riderFromProfile } from "./profile";
 import { createClient } from "./supabase/client";
-import { uploadPublicImage } from "./storage";
+import { uploadPublicPostMedia } from "./storage";
 import type { FeedPost, Rider } from "./types";
 
 type AddPostOptions = {
   image?: File;
+  video?: File;
   location?: string;
   onProgress?: (percent: number) => void;
 };
@@ -93,14 +94,15 @@ export function FeedProvider({ children }: { children: ReactNode }) {
   const addPost = async (content: string, options?: AddPostOptions) => {
     const supabase = createClient();
     if (!supabase || !user) return "You need to sign in first.";
-    if (!content.trim() && !options?.image) return "Write something or add a photo.";
+    const media = options?.video ?? options?.image;
+    if (!content.trim() && !media) return "Write something or add a photo or video.";
     let imageUrl: string | undefined;
     try {
-      if (options?.image) {
-        imageUrl = await uploadPublicImage(supabase, "posts", user.id, options.image, options.onProgress);
+      if (media) {
+        imageUrl = await uploadPublicPostMedia(supabase, user.id, media, options?.onProgress);
       }
     } catch (error) {
-      return error instanceof Error ? error.message : "Could not upload photo.";
+      return error instanceof Error ? error.message : "Could not upload media.";
     }
     const { data, error } = await supabase
       .from("posts")
@@ -112,7 +114,12 @@ export function FeedProvider({ children }: { children: ReactNode }) {
       })
       .select("id, content, image_url, location, created_at, likes_count, comments_count")
       .single();
-    if (error) return error.message;
+    if (error) {
+      if (/row-level security/i.test(error.message)) {
+        return "Could not publish this post. Please try again.";
+      }
+      return error.message;
+    }
     if (data) {
       setPosts((prev) => [mapPost(data as Record<string, unknown>, user), ...prev]);
     }

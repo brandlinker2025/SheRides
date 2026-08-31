@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { deletePost } from "@/app/admin/actions";
 import type { AdminPostRow } from "@/lib/admin/queries";
+import { PostMedia } from "@/components/feed/PostMedia";
 import { Avatar } from "@/components/ui/Avatar";
 import { Icon } from "@/components/ui/Icon";
 
@@ -63,7 +64,9 @@ export function PostsTable({ posts }: { posts: AdminPostRow[] }) {
           </div>
           <p className="font-body-md mt-4 whitespace-pre-wrap">{post.content}</p>
           {post.image_url && (
-            <img src={post.image_url} alt="" className="mt-4 w-full max-h-72 object-cover rounded-lg" />
+            <div className="mt-4 w-full max-h-72 overflow-hidden rounded-lg bg-black">
+              <PostMedia src={post.image_url} className="w-full max-h-72 object-cover" />
+            </div>
           )}
           <div className="mt-4 flex gap-4 font-body-sm text-tertiary">
             {post.location && (

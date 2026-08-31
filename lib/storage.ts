@@ -1,8 +1,11 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { isVideoFile } from "./media";
 
 const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
+const MAX_VIDEO_BYTES = 50 * 1024 * 1024;
 const MAX_IMAGE_PIXELS = 25_000_000;
 const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
+const ALLOWED_VIDEO_TYPES = new Set(["video/mp4", "video/webm", "video/quicktime"]);
 
 export async function compressImage(file: File, maxWidth = 1600, quality = 0.82): Promise<Blob> {
   if (!ALLOWED_IMAGE_TYPES.has(file.type)) {
@@ -58,4 +61,48 @@ export async function uploadPublicImage(
   const { data } = supabase.storage.from(bucket).getPublicUrl(path);
   onProgress?.(100);
   return data.publicUrl;
+}
+
+function videoExtension(file: File) {
+  if (file.type === "video/webm") return "webm";
+  if (file.type === "video/quicktime") return "mov";
+  const fromName = file.name.split(".").pop()?.toLowerCase();
+  if (fromName === "webm" || fromName === "mov" || fromName === "m4v" || fromName === "mp4") return fromName;
+  return "mp4";
+}
+
+export async function uploadPublicVideo(
+  supabase: SupabaseClient,
+  userId: string,
+  file: File,
+  onProgress?: (percent: number) => void
+) {
+  if (!isVideoFile(file)) {
+    throw new Error("Only MP4, WebM, and MOV videos are allowed.");
+  }
+  if (file.size > MAX_VIDEO_BYTES) {
+    throw new Error("Video must be 50 MB or smaller.");
+  }
+  onProgress?.(20);
+  const path = `${userId}/${crypto.randomUUID()}.${videoExtension(file)}`;
+  onProgress?.(40);
+  const { error } = await supabase.storage.from("posts").upload(path, file, {
+    contentType: ALLOWED_VIDEO_TYPES.has(file.type) ? file.type : "video/mp4",
+    upsert: false,
+  });
+  if (error) throw new Error(error.message);
+  onProgress?.(90);
+  const { data } = supabase.storage.from("posts").getPublicUrl(path);
+  onProgress?.(100);
+  return data.publicUrl;
+}
+
+export async function uploadPublicPostMedia(
+  supabase: SupabaseClient,
+  userId: string,
+  file: File,
+  onProgress?: (percent: number) => void
+) {
+  if (isVideoFile(file)) return uploadPublicVideo(supabase, userId, file, onProgress);
+  return uploadPublicImage(supabase, "posts", userId, file, onProgress);
 }

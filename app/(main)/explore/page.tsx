@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { PostMedia } from "@/components/feed/PostMedia";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { trendingHashtags } from "@/lib/data";
 import { useFeed } from "@/lib/feed-context";
@@ -62,7 +63,11 @@ export default function ExplorePage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
           {posts.map((post) => (
             <article key={post.id} className="card-surface card-hover overflow-hidden">
-              {post.image && <img src={post.image} alt="" className="w-full aspect-video object-cover" />}
+              {post.image && (
+                <div className="w-full aspect-video bg-black">
+                  <PostMedia src={post.image} />
+                </div>
+              )}
               <div className="p-5">
                 <p className="font-label-lg text-label-lg mb-1">{post.author.fullName}</p>
                 <p className="font-body-sm text-body-sm text-on-surface line-clamp-3">{post.content}</p>

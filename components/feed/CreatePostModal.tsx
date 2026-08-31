@@ -2,12 +2,16 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/lib/auth-context";
+import { isVideoFile } from "@/lib/media";
 import { useUI } from "@/lib/ui-context";
 import { Avatar } from "../ui/Avatar";
 import { Icon } from "../ui/Icon";
 
 type CreatePostModalProps = {
-  onPost?: (content: string, options?: { image?: File; onProgress?: (n: number) => void }) => Promise<string | null> | void;
+  onPost?: (
+    content: string,
+    options?: { image?: File; video?: File; onProgress?: (n: number) => void }
+  ) => Promise<string | null> | void;
 };
 
 export function CreatePostModal({ onPost }: CreatePostModalProps) {
@@ -15,10 +19,12 @@ export function CreatePostModal({ onPost }: CreatePostModalProps) {
   const { user } = useAuth();
   const [value, setValue] = useState("");
   const [image, setImage] = useState<File | null>(null);
+  const [video, setVideo] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [progress, setProgress] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const imageRef = useRef<HTMLInputElement>(null);
+  const videoRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!createOpen) return;
@@ -29,23 +35,51 @@ export function CreatePostModal({ onPost }: CreatePostModalProps) {
     return () => window.removeEventListener("keydown", onKey);
   }, [createOpen, setCreateOpen]);
 
+  useEffect(() => {
+    return () => {
+      if (preview) URL.revokeObjectURL(preview);
+    };
+  }, [preview]);
+
   if (!createOpen) return null;
 
-  const hasContent = Boolean(value.trim() || image);
+  const hasContent = Boolean(value.trim() || image || video);
+
+  const setMedia = (file: File, kind: "image" | "video") => {
+    if (preview) URL.revokeObjectURL(preview);
+    if (kind === "video") {
+      setVideo(file);
+      setImage(null);
+    } else {
+      setImage(file);
+      setVideo(null);
+    }
+    setPreview(URL.createObjectURL(file));
+  };
+
+  const clearMedia = () => {
+    if (preview) URL.revokeObjectURL(preview);
+    setImage(null);
+    setVideo(null);
+    setPreview(null);
+  };
 
   const submit = async () => {
-    if (!value.trim() && !image) return;
+    if (!value.trim() && !image && !video) return;
     setError(null);
     setProgress(0);
-    const message = await onPost?.(value.trim(), { image: image ?? undefined, onProgress: setProgress });
+    const message = await onPost?.(value.trim(), {
+      image: image ?? undefined,
+      video: video ?? undefined,
+      onProgress: setProgress,
+    });
     setProgress(null);
     if (message) {
       setError(message);
       return;
     }
     setValue("");
-    setImage(null);
-    setPreview(null);
+    clearMedia();
     setCreateOpen(false);
   };
 
@@ -86,13 +120,14 @@ export function CreatePostModal({ onPost }: CreatePostModalProps) {
         />
         {preview && (
           <div className="mt-3 relative animate-scale-in">
-            <img src={preview} alt="" className="w-full max-h-56 object-cover rounded-xl" />
+            {video ? (
+              <video src={preview} controls playsInline className="w-full max-h-56 object-cover rounded-xl" />
+            ) : (
+              <img src={preview} alt="" className="w-full max-h-56 object-cover rounded-xl" />
+            )}
             <button
               type="button"
-              onClick={() => {
-                setImage(null);
-                setPreview(null);
-              }}
+              onClick={clearMedia}
               className="absolute top-2 right-2 bg-white rounded-full p-1.5 shadow-premium hover:scale-110 transition-transform"
             >
               <Icon name="close" size={18} />
@@ -102,25 +137,53 @@ export function CreatePostModal({ onPost }: CreatePostModalProps) {
         {progress !== null && <p className="mt-2 font-body-sm text-accent-magenta">Uploading {progress}%</p>}
         {error && <p className="mt-2 font-body-sm text-error">{error}</p>}
         <div className="flex justify-between items-center mt-4">
-          <button
-            type="button"
-            onClick={() => inputRef.current?.click()}
-            className="text-secondary hover:text-accent-magenta transition-all duration-200 hover:scale-110 active:scale-95"
-          >
-            <Icon name="image" />
-          </button>
-          <input
-            ref={inputRef}
-            type="file"
-            accept="image/*"
-            className="hidden"
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              if (!file) return;
-              setImage(file);
-              setPreview(URL.createObjectURL(file));
-            }}
-          />
+          <div className="flex items-center gap-1">
+            <button
+              type="button"
+              onClick={() => imageRef.current?.click()}
+              className="text-secondary hover:text-accent-magenta transition-all duration-200 hover:scale-110 active:scale-95 p-1"
+              aria-label="Add photo"
+            >
+              <Icon name="image" />
+            </button>
+            <button
+              type="button"
+              onClick={() => videoRef.current?.click()}
+              className="text-secondary hover:text-accent-magenta transition-all duration-200 hover:scale-110 active:scale-95 p-1"
+              aria-label="Add video"
+            >
+              <Icon name="videocam" />
+            </button>
+            <input
+              ref={imageRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                e.target.value = "";
+                if (!file || isVideoFile(file)) return;
+                setMedia(file, "image");
+              }}
+            />
+            <input
+              ref={videoRef}
+              type="file"
+              accept="video/mp4,video/webm,video/quicktime"
+              className="hidden"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                e.target.value = "";
+                if (!file) return;
+                if (!isVideoFile(file)) {
+                  setError("Only MP4, WebM, and MOV videos are allowed.");
+                  return;
+                }
+                setError(null);
+                setMedia(file, "video");
+              }}
+            />
+          </div>
           <button
             type="button"
             onClick={() => void submit()}

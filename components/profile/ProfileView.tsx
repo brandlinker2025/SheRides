@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import type { Rider } from "@/lib/types";
 import { useAuth } from "@/lib/auth-context";
 import { useFeed } from "@/lib/feed-context";
+import { isVideoUrl } from "@/lib/media";
 import { BASS_GIFT_FOLLOWERS, fetchFollowStats, hasBassGift, setFollowing } from "@/lib/social";
 import { createClient } from "@/lib/supabase/client";
 import { EmptyState } from "../ui/EmptyState";
@@ -36,7 +37,7 @@ export function ProfileView({ rider, isSelf, onSignOut }: ProfileViewProps) {
   const { posts, toggleLike, toggleSave } = useFeed();
   const router = useRouter();
   const riderPosts = posts.filter((post) => post.author.id === rider.id);
-  const photos = riderPosts.filter((post) => post.image);
+  const photos = riderPosts.filter((post) => post.image && !isVideoUrl(post.image));
   const giftUnlocked = hasBassGift(followers);
   const rides = useMemo(
     () => posts.filter((post) => post.author.id === rider.id && /ride|tour|meetup/i.test(post.content)),

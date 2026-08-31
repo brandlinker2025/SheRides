@@ -5,6 +5,7 @@ import { useState } from "react";
 import type { FeedPost as FeedPostType } from "@/lib/types";
 import { Avatar } from "../ui/Avatar";
 import { Icon } from "../ui/Icon";
+import { PostMedia } from "./PostMedia";
 
 type FeedPostProps = {
   post: FeedPostType;
@@ -50,8 +51,8 @@ export function FeedPost({ post, onToggleLike, onToggleSave }: FeedPostProps) {
       <p className="font-body-md text-body-md text-on-surface mb-4 whitespace-pre-wrap">{post.content}</p>
 
       {post.image && (
-        <div className="rounded-xl overflow-hidden mb-4 relative aspect-[16/9]">
-          <img src={post.image} alt="" className="w-full h-full object-cover" />
+        <div className="rounded-xl overflow-hidden mb-4 relative aspect-[16/9] bg-black">
+          <PostMedia src={post.image} />
           {post.location && (
             <div className="absolute bottom-4 left-4 bg-black/50 backdrop-blur-md px-3 py-1 rounded-full border border-white/20 text-white font-label-caps text-label-caps flex items-center gap-1">
               <Icon name="map" size={14} /> {post.location}
