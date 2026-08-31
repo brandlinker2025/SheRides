@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { trendingHashtags } from "@/lib/data";
 import { useAuth } from "@/lib/auth-context";
-import { riderFromProfile } from "@/lib/profile";
+import { toDiscoverableRiders } from "@/lib/profile";
 import { createClient } from "@/lib/supabase/client";
 import type { Rider } from "@/lib/types";
 import { Avatar } from "../ui/Avatar";
@@ -26,15 +26,16 @@ export function RightRail() {
       .order("starts_at", { ascending: true })
       .limit(3)
       .then(({ data }) => setEvents((data ?? []) as RailEvent[]));
-    void supabase
-      .from("profiles")
-      .select("*")
-      .neq("id", user?.id ?? "")
-      .order("created_at", { ascending: false })
-      .limit(8)
-      .then(({ data }) =>
-        setSuggested((data ?? []).map((row) => riderFromProfile(row.id as string, row as Record<string, unknown>)))
-      );
+    if (user?.id) {
+      void supabase
+        .from("profiles")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(24)
+        .then(({ data }) =>
+          setSuggested(toDiscoverableRiders((data ?? []) as Record<string, unknown>[], user.id, 8))
+        );
+    }
   }, [user?.id]);
 
   return (

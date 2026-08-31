@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth-context";
-import { riderFromProfile } from "@/lib/profile";
+import { toDiscoverableRiders } from "@/lib/profile";
 import { createClient } from "@/lib/supabase/client";
 import type { Rider } from "@/lib/types";
 import { Avatar } from "../ui/Avatar";
@@ -14,18 +14,14 @@ export function MembersOnSheRides() {
 
   useEffect(() => {
     const supabase = createClient();
-    if (!supabase) return;
+    if (!supabase || !user?.id) return;
     void supabase
       .from("profiles")
       .select("*")
       .order("created_at", { ascending: false })
-      .limit(24)
+      .limit(48)
       .then(({ data }) => {
-        setMembers(
-          (data ?? [])
-            .filter((row) => row.id !== user?.id)
-            .map((row) => riderFromProfile(row.id as string, row as Record<string, unknown>))
-        );
+        setMembers(toDiscoverableRiders((data ?? []) as Record<string, unknown>[], user.id, 24));
       });
   }, [user?.id]);
 
