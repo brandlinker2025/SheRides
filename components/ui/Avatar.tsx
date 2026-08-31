@@ -10,11 +10,13 @@ type AvatarProps = {
 
 export function Avatar({ src, alt = "", size = 40, className = "", initials }: AvatarProps) {
   const label = initials || initialsFromName(alt);
+  const fillParent = /(?:^|\s)!?(?:w|h)-full(?:\s|$)/.test(className);
+  const dimStyle = fillParent ? undefined : { width: size, height: size };
   if (!src) {
     return (
       <div
         className={`rounded-full bg-accent-magenta/15 text-accent-magenta flex items-center justify-center font-label-lg overflow-hidden ${className}`}
-        style={{ width: size, height: size, fontSize: Math.max(12, size * 0.36) }}
+        style={{ ...dimStyle, fontSize: Math.max(12, size * 0.36) }}
         aria-label={alt}
       >
         {label}
@@ -26,7 +28,7 @@ export function Avatar({ src, alt = "", size = 40, className = "", initials }: A
       src={src}
       alt={alt}
       className={`rounded-full object-cover bg-soft-off-white ${className}`}
-      style={{ width: size, height: size }}
+      style={dimStyle}
     />
   );
 }
