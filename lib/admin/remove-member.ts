@@ -1,3 +1,4 @@
+import { createClient } from "@supabase/supabase-js";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -13,33 +14,44 @@ export async function deleteMemberById(userId: string, actorId: string | null) {
   }
 
   const admin = createAdminClient();
-  if (!admin) {
+  if (admin) {
+    const { error: authError } = await admin.auth.admin.deleteUser(userId);
+    if (authError && !isMissingAuthUser(authError.message, authError.status)) {
+      return { error: authError.message };
+    }
+
+    const { data: leftover, error: leftoverError } = await admin
+      .from("profiles")
+      .select("id")
+      .eq("id", userId)
+      .maybeSingle();
+    if (leftoverError) return { error: leftoverError.message };
+
+    if (leftover) {
+      const { data: removed, error: profileError } = await admin
+        .from("profiles")
+        .delete()
+        .eq("id", userId)
+        .select("id");
+      if (profileError) return { error: profileError.message };
+      if (!removed?.length) {
+        return { error: "Could not remove this member." };
+      }
+    }
+
+    return {};
+  }
+
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !anonKey) {
     return { error: "Member removal is not configured on this server." };
   }
 
-  const { error: authError } = await admin.auth.admin.deleteUser(userId);
-  if (authError && !isMissingAuthUser(authError.message, authError.status)) {
-    return { error: authError.message };
-  }
-
-  const { data: leftover, error: leftoverError } = await admin
-    .from("profiles")
-    .select("id")
-    .eq("id", userId)
-    .maybeSingle();
-  if (leftoverError) return { error: leftoverError.message };
-
-  if (leftover) {
-    const { data: removed, error: profileError } = await admin
-      .from("profiles")
-      .delete()
-      .eq("id", userId)
-      .select("id");
-    if (profileError) return { error: profileError.message };
-    if (!removed?.length) {
-      return { error: "Could not remove this member." };
-    }
-  }
-
+  const supabase = createClient(url, anonKey, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+  const { error } = await supabase.rpc("admin_delete_member", { target_id: userId });
+  if (error) return { error: error.message };
   return {};
 }
