@@ -2,25 +2,17 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { OnlineMessenger } from "@/components/messages/OnlineMessenger";
 import { trendingHashtags } from "@/lib/data";
 import { useAuth } from "@/lib/auth-context";
 import { createClient } from "@/lib/supabase/client";
-import type { Rider } from "@/lib/types";
-import { Avatar } from "../ui/Avatar";
 import { Icon } from "../ui/Icon";
 
 type RailEvent = { id: string; title: string; location: string; starts_at: string; attending_count: number };
 
-export function RightRail({
-  suggested = [],
-  onFollow,
-}: {
-  suggested?: Rider[];
-  onFollow?: (riderId: string) => Promise<void> | void;
-}) {
+export function RightRail() {
   const { user } = useAuth();
   const [events, setEvents] = useState<RailEvent[]>([]);
-  const [followBusyId, setFollowBusyId] = useState<string | null>(null);
 
   useEffect(() => {
     const supabase = createClient();
@@ -90,35 +82,7 @@ export function RightRail({
         </div>
       </div>
 
-      <div className="card-surface card-hover p-6">
-        <h3 className="font-headline-md text-body-lg font-bold text-on-surface mb-4">Who&apos;s on SheRides</h3>
-        <div className="flex flex-col gap-4">
-          {suggested.length === 0 && <p className="font-body-sm text-tertiary">No other riders yet.</p>}
-          {suggested.slice(0, 8).map((rider) => (
-            <div key={rider.id} className="flex gap-3 items-center min-w-0">
-              <Link href={`/profile/${rider.id}`} className="flex gap-3 items-center min-w-0 flex-1">
-                <Avatar src={rider.avatar} alt={rider.fullName} size={40} />
-                <div className="min-w-0">
-                  <h4 className="font-label-lg text-label-lg text-on-surface truncate">{rider.fullName}</h4>
-                  <p className="font-body-sm text-body-sm text-tertiary truncate">{rider.location || rider.bike || "SheRides member"}</p>
-                </div>
-              </Link>
-              <button
-                type="button"
-                disabled={!user || followBusyId === rider.id}
-                onClick={() => {
-                  if (!onFollow || followBusyId) return;
-                  setFollowBusyId(rider.id);
-                  void Promise.resolve(onFollow(rider.id)).finally(() => setFollowBusyId(null));
-                }}
-                className="shrink-0 font-label-caps text-label-caps text-accent-magenta disabled:opacity-60"
-              >
-                Follow
-              </button>
-            </div>
-          ))}
-        </div>
-      </div>
+      <OnlineMessenger />
 
       <div className="card-surface card-hover p-6">
         <h3 className="font-headline-md text-body-lg font-bold text-on-surface mb-4">Trending Hashtags</h3>

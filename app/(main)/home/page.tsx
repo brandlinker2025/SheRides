@@ -13,7 +13,7 @@ import { useUI } from "@/lib/ui-context";
 export default function HomeFeedPage() {
   const { posts, loading, addPost, toggleLike, toggleSave } = useFeed();
   const { setCreateOpen } = useUI();
-  const { members, followRider } = useUnfollowedRiders();
+  const { members } = useUnfollowedRiders();
 
   return (
     <div className="p-gutter flex justify-center">
@@ -43,7 +43,7 @@ export default function HomeFeedPage() {
             <FeedPost key={post.id} post={post} onToggleLike={toggleLike} onToggleSave={toggleSave} />
           ))}
         </div>
-        <RightRail suggested={members} onFollow={followRider} />
+        <RightRail />
       </div>
     </div>
   );
