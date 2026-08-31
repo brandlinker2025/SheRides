@@ -64,7 +64,7 @@ export default function VerificationPage() {
 
     if (previous?.status === "pending") {
       setBusy(false);
-      router.replace("/pending-approval");
+      router.replace("/home");
       return;
     }
     if (previous?.status === "approved") {
@@ -110,7 +110,7 @@ export default function VerificationPage() {
     }
 
     setBusy(false);
-    router.replace("/pending-approval");
+    router.replace("/home");
     router.refresh();
   }
 

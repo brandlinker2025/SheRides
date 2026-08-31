@@ -40,15 +40,5 @@ export default async function MainLayout({ children }: { children: React.ReactNo
     redirect("/login");
   }
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("verified, role")
-    .eq("id", user.id)
-    .maybeSingle();
-
-  if (!(profile?.verified === true || profile?.role === "admin")) {
-    redirect("/pending-approval");
-  }
-
   return <AppShell>{children}</AppShell>;
 }
