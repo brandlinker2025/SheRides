@@ -10,11 +10,10 @@ export function PandaNavBackdrop() {
         alt=""
         fill
         sizes="256px"
-        className="object-cover object-[32%_center] scale-110"
+        className="object-cover object-[18%_70%] scale-110"
       />
-      <div className="absolute inset-0 bg-[#12080e]/84" />
-      <div className="absolute inset-0 bg-gradient-to-b from-[#2a1020]/40 via-[#1a0812]/25 to-[#12080e]/55" />
-      <div className="absolute inset-0 bg-gradient-to-r from-[#0c0408]/45 to-transparent" />
+      <div className="absolute inset-0 bg-[#0c0408]/90" />
+      <div className="absolute inset-0 bg-gradient-to-b from-[#1a0812]/50 via-[#12080e]/30 to-[#0c0408]/60" />
     </div>
   );
 }

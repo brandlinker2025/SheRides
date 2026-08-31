@@ -140,16 +140,16 @@ html {
 /* High-contrast labels over the panda sidenav (admin + community). */
 .panda-nav-item {
   color: #fff8fb;
-  background-color: rgba(12, 4, 10, 0.78);
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.85);
+  background-color: rgba(8, 2, 8, 0.92);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9);
 }
 .panda-nav-item:hover {
   color: #ffffff;
-  background-color: rgba(12, 4, 10, 0.9);
+  background-color: rgba(8, 2, 8, 0.96);
 }
 .panda-nav-item-active {
   color: #ffd6ea;
-  background-color: rgba(12, 4, 10, 0.92);
+  background-color: rgba(8, 2, 8, 0.96);
   border-right: 4px solid #e91e63;
   font-weight: 700;
 }
