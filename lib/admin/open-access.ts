@@ -1,18 +1,16 @@
 /**
- * TEMPORARY product flag requested by the site owner (RS Lina).
+ * Temporary product flag. Keep false so the dashboard is admin-only.
  *
  * When true:
  * - `/admin` renders the admin dashboard without an authenticated admin session
  * - `/admin-login` immediately redirects to `/admin`
  *
- * When false, restore previous behavior:
- * - unauthenticated `/admin` → `/admin-login`
- * - successful admin credentials → `/admin`
+ * When false:
+ * - unauthenticated `/admin*` → `/admin-login`
+ * - signed-in non-admin hitting `/admin*` → `/home`
+ * - successful admin credentials on `/admin-login` → `/admin`
  *
  * This does not open community `/home` or other member routes.
- *
- * Turn off by setting `ADMIN_OPEN_ACCESS` to false below, or
- * `NEXT_PUBLIC_ADMIN_OPEN_ACCESS=false` (rebuild required for the public env).
+ * Do not default this from env — a missing/true env value used to leave /admin open.
  */
-export const ADMIN_OPEN_ACCESS =
-  process.env.NEXT_PUBLIC_ADMIN_OPEN_ACCESS !== "false";
+export const ADMIN_OPEN_ACCESS = false;
