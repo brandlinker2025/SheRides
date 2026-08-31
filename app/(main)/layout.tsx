@@ -2,7 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { AppShell } from "@/components/layout/AppShell";
-import { memberNeedsPhoneOtp, verifiedCookieName } from "@/lib/member-phone";
+import { isApprovedProfile } from "@/lib/profile";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -41,8 +41,14 @@ export default async function MainLayout({ children }: { children: React.ReactNo
     redirect("/login");
   }
 
-  if (await memberNeedsPhoneOtp(supabase, user.id, cookieStore.get(verifiedCookieName)?.value)) {
-    redirect("/verify-phone");
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("verified, role")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  if (!isApprovedProfile(profile)) {
+    redirect("/pending-approval");
   }
 
   return <AppShell>{children}</AppShell>;

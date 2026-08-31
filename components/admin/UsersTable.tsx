@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { setRiderVerified } from "@/app/admin/actions";
@@ -16,7 +15,13 @@ function formatDate(value: string) {
   });
 }
 
-export function UsersTable({ users }: { users: AdminUserRow[] }) {
+export function UsersTable({
+  users,
+  emptyLabel = "No riders match this search.",
+}: {
+  users: AdminUserRow[];
+  emptyLabel?: string;
+}) {
   const router = useRouter();
   const [query, setQuery] = useState("");
   const [busyId, setBusyId] = useState<string | null>(null);
@@ -24,18 +29,20 @@ export function UsersTable({ users }: { users: AdminUserRow[] }) {
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return users;
-    return users.filter((user) =>
-      [user.full_name, user.username, user.location, user.role]
-        .filter(Boolean)
-        .some((value) => String(value).toLowerCase().includes(q))
-    );
+    const list = !q
+      ? users
+      : users.filter((user) =>
+          [user.full_name, user.username, user.location, user.role]
+            .filter(Boolean)
+            .some((value) => String(value).toLowerCase().includes(q))
+        );
+    return [...list].sort((a, b) => Number(a.verified) - Number(b.verified));
   }, [users, query]);
 
-  async function unverify(user: AdminUserRow) {
+  async function setAccess(user: AdminUserRow, verified: boolean) {
     setBusyId(user.id);
     setError(null);
-    const result = await setRiderVerified(user.id, false);
+    const result = await setRiderVerified(user.id, verified);
     setBusyId(null);
     if (result.error) setError(result.error);
     else router.refresh();
@@ -97,15 +104,20 @@ export function UsersTable({ users }: { users: AdminUserRow[] }) {
                     <button
                       type="button"
                       disabled={busyId === user.id}
-                      onClick={() => void unverify(user)}
+                      onClick={() => void setAccess(user, false)}
                       className="px-4 py-2 rounded-lg font-label-lg text-label-lg bg-soft-off-white border border-surface-border text-secondary disabled:opacity-60"
                     >
                       {busyId === user.id ? "Saving..." : "Revoke access"}
                     </button>
                   ) : (
-                    <Link href="/admin/verifications" className="inline-flex px-4 py-2 rounded-lg font-label-lg text-label-lg bg-accent-magenta text-white">
-                      Review application
-                    </Link>
+                    <button
+                      type="button"
+                      disabled={busyId === user.id}
+                      onClick={() => void setAccess(user, true)}
+                      className="inline-flex px-4 py-2 rounded-lg font-label-lg text-label-lg bg-accent-magenta text-white disabled:opacity-60"
+                    >
+                      {busyId === user.id ? "Saving..." : "Approve"}
+                    </button>
                   )}
                 </td>
               </tr>
@@ -113,7 +125,7 @@ export function UsersTable({ users }: { users: AdminUserRow[] }) {
             {filtered.length === 0 && (
               <tr>
                 <td colSpan={5} className="px-4 py-10 text-center font-body-sm text-tertiary">
-                  No riders match this search.
+                  {emptyLabel}
                 </td>
               </tr>
             )}

@@ -68,9 +68,10 @@ export async function loadAdminStats(supabase: SupabaseClient) {
   const startOfDay = new Date();
   startOfDay.setHours(0, 0, 0, 0);
 
-  const [users, verified, posts, events, signupsToday] = await Promise.all([
+  const [users, verified, pendingApproval, posts, events, signupsToday] = await Promise.all([
     supabase.from("profiles").select("*", { count: "exact", head: true }),
     supabase.from("profiles").select("*", { count: "exact", head: true }).eq("verified", true),
+    supabase.from("profiles").select("*", { count: "exact", head: true }).eq("verified", false).neq("role", "admin"),
     supabase.from("posts").select("*", { count: "exact", head: true }),
     supabase.from("events").select("*", { count: "exact", head: true }),
     supabase
@@ -84,6 +85,7 @@ export async function loadAdminStats(supabase: SupabaseClient) {
   return {
     users: users.count ?? 0,
     verified: verified.count ?? 0,
+    pendingApproval: pendingApproval.count ?? 0,
     posts: posts.count ?? 0,
     events: events.count ?? 0,
     signupsToday: signupsToday.count ?? 0,

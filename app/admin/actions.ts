@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAdmin } from "@/lib/supabase/require-admin";
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -41,11 +42,13 @@ function refreshAdmin() {
 
 export async function setRiderVerified(userId: string, verified: boolean) {
   if (!validUuid(userId) || typeof verified !== "boolean") return { error: "Invalid request." };
-  if (verified) return { error: "Approve riders from Verification Center after reviewing their submitted documents." };
   const { supabase } = await requireAdmin();
-  const { error } = await supabase.from("profiles").update({ verified: false }).eq("id", userId);
+  const writer = createAdminClient() ?? supabase;
+  const { error } = await writer.from("profiles").update({ verified }).eq("id", userId);
   if (error) return { error: error.message };
   refreshAdmin();
+  revalidatePath("/home");
+  revalidatePath("/pending-approval");
   return {};
 }
 

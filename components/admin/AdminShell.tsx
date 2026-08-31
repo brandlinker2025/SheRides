@@ -19,9 +19,11 @@ const nav = [
 export function AdminShell({
   children,
   adminName,
+  pendingCount = 0,
 }: {
   children: React.ReactNode;
   adminName?: string;
+  pendingCount?: number;
 }) {
   const pathname = usePathname();
 
@@ -45,6 +47,7 @@ export function AdminShell({
         <div className="relative z-10 flex-1 flex flex-col gap-2 px-4">
           {nav.map((item) => {
             const active = item.exact ? pathname === item.href : pathname.startsWith(item.href);
+            const showBadge = item.href === "/admin/verifications" && pendingCount > 0;
             return (
               <Link
                 key={item.href}
@@ -53,7 +56,13 @@ export function AdminShell({
                   active ? "font-bold border-r-4 border-accent-magenta text-pink-200" : "text-white"
                 }`}
               >
-                <Icon name={item.icon} filled={active} /> {item.label}
+                <Icon name={item.icon} filled={active} />
+                <span className="flex-1">{item.label}</span>
+                {showBadge ? (
+                  <span className="min-w-6 h-6 px-1.5 inline-flex items-center justify-center rounded-full bg-accent-magenta text-white text-[11px] font-label-lg">
+                    {pendingCount > 99 ? "99+" : pendingCount}
+                  </span>
+                ) : null}
               </Link>
             );
           })}
@@ -67,13 +76,21 @@ export function AdminShell({
       <div className="panda-topnav md:hidden fixed bottom-0 inset-x-0 z-50 flex justify-around py-3 px-2">
         {nav.map((item) => {
           const active = item.exact ? pathname === item.href : pathname.startsWith(item.href);
+          const showBadge = item.href === "/admin/verifications" && pendingCount > 0;
           return (
             <Link
               key={item.href}
               href={item.href}
-              className={`flex flex-col items-center gap-1 ${active ? "text-white" : "text-on-primary/70"}`}
+              className={`relative flex flex-col items-center gap-1 ${active ? "text-white" : "text-on-primary/70"}`}
             >
-              <Icon name={item.icon} filled={active} size={22} />
+              <span className="relative">
+                <Icon name={item.icon} filled={active} size={22} />
+                {showBadge ? (
+                  <span className="absolute -right-2 -top-1 min-w-4 h-4 px-1 inline-flex items-center justify-center rounded-full bg-accent-magenta text-white text-[9px] font-label-lg">
+                    {pendingCount > 99 ? "99+" : pendingCount}
+                  </span>
+                ) : null}
+              </span>
               <span className="font-label-caps text-[10px]">{item.label}</span>
             </Link>
           );

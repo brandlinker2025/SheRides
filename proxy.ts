@@ -2,10 +2,10 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { ADMIN_OPEN_ACCESS } from "./lib/admin/open-access";
-import { memberNeedsPhoneOtp, verifiedCookieName } from "./lib/member-phone";
+import { isApprovedProfile } from "./lib/profile";
 
 const PUBLIC_PATHS = new Set(["/", "/login", "/admin-login", "/signup", "/download", "/api/keep-alive"]);
-const AUTH_ONLY_PATHS = new Set(["/verification", "/verify-phone"]);
+const AUTH_ONLY_PATHS = new Set(["/verification", "/pending-approval", "/verify-phone"]);
 const PUBLIC_METADATA_PATHS = new Set([
   "/manifest.webmanifest",
   "/admin.webmanifest",
@@ -74,31 +74,31 @@ export async function proxy(request: NextRequest) {
     return redirectToLogin(request, pathname);
   }
 
-  // Membership review is skipped: send leftover bookmarks into the app.
-  if (pathname === "/pending-approval") {
-    return NextResponse.redirect(new URL("/home", request.url));
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("verified, role")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  if (pathname === "/pending-approval" || pathname === "/verify-phone") {
+    if (isApprovedProfile(profile)) {
+      return NextResponse.redirect(new URL("/home", request.url));
+    }
+    if (pathname === "/verify-phone") {
+      return NextResponse.redirect(new URL("/pending-approval", request.url));
+    }
+    return response;
   }
 
   if (AUTH_ONLY_PATHS.has(pathname)) {
     return response;
   }
 
-  if (
-    await memberNeedsPhoneOtp(supabase, user.id, request.cookies.get(verifiedCookieName)?.value)
-  ) {
-    const verify = request.nextUrl.clone();
-    verify.pathname = "/verify-phone";
-    verify.search = "";
-    return NextResponse.redirect(verify);
+  if (!isApprovedProfile(profile)) {
+    return NextResponse.redirect(new URL("/pending-approval", request.url));
   }
 
   if (isAdminAppPath(pathname)) {
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", user.id)
-      .maybeSingle();
-
     if (profile?.role !== "admin") {
       return NextResponse.redirect(new URL("/home", request.url));
     }

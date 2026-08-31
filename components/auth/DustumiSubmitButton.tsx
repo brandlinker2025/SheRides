@@ -9,27 +9,28 @@ type DustumiSubmitButtonProps = {
 };
 
 export function DustumiSubmitButton({ dodgeToken, busy = false, children }: DustumiSubmitButtonProps) {
-  const [shift, setShift] = useState({ x: 0, y: 0 });
+  const [pose, setPose] = useState<{ side: "left" | "right" | "center" }>({ side: "center" });
 
   useEffect(() => {
     if (!dodgeToken) return;
-    const dir = Math.random() < 0.5 ? -1 : 1;
-    setShift({
-      x: dir * (96 + Math.random() * 84),
-      y: (Math.random() - 0.45) * 40,
-    });
-    const timer = window.setTimeout(() => setShift({ x: 0, y: 0 }), 520);
+    setPose({ side: Math.random() < 0.5 ? "left" : "right" });
+    const timer = window.setTimeout(() => setPose({ side: "center" }), 720);
     return () => window.clearTimeout(timer);
   }, [dodgeToken]);
 
+  const dodging = pose.side !== "center";
+
   return (
-    <button
-      type="submit"
-      disabled={busy}
-      style={{ transform: `translate(${shift.x}px, ${shift.y}px)` }}
-      className="dustumi-btn inline-flex h-[56px] w-full items-center justify-center gap-2 rounded-full bg-[#FF2D78] font-label-lg text-white shadow-magenta transition-[transform,background-color,opacity] duration-300 hover:bg-[#e2165f] disabled:pointer-events-none disabled:opacity-60"
-    >
-      {children}
-    </button>
+    <div className="dustumi-wrap relative h-[56px] w-full">
+      <button
+        type="submit"
+        disabled={busy}
+        className={`dustumi-btn absolute top-0 inline-flex h-[56px] items-center justify-center gap-2 rounded-full bg-[#FF2D78] font-label-lg text-white shadow-magenta hover:bg-[#e2165f] disabled:pointer-events-none disabled:opacity-60 ${
+          pose.side === "right" ? "dustumi-btn--right" : pose.side === "left" ? "dustumi-btn--left" : "dustumi-btn--center"
+        } ${dodging ? "dustumi-btn--away" : ""}`}
+      >
+        {children}
+      </button>
+    </div>
   );
 }
