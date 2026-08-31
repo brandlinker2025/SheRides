@@ -70,14 +70,7 @@ export function MembersOnSheRides({ members }: { members: Rider[] }) {
     el.scrollBy({ left: direction * Math.max(el.clientWidth * 0.75, 160), behavior: "smooth" });
   }
 
-  if (members.length === 0) {
-    return (
-      <section className="card-surface p-5">
-        <h2 className="font-headline-md text-body-lg font-bold text-on-surface mb-1">Who&apos;s on SheRides</h2>
-        <p className="font-body-sm text-tertiary">No new riders to follow right now.</p>
-      </section>
-    );
-  }
+  if (members.length === 0) return null;
 
   const showArrows = members.length > 1;
 
