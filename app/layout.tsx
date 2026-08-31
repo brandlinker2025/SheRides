@@ -44,7 +44,7 @@ export const metadata: Metadata = {
     description: "Bangladesh women riders community. Ride. Connect. Belong.",
     url: siteUrl,
     siteName: "SheRides",
-    images: [{ url: ogImage, width: 1200, height: 630, alt: "SheRides panda — Bangladesh Women Riders Community" }],
+    images: [{ url: ogImage, width: 1536, height: 806, alt: "SheRides panda — Bangladesh Women Riders Community" }],
     locale: "en_US",
     type: "website",
   },
