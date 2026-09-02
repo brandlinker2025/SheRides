@@ -5,6 +5,11 @@ export const bikeBrands = {
   Bajaj: ["Pulsar NS160", "NS200", "RS200", "Dominar 400"],
   TVS: ["Apache RTR 160", "Apache RTR 200", "Ntorq"],
   Hero: ["Hunk", "Xtreme", "Passion Pro"],
+  Lifan: [],
+  Zinnan: [],
+  Runner: [],
+  KPT: [],
+  Revo: [],
 } as const;
 
 export type BikeBrand = keyof typeof bikeBrands;
