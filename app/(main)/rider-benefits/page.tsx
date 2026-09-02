@@ -13,18 +13,18 @@ const benefits = [
   { title: "Peer Support Space", icon: "favorite", features: ["Riding anxiety", "Family / social pressure", "Harassment experience", "Confidence support", "Optional anonymous sharing"], href: "/groups", action: "Open groups" },
   { title: "Weather & Ride Alerts", icon: "thunderstorm", features: ["Rain warning", "Storm warning", "Extreme weather", "Flood-risk warning", "Planned ride alert"], href: "/rides", action: "Open planned rides" },
   { title: "Emergency & SOS", icon: "sos", features: ["Accident SOS", "Harassment SOS", "Breakdown assistance", "Admin alert", "Nearby rider alert"], href: "#live-sos", action: "Use live SOS" },
-  { title: "Nearby Riders & Help", icon: "near_me", features: ["Verified nearby female riders", "Workshop", "Fuel station", "Hospital", "Nearby help"], href: "#nearby-help", action: "Enable nearby help" },
+  { title: "Nearby Riders & Help", icon: "near_me", features: ["Verified nearby female riders", "Workshop", "Fuel station", "Hospital", "Nearby help"], href: "#live-sos", action: "Use nearby help" },
   { title: "Learn, Mentor & Ride Together", icon: "groups", features: ["Mentor connection", "Beginner progression", "City / highway skills", "Verified group rides", "Ride Together"], href: "/rides", action: "Ride together" },
   { title: "Opportunities & Marketplace", icon: "workspace_premium", features: ["Brand campaigns", "Sponsorship", "Jobs / training", "Content collaboration", "Future trusted marketplace"], href: "/groups", action: "Open community" },
 ];
 
 const problems = [
-  ["accident", "Accident"],
-  ["harassment", "Harassment"],
-  ["breakdown", "Bike breakdown"],
-  ["unsafe_road", "Unsafe road"],
-  ["medical", "Medical emergency"],
-  ["other", "Other urgent problem"],
+  ["accident", "Accident", "warning"],
+  ["harassment", "Harassment", "pan_tool"],
+  ["breakdown", "Breakdown", "build"],
+  ["unsafe_road", "Unsafe Road", "warning"],
+  ["medical", "Medical", "health_and_safety"],
+  ["other", "Other", "more_horiz"],
 ] as const;
 
 function getLocation() {
@@ -37,11 +37,11 @@ function getLocation() {
 function locationErrorMessage(error: unknown) {
   if (error && typeof error === "object" && "code" in error) {
     const code = Number((error as { code?: number }).code);
-    if (code === 1) return "Location permission is blocked. The SOS will still be sent to Admin using your last available location when possible.";
-    if (code === 2) return "Your current location is unavailable. The SOS will still be sent to Admin using your last available location when possible.";
-    if (code === 3) return "Location timed out. The SOS will still be sent to Admin using your last available location when possible.";
+    if (code === 1) return "Location permission is blocked.";
+    if (code === 2) return "Your current location is unavailable.";
+    if (code === 3) return "Location request timed out.";
   }
-  return "Live location could not be read. The SOS will still be sent to Admin.";
+  return "Live location could not be read.";
 }
 
 export default function RiderBenefitsPage() {
@@ -49,10 +49,14 @@ export default function RiderBenefitsPage() {
   const [note, setNote] = useState("");
   const [sending, setSending] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
-  const [nearbyStatus, setNearbyStatus] = useState<string | null>(null);
+  const [locationText, setLocationText] = useState("Location will be requested when you send the SOS.");
+  const [nearbyEnabled, setNearbyEnabled] = useState(false);
+  const [nearbyBusy, setNearbyBusy] = useState(false);
 
   const enableNearbyHelp = async () => {
-    setNearbyStatus("Getting your location…");
+    if (nearbyBusy || nearbyEnabled) return;
+    setNearbyBusy(true);
+    setLocationText("Fetching your current location…");
     try {
       const position = await getLocation();
       const supabase = createClient();
@@ -62,31 +66,34 @@ export default function RiderBenefitsPage() {
         p_longitude: position.coords.longitude,
       });
       if (error) throw error;
-      setNearbyStatus("Nearby Help is active. Your location is available for nearby emergency matching for 24 hours.");
+      setNearbyEnabled(true);
+      setLocationText("Nearby Help is active for 24 hours. Your exact location is only used for emergency matching.");
     } catch (error) {
-      setNearbyStatus(error instanceof Error ? error.message : locationErrorMessage(error));
+      setLocationText(error instanceof Error ? error.message : locationErrorMessage(error));
+    } finally {
+      setNearbyBusy(false);
     }
   };
 
   const sendSOS = async () => {
     if (sending) return;
     setSending(true);
-    setStatus("Getting your current location…");
+    setStatus("Preparing emergency alert…");
 
     try {
       let latitude: number | null = null;
       let longitude: number | null = null;
-      let locationWarning: string | null = null;
 
       try {
+        setLocationText("Fetching your current location…");
         const position = await getLocation();
         latitude = position.coords.latitude;
         longitude = position.coords.longitude;
+        setLocationText("Live location ready. Admin and eligible nearby responders can receive it securely.");
       } catch (locationError) {
-        locationWarning = locationErrorMessage(locationError);
+        setLocationText(`${locationErrorMessage(locationError)} Admin will still receive the SOS.`);
       }
 
-      setStatus(locationWarning ?? "Sending emergency alert…");
       const supabase = createClient();
       if (!supabase) throw new Error("SheRides connection is unavailable.");
 
@@ -98,12 +105,7 @@ export default function RiderBenefitsPage() {
       });
 
       if (error) throw error;
-
-      const locationText = latitude !== null && longitude !== null
-        ? "Live location attached."
-        : "Admin was alerted; SheRides used your recent saved location when available.";
-
-      setStatus(`Alert sent successfully${data ? ` · ID ${String(data).slice(0, 8)}` : ""}. ${locationText}`);
+      setStatus(`SOS sent successfully${data ? ` · ID ${String(data).slice(0, 8)}` : ""}. All Admins were notified. Verified riders within 25 km are notified when Nearby Help is active.`);
       setNote("");
     } catch (error) {
       setStatus(error instanceof Error ? error.message : "Could not send the emergency alert. Please try again now.");
@@ -113,34 +115,78 @@ export default function RiderBenefitsPage() {
   };
 
   return (
-    <main className="max-w-6xl mx-auto px-4 sm:px-6 py-5 sm:py-7">
-      <section id="live-sos" className="mb-5 rounded-2xl border-2 border-red-500/40 bg-red-500/5 p-5 sm:p-6 shadow-premium">
-        <div className="flex items-start gap-3">
-          <div className="h-12 w-12 rounded-full bg-red-600 text-white flex items-center justify-center shrink-0"><Icon name="sos" size={28} /></div>
-          <div className="flex-1 min-w-0">
-            <p className="text-xs font-bold uppercase tracking-wide text-red-600">Live emergency network</p>
-            <h1 className="font-headline-lg text-headline-lg text-on-surface">Need help now?</h1>
-            <p className="mt-1 font-body-sm text-secondary">Choose the problem and press the alert button. SheRides alerts Admin immediately and also notifies verified nearby riders when a recent location is available.</p>
+    <main className="max-w-7xl mx-auto px-4 sm:px-6 py-5 sm:py-7">
+      <section id="live-sos" className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_320px] gap-4 mb-7">
+        <div className="rounded-2xl border border-red-500/35 bg-black/15 p-5 sm:p-6 shadow-premium">
+          <div className="flex items-start gap-4">
+            <div className="h-16 w-16 rounded-2xl bg-red-600 text-white flex items-center justify-center shrink-0 shadow-lg">
+              <Icon name="sos" size={34} />
+            </div>
+            <div className="min-w-0">
+              <h1 className="font-headline-lg text-headline-lg text-on-surface">Send Emergency Alert (SOS)</h1>
+              <p className="mt-1 font-body-sm text-secondary max-w-3xl">Choose the problem, add a short note if needed and press the alert button. All Admins are notified immediately. Verified riders within 25 km are alerted when they have Nearby Help enabled.</p>
+            </div>
           </div>
-        </div>
-        <div className="mt-5 grid grid-cols-1 md:grid-cols-[220px_1fr] gap-3">
-          <select value={problem} onChange={(e) => setProblem(e.target.value)} className="rounded-xl border border-surface-border bg-surface-container-lowest px-4 py-3 text-on-surface">
-            {problems.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
-          </select>
-          <input value={note} onChange={(e) => setNote(e.target.value)} maxLength={500} placeholder="Optional short note: what happened / what help you need" className="rounded-xl border border-surface-border bg-surface-container-lowest px-4 py-3 text-on-surface" />
-        </div>
-        <button type="button" onClick={() => void sendSOS()} disabled={sending} className="mt-4 w-full sm:w-auto rounded-full bg-red-600 px-7 py-3.5 font-bold text-white shadow-lg disabled:opacity-60">
-          {sending ? "Sending alert…" : "SEND EMERGENCY ALERT"}
-        </button>
-        {status ? <p role="status" className="mt-3 font-body-sm text-on-surface">{status}</p> : null}
-      </section>
 
-      <section id="nearby-help" className="mb-6 rounded-2xl border border-accent-magenta/30 bg-accent-magenta/5 p-5">
-        <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:justify-between">
-          <div><h2 className="font-headline-sm text-headline-sm text-on-surface">Nearby Help Network</h2><p className="mt-1 font-body-sm text-secondary">Enable your current location so SheRides can notify you if another rider within about 25 km sends an emergency alert. Location expires from matching after 24 hours unless refreshed.</p></div>
-          <button type="button" onClick={() => void enableNearbyHelp()} className="shrink-0 rounded-full bg-accent-magenta px-5 py-3 font-bold text-white">Enable Nearby Help</button>
+          <div className="mt-6">
+            <p className="mb-3 font-label-lg text-on-surface">1. What&apos;s the problem?</p>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
+              {problems.map(([value, label, icon]) => {
+                const active = problem === value;
+                return (
+                  <button key={value} type="button" onClick={() => setProblem(value)} className={`rounded-xl border px-3 py-3 flex items-center justify-center gap-2 text-sm font-semibold transition ${active ? "border-accent-magenta bg-accent-magenta/12 text-on-surface" : "border-surface-border bg-surface-container-lowest/60 text-secondary hover:border-accent-magenta/50"}`}>
+                    <Icon name={icon} size={20} /> {label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="mt-5">
+            <label htmlFor="sos-note" className="mb-2 block font-label-lg text-on-surface">2. Short note (optional)</label>
+            <textarea id="sos-note" value={note} onChange={(e) => setNote(e.target.value)} maxLength={200} rows={3} placeholder="Describe what happened / what help you need…" className="w-full resize-none rounded-xl border border-surface-border bg-surface-container-lowest/70 px-4 py-3 text-on-surface outline-none focus:border-accent-magenta" />
+            <div className="mt-1 text-right text-xs text-tertiary">{note.length}/200</div>
+          </div>
+
+          <div className="mt-4 rounded-xl border border-surface-border bg-surface-container-lowest/45 p-4 flex flex-col sm:flex-row sm:items-center gap-3 sm:justify-between">
+            <div className="flex items-start gap-3 min-w-0">
+              <Icon name="location_on" size={24} className="text-accent-magenta shrink-0" />
+              <div><p className="font-label-lg text-on-surface">Your location</p><p className="mt-1 text-sm text-secondary">{locationText}</p></div>
+            </div>
+            <button type="button" onClick={() => void enableNearbyHelp()} disabled={nearbyBusy} className="shrink-0 rounded-full border border-accent-magenta px-4 py-2 text-sm font-bold text-accent-magenta disabled:opacity-60">{nearbyBusy ? "Updating…" : "Update Location"}</button>
+          </div>
+
+          <button type="button" onClick={() => void enableNearbyHelp()} disabled={nearbyBusy || nearbyEnabled} className={`mt-4 w-full rounded-xl border px-4 py-4 text-left transition ${nearbyEnabled ? "border-green-500/40 bg-green-500/10" : "border-accent-magenta bg-accent-magenta/5 hover:bg-accent-magenta/10"}`}>
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-full bg-accent-magenta text-white flex items-center justify-center"><Icon name="group" size={22} /></div>
+              <div className="flex-1 min-w-0"><p className="font-bold text-on-surface">Notify Nearby Help (within 25 km)</p><p className="mt-1 text-sm text-secondary">Enable your location so you can receive other riders&apos; emergency alerts and responders can find you faster.</p></div>
+              <div className={`h-7 w-12 rounded-full p-1 transition ${nearbyEnabled ? "bg-green-500" : "bg-accent-magenta"}`}><div className={`h-5 w-5 rounded-full bg-white transition-transform ${nearbyEnabled ? "translate-x-5" : "translate-x-0"}`} /></div>
+            </div>
+          </button>
+
+          <button type="button" onClick={() => void sendSOS()} disabled={sending} className="mt-4 w-full rounded-xl bg-gradient-to-r from-accent-magenta to-red-500 px-6 py-4 text-base font-extrabold text-white shadow-lg disabled:opacity-60">
+            {sending ? "SENDING SOS…" : "SEND SOS ALERT"}
+          </button>
+          <p className="mt-3 text-center text-xs text-tertiary"><Icon name="lock" size={15} className="align-middle mr-1" />Your exact location is shared only with Admin and emergency responders. It is not public.</p>
+          {status ? <p role="status" className="mt-4 rounded-xl border border-surface-border bg-surface-container-lowest/60 p-3 text-sm text-on-surface">{status}</p> : null}
         </div>
-        {nearbyStatus ? <p role="status" className="mt-3 font-body-sm text-on-surface">{nearbyStatus}</p> : null}
+
+        <aside className="rounded-2xl border border-surface-border bg-surface-container-lowest/55 p-5 shadow-premium h-fit">
+          <h2 className="font-headline-sm text-headline-sm text-on-surface">What happens next?</h2>
+          <div className="mt-5 space-y-5">
+            {[
+              ["shield", "1. Admins Notified", "All Admins get your alert immediately."],
+              ["groups", "2. Nearby Riders Alerted", "Verified riders within 25 km who enabled Nearby Help get the alert."],
+              ["motorcycle", "3. Help on the Way", "Responders can contact you and assist as quickly as possible."],
+              ["verified_user", "4. You Stay Safe", "Your emergency location stays restricted to Admin and responders."],
+            ].map(([icon, title, body]) => (
+              <div key={title} className="flex gap-3">
+                <div className="h-10 w-10 rounded-full bg-accent-magenta/15 text-accent-magenta flex items-center justify-center shrink-0"><Icon name={icon} size={22} /></div>
+                <div><p className="font-bold text-on-surface">{title}</p><p className="mt-1 text-sm text-secondary">{body}</p></div>
+              </div>
+            ))}
+          </div>
+        </aside>
       </section>
 
       <section className="mb-6">
