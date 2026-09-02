@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { reviewRiderVerification } from "@/app/admin/actions";
 import type { AdminVerificationRow } from "@/lib/admin/queries";
+import { formatDobForAdmin } from "@/lib/birthday";
 import { Avatar } from "@/components/ui/Avatar";
 
 function maskNid(value: string) {
@@ -48,7 +49,11 @@ export function VerificationReviewTable({ rows }: { rows: AdminVerificationRow[]
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 flex-1">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 flex-1">
+              <div className="rounded-lg bg-soft-off-white p-3">
+                <p className="font-label-caps text-[10px] text-tertiary">Date of birth</p>
+                <p className="font-body-sm">{formatDobForAdmin(row.date_of_birth)}</p>
+              </div>
               <div className="rounded-lg bg-soft-off-white p-3">
                 <p className="font-label-caps text-[10px] text-tertiary">NID</p>
                 <p className="font-body-sm" title="Masked for on-screen privacy">{maskNid(row.nid_number)}</p>

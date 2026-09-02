@@ -9,6 +9,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { validateDateOfBirth } from "./birthday";
 import { riderFromProfile } from "./profile";
 import { authEmailForIdentifier, normalizeBdPhone, parseMemberIdentifier, phoneAuthEmail } from "./phone";
 import { createClient } from "./supabase/client";
@@ -22,6 +23,7 @@ export type ProfileUpdates = {
   bikeModel?: string;
   avatarUrl?: string;
   coverUrl?: string;
+  dateOfBirth?: string;
 };
 
 type AuthContextValue = {
@@ -30,7 +32,7 @@ type AuthContextValue = {
   refreshUser: () => Promise<void>;
   updateProfile: (updates: ProfileUpdates) => Promise<string | null>;
   signIn: (identifier: string, password: string) => Promise<string | null>;
-  signUp: (fullName: string, phone: string, password: string) => Promise<string | null>;
+  signUp: (fullName: string, phone: string, password: string, dateOfBirth: string) => Promise<string | null>;
   signOut: () => Promise<void>;
 };
 
@@ -65,12 +67,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         });
       }
       const latest = await supabase.from("profiles").select("*").eq("id", id).maybeSingle();
-      const [{ count }, followers, following] = await Promise.all([
+      const [{ count }, followers, following, birthday] = await Promise.all([
         supabase.from("posts").select("*", { count: "exact", head: true }).eq("author_id", id),
         supabase.from("follows").select("*", { count: "exact", head: true }).eq("following_id", id),
         supabase.from("follows").select("*", { count: "exact", head: true }).eq("follower_id", id),
+        supabase.from("member_birthdays").select("user_id").eq("user_id", id).maybeSingle(),
       ]);
-      const rider = riderFromProfile(id, latest.data, fullName);
+      const rider = riderFromProfile(
+        id,
+        { ...(latest.data ?? {}), hasBirthday: birthday.error ? true : Boolean(birthday.data) },
+        fullName
+      );
       rider.postsCount = count ?? 0;
       if (!followers.error) rider.followers = followers.count ?? rider.followers;
       if (!following.error) rider.following = following.count ?? rider.following;
@@ -158,6 +165,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           })
           .eq("id", user.id);
         if (error) return error.message;
+        if (updates.dateOfBirth !== undefined) {
+          const dobError = validateDateOfBirth(updates.dateOfBirth);
+          if (dobError) return dobError;
+          const saved = await supabase.rpc("save_own_date_of_birth", { p_dob: updates.dateOfBirth });
+          if (saved.error) return "Could not save your date of birth.";
+        }
         await mapUser(user.id, updates.fullName ?? user.fullName);
         return null;
       },
@@ -172,9 +185,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         });
         return error?.message ?? null;
       },
-      async signUp(fullName, phoneInput, password) {
+      async signUp(fullName, phoneInput, password, dateOfBirth) {
         const supabase = createClient();
         if (!supabase) return "Supabase is not configured.";
+        const dobError = validateDateOfBirth(dateOfBirth);
+        if (dobError) return dobError;
         const phone = normalizeBdPhone(phoneInput);
         if (!phone) return "Enter a valid Bangladesh mobile number (01XXXXXXXXX or +8801XXXXXXXXX).";
 
@@ -204,6 +219,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             full_name: fullName || "Rider",
             username,
           });
+          const saved = await supabase.rpc("save_own_date_of_birth", { p_dob: dateOfBirth });
+          if (saved.error) return "Account created. Add your birthday from your profile to receive wishes.";
         }
         return null;
       },

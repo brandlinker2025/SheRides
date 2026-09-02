@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
 import { useAuth } from "@/lib/auth-context";
+import { dobInputBounds, validateDateOfBirth } from "@/lib/birthday";
 import { normalizeBdPhone } from "@/lib/phone";
 import { Icon } from "@/components/ui/Icon";
 import { AuthScene, authFieldClass } from "@/components/auth/AuthScene";
@@ -18,6 +19,7 @@ function SignupForm() {
   const [phone, setPhone] = useState(() => params.get("phone") ?? "");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [dateOfBirth, setDateOfBirth] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -59,6 +61,12 @@ function SignupForm() {
               dodge();
               return;
             }
+            const dobError = validateDateOfBirth(dateOfBirth);
+            if (dobError) {
+              setError(dobError);
+              panda.onError();
+              return;
+            }
             if (password.length < 6) {
               setError("Use at least 6 characters for your password.");
               panda.onError();
@@ -70,7 +78,7 @@ function SignupForm() {
               return;
             }
             setBusy(true);
-            const message = await signUp(fullName.trim(), phone.trim(), password);
+            const message = await signUp(fullName.trim(), phone.trim(), password, dateOfBirth);
             if (message) {
               setBusy(false);
               setError(message);
@@ -128,6 +136,23 @@ function SignupForm() {
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-[#3ddc84]"
                 />
               ) : null}
+            </span>
+          </label>
+          <label className="block">
+            <span className="mb-1.5 block text-sm text-white/70">Date of birth</span>
+            <span className="relative block">
+              <Icon name="cake" size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/45" />
+              <input
+                type="date"
+                required
+                value={dateOfBirth}
+                min={dobInputBounds().min}
+                max={dobInputBounds().max}
+                onChange={(e) => setDateOfBirth(e.target.value)}
+                onFocus={panda.onTextFocus}
+                onBlur={panda.onBlur}
+                className={`${authFieldClass} pl-11 [color-scheme:dark]`}
+              />
             </span>
           </label>
           <label className="relative block">

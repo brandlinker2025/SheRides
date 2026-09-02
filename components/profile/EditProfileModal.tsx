@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { bangladeshCities } from "@/lib/data";
+import { dobInputBounds } from "@/lib/birthday";
 import { createClient } from "@/lib/supabase/client";
 import { uploadPublicImage } from "@/lib/storage";
 import { useAuth } from "@/lib/auth-context";
@@ -18,9 +19,24 @@ export function EditProfileModal({ onClose }: { onClose: () => void }) {
   const [model, setModel] = useState(user?.bikeModel ?? "");
   const [avatarUrl, setAvatarUrl] = useState(user?.avatar ?? "");
   const [coverUrl, setCoverUrl] = useState(user?.cover ?? "");
+  const [dateOfBirth, setDateOfBirth] = useState("");
   const [progress, setProgress] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    const supabase = createClient();
+    if (!supabase || !user) return;
+    void supabase
+      .from("member_birthdays")
+      .select("date_of_birth")
+      .eq("user_id", user.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        const value = data?.date_of_birth ? String(data.date_of_birth).slice(0, 10) : "";
+        if (value) setDateOfBirth(value);
+      });
+  }, [user]);
 
   if (!user) return null;
   const rider = user;
@@ -59,6 +75,7 @@ export function EditProfileModal({ onClose }: { onClose: () => void }) {
             bikeModel: model,
             avatarUrl,
             coverUrl,
+            ...(dateOfBirth ? { dateOfBirth } : {}),
           });
           setBusy(false);
           if (message) setError(message);
@@ -125,6 +142,19 @@ export function EditProfileModal({ onClose }: { onClose: () => void }) {
             ))}
           </select>
           <BikeSelect brand={brand} model={model} onBrand={setBrand} onModel={setModel} />
+          <label className="block">
+            <span className="mb-1.5 block font-label-lg text-secondary">
+              {user?.hasBirthday ? "Date of birth" : "Add your birthday"}
+            </span>
+            <input
+              type="date"
+              value={dateOfBirth}
+              min={dobInputBounds().min}
+              max={dobInputBounds().max}
+              onChange={(e) => setDateOfBirth(e.target.value)}
+              className="w-full bg-soft-off-white border border-surface-border rounded-lg px-4 py-3 focus:outline-none focus:border-accent-magenta focus:ring-2 focus:ring-accent-magenta/20 transition-all duration-300"
+            />
+          </label>
         </div>
         {progress && <p className="mt-3 font-body-sm text-accent-magenta">{progress}</p>}
         {error && <p className="mt-3 font-body-sm text-error">{error}</p>}

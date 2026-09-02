@@ -24,7 +24,8 @@ export function NotificationRow({
       <Avatar src={item.avatar} alt={item.actor} size={40} />
       <div className="flex-1 min-w-0">
         <p className="font-body-sm text-body-sm text-on-surface">
-          <span className="font-label-lg">{item.actor}</span> {item.body}
+          <span className="font-label-lg">{item.actor}</span>{" "}
+          <span className={item.kind === "birthday" ? "whitespace-pre-line" : undefined}>{item.body}</span>
         </p>
         <p className="font-body-sm text-tertiary">{item.time}</p>
       </div>
