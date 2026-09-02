@@ -17,6 +17,7 @@ const items = [
   { href: "/groups", label: "Groups", icon: "group" },
   { href: "/events", label: "Events & Rides", icon: "event" },
   { href: "/rides", label: "Rides", icon: "motorcycle" },
+  { href: "/rider-benefits", label: "Rider Benefits", icon: "workspace_premium" },
   { href: "/notifications", label: "Notifications", icon: "notifications" },
   { href: "/saved", label: "Saved", icon: "bookmark" },
   { href: "/safety", label: "Safety Center", icon: "shield" },
