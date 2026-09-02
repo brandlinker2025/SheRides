@@ -1,23 +1,17 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { FeedPost } from "@/components/feed/FeedPost";
 import { FeedPostSkeleton } from "@/components/feed/FeedPostSkeleton";
-import { MembersOnSheRides, useUnfollowedRiders } from "@/components/feed/MembersOnSheRides";
 import { PostComposer } from "@/components/feed/PostComposer";
-import { StoriesRow } from "@/components/feed/StoriesRow";
 import { RightRail } from "@/components/layout/RightRail";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { useAuth } from "@/lib/auth-context";
 import { useFeed } from "@/lib/feed-context";
 import { useUI } from "@/lib/ui-context";
 
 export default function HomeFeedPage() {
-  const { user } = useAuth();
   const { posts, loading, addPost, toggleLike, toggleSave, incrementComments } = useFeed();
   const { setCreateOpen } = useUI();
-  const { members } = useUnfollowedRiders();
   const [focusPostId, setFocusPostId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -34,21 +28,16 @@ export default function HomeFeedPage() {
   return (
     <div className="p-gutter flex justify-center">
       <div className="w-full max-w-[1280px] grid grid-cols-1 lg:grid-cols-12 gap-gutter">
-        <div className="col-span-1 lg:col-span-8 flex flex-col gap-component-gap">
-          {user && user.hasBirthday === false ? (
-            <Link
-              href="/profile"
-              className="rounded-xl border border-accent-magenta/30 bg-accent-magenta/5 px-5 py-4 font-body-sm text-on-surface"
-            >
-              <span className="font-label-lg text-accent-magenta">Add your birthday</span>
-              <span className="text-secondary"> — optional, and it stays private. SheRides can wish you each year.</span>
-            </Link>
-          ) : null}
-          <StoriesRow />
-          <MembersOnSheRides members={members} />
+        <main className="col-span-1 lg:col-span-8 flex flex-col gap-component-gap">
+          <div className="px-1">
+            <h1 className="text-2xl font-bold text-on-surface">News Feed</h1>
+            <p className="text-sm text-secondary mt-1">Latest posts from SheRides members.</p>
+          </div>
+
           <PostComposer onPost={addPost} />
-          {loading &&
-            Array.from({ length: 3 }).map((_, i) => <FeedPostSkeleton key={i} />)}
+
+          {loading && Array.from({ length: 3 }).map((_, i) => <FeedPostSkeleton key={i} />)}
+
           {!loading && posts.length === 0 && (
             <EmptyState
               variant="feed"
@@ -64,6 +53,7 @@ export default function HomeFeedPage() {
               }
             />
           )}
+
           {posts.map((post) => (
             <FeedPost
               key={post.id}
@@ -74,7 +64,8 @@ export default function HomeFeedPage() {
               startOpen={focusPostId === post.id}
             />
           ))}
-        </div>
+        </main>
+
         <RightRail />
       </div>
     </div>
