@@ -11,6 +11,7 @@ import { PANDA_HERO_SRC } from "@/lib/brand-art";
 const nav = [
   { href: "/admin", label: "Dashboard", icon: "dashboard", exact: true },
   { href: "/admin/users", label: "Users", icon: "group" },
+  { href: "/admin/user-details", label: "User Details", icon: "badge" },
   { href: "/admin/posts", label: "Posts", icon: "article" },
   { href: "/admin/events", label: "Events", icon: "event" },
   { href: "/admin/verifications", label: "Verifications", icon: "verified_user" },
