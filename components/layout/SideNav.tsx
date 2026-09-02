@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
-import { sidebarCommunities } from "@/lib/data";
 import { img } from "@/lib/images";
 import { useUI } from "@/lib/ui-context";
 import { PandaNavBackdrop } from "@/components/brand/PandaNavBackdrop";
@@ -86,19 +85,6 @@ export function SideNav() {
       </div>
 
       <div className="relative z-10 mt-auto px-4">
-        <div className="mb-6">
-          <h3 className="font-label-caps text-label-caps text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)] px-4 mb-2">POPULAR COMMUNITIES</h3>
-          {sidebarCommunities.map((c) => (
-            <Link
-              key={c.name}
-              href={c.href}
-              className="flex items-center gap-4 px-4 py-2 rounded-lg bg-black/90 text-white hover:bg-black transition-all"
-            >
-              <Icon name="star" />
-              <span className="font-body-sm text-body-sm">{c.name}</span>
-            </Link>
-          ))}
-        </div>
         <button
           type="button"
           onClick={() => setCreateOpen(true)}
