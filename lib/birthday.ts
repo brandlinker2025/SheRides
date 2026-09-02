@@ -112,8 +112,7 @@ export function formatDobForAdmin(value: string | null | undefined) {
   if (!day) return "—";
   return new Date(Date.UTC(day.year, day.month - 1, day.day)).toLocaleDateString("en-GB", {
     day: "numeric",
-    month: "short",
-    year: "numeric",
+    month: "long",
     timeZone: "UTC",
   });
 }
