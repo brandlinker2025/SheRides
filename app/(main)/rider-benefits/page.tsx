@@ -34,6 +34,16 @@ function getLocation() {
   });
 }
 
+function locationErrorMessage(error: unknown) {
+  if (error && typeof error === "object" && "code" in error) {
+    const code = Number((error as { code?: number }).code);
+    if (code === 1) return "Location permission is blocked. The SOS will still be sent to Admin using your last available location when possible.";
+    if (code === 2) return "Your current location is unavailable. The SOS will still be sent to Admin using your last available location when possible.";
+    if (code === 3) return "Location timed out. The SOS will still be sent to Admin using your last available location when possible.";
+  }
+  return "Live location could not be read. The SOS will still be sent to Admin.";
+}
+
 export default function RiderBenefitsPage() {
   const [problem, setProblem] = useState("accident");
   const [note, setNote] = useState("");
@@ -54,7 +64,7 @@ export default function RiderBenefitsPage() {
       if (error) throw error;
       setNearbyStatus("Nearby Help is active. Your location is available for nearby emergency matching for 24 hours.");
     } catch (error) {
-      setNearbyStatus(error instanceof Error ? error.message : "Could not enable nearby help.");
+      setNearbyStatus(error instanceof Error ? error.message : locationErrorMessage(error));
     }
   };
 
@@ -62,22 +72,41 @@ export default function RiderBenefitsPage() {
     if (sending) return;
     setSending(true);
     setStatus("Getting your current location…");
+
     try {
-      const position = await getLocation();
-      setStatus("Sending emergency alert…");
+      let latitude: number | null = null;
+      let longitude: number | null = null;
+      let locationWarning: string | null = null;
+
+      try {
+        const position = await getLocation();
+        latitude = position.coords.latitude;
+        longitude = position.coords.longitude;
+      } catch (locationError) {
+        locationWarning = locationErrorMessage(locationError);
+      }
+
+      setStatus(locationWarning ?? "Sending emergency alert…");
       const supabase = createClient();
       if (!supabase) throw new Error("SheRides connection is unavailable.");
+
       const { data, error } = await supabase.rpc("submit_emergency_alert", {
         p_problem_type: problem,
         p_note: note.trim() || null,
-        p_latitude: position.coords.latitude,
-        p_longitude: position.coords.longitude,
+        p_latitude: latitude,
+        p_longitude: longitude,
       });
+
       if (error) throw error;
-      setStatus(`Alert sent successfully${data ? ` · ID ${String(data).slice(0, 8)}` : ""}. Admins and eligible nearby riders have been notified.`);
+
+      const locationText = latitude !== null && longitude !== null
+        ? "Live location attached."
+        : "Admin was alerted; SheRides used your recent saved location when available.";
+
+      setStatus(`Alert sent successfully${data ? ` · ID ${String(data).slice(0, 8)}` : ""}. ${locationText}`);
       setNote("");
     } catch (error) {
-      setStatus(error instanceof Error ? error.message : "Could not send the emergency alert.");
+      setStatus(error instanceof Error ? error.message : "Could not send the emergency alert. Please try again now.");
     } finally {
       setSending(false);
     }
@@ -91,7 +120,7 @@ export default function RiderBenefitsPage() {
           <div className="flex-1 min-w-0">
             <p className="text-xs font-bold uppercase tracking-wide text-red-600">Live emergency network</p>
             <h1 className="font-headline-lg text-headline-lg text-on-surface">Need help now?</h1>
-            <p className="mt-1 font-body-sm text-secondary">Choose the problem and press the alert button. SheRides sends your current location alert to Admin and verified nearby riders who recently enabled Nearby Help.</p>
+            <p className="mt-1 font-body-sm text-secondary">Choose the problem and press the alert button. SheRides alerts Admin immediately and also notifies verified nearby riders when a recent location is available.</p>
           </div>
         </div>
         <div className="mt-5 grid grid-cols-1 md:grid-cols-[220px_1fr] gap-3">
