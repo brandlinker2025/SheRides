@@ -71,17 +71,6 @@ export function SideNav() {
             </Link>
           );
         })}
-        {user?.role === "admin" && (
-          <Link
-            href="/admin"
-            className={`flex items-center gap-4 px-4 py-3 rounded-lg bg-black/90 hover:bg-black transition-all ${
-              pathname.startsWith("/admin") ? "font-bold border-r-4 border-accent-magenta text-pink-200" : "text-white"
-            }`}
-          >
-            <Icon name="admin_panel_settings" filled={pathname.startsWith("/admin")} />
-            <span className="font-label-lg text-label-lg">Admin Panel</span>
-          </Link>
-        )}
       </div>
 
       <div className="relative z-10 mt-auto px-4">
