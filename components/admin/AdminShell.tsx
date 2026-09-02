@@ -10,6 +10,7 @@ import { PANDA_HERO_SRC } from "@/lib/brand-art";
 
 const nav = [
   { href: "/admin", label: "Dashboard", icon: "dashboard", exact: true },
+  { href: "/admin/emergency-alerts", label: "Emergency Alerts", icon: "sos" },
   { href: "/admin/users", label: "Users", icon: "group" },
   { href: "/admin/user-details", label: "User Details", icon: "badge" },
   { href: "/admin/posts", label: "Posts", icon: "article" },
@@ -45,7 +46,7 @@ export function AdminShell({
           <div className="text-white font-label-caps text-label-caps mt-2 drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">Admin Panel</div>
           {adminName && <p className="text-white font-body-sm text-body-sm mt-2 drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">{adminName}</p>}
         </div>
-        <div className="relative z-10 flex-1 flex flex-col gap-2 px-4">
+        <div className="relative z-10 flex-1 flex flex-col gap-2 px-4 overflow-y-auto">
           {nav.map((item) => {
             const active = item.exact ? pathname === item.href : pathname.startsWith(item.href);
             const showBadge = item.href === "/admin/verifications" && pendingCount > 0;
@@ -74,7 +75,7 @@ export function AdminShell({
           </Link>
         </div>
       </nav>
-      <div className="panda-topnav md:hidden fixed bottom-0 inset-x-0 z-50 flex justify-around py-3 px-2">
+      <div className="panda-topnav md:hidden fixed bottom-0 inset-x-0 z-50 flex justify-around py-3 px-2 overflow-x-auto">
         {nav.map((item) => {
           const active = item.exact ? pathname === item.href : pathname.startsWith(item.href);
           const showBadge = item.href === "/admin/verifications" && pendingCount > 0;
@@ -82,7 +83,7 @@ export function AdminShell({
             <Link
               key={item.href}
               href={item.href}
-              className={`relative flex flex-col items-center gap-1 ${active ? "text-white" : "text-on-primary/70"}`}
+              className={`relative flex min-w-16 flex-col items-center gap-1 ${active ? "text-white" : "text-on-primary/70"}`}
             >
               <span className="relative">
                 <Icon name={item.icon} filled={active} size={22} />
@@ -92,7 +93,7 @@ export function AdminShell({
                   </span>
                 ) : null}
               </span>
-              <span className="font-label-caps text-[10px]">{item.label}</span>
+              <span className="font-label-caps text-[10px] whitespace-nowrap">{item.label}</span>
             </Link>
           );
         })}
