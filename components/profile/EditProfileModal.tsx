@@ -9,6 +9,7 @@ import { uploadPublicImage } from "@/lib/storage";
 import { useAuth } from "@/lib/auth-context";
 import { Avatar } from "../ui/Avatar";
 import { Icon } from "../ui/Icon";
+import { ImagePositioner } from "./ImagePositioner";
 
 export function EditProfileModal({ onClose }: { onClose: () => void }) {
   const { user, updateProfile } = useAuth();
@@ -22,6 +23,7 @@ export function EditProfileModal({ onClose }: { onClose: () => void }) {
   const [progress, setProgress] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [positioning, setPositioning] = useState<{ kind: "avatar" | "cover"; file: File } | null>(null);
 
   useEffect(() => {
     const supabase = createClient();
@@ -85,17 +87,17 @@ export function EditProfileModal({ onClose }: { onClose: () => void }) {
           <h2 className="font-headline-md text-headline-md">Edit profile</h2>
           <button type="button" onClick={onClose} className="text-secondary"><Icon name="close" /></button>
         </div>
-        <label className="block relative mb-6">
+        <label className="block relative mb-6 cursor-pointer">
           <div className="h-28 rounded-xl overflow-hidden bg-soft-off-white">
             {coverUrl ? <img src={coverUrl} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full bg-gradient-to-r from-accent-magenta/20 to-soft-off-white" />}
           </div>
           <span className="absolute bottom-2 right-2 bg-white/90 px-3 py-1 rounded-full font-label-lg text-label-lg">Change cover</span>
-          <input type="file" accept="image/*" className="sr-only" onChange={(e) => e.target.files?.[0] && void upload("cover", e.target.files[0])} />
+          <input type="file" accept="image/*" className="sr-only" onChange={(e) => { const file = e.target.files?.[0]; if (file) setPositioning({ kind: "cover", file }); e.currentTarget.value = ""; }} />
         </label>
         <label className="flex items-center gap-4 mb-6 cursor-pointer">
           <Avatar src={avatarUrl} alt={fullName} size={72} />
           <span className="font-label-lg text-accent-magenta">Upload profile picture</span>
-          <input type="file" accept="image/*" className="sr-only" onChange={(e) => e.target.files?.[0] && void upload("avatar", e.target.files[0])} />
+          <input type="file" accept="image/*" className="sr-only" onChange={(e) => { const file = e.target.files?.[0]; if (file) setPositioning({ kind: "avatar", file }); e.currentTarget.value = ""; }} />
         </label>
         <div className="flex flex-col gap-3">
           <input required value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="Full name" className="w-full bg-soft-off-white border border-surface-border rounded-lg px-4 py-3 focus:outline-none focus:border-accent-magenta focus:ring-2 focus:ring-accent-magenta/20 transition-all duration-300" />
@@ -117,6 +119,7 @@ export function EditProfileModal({ onClose }: { onClose: () => void }) {
         {error && <p className="mt-3 font-body-sm text-error">{error}</p>}
         <button type="submit" disabled={busy} className="mt-6 w-full h-12 bg-accent-magenta text-white rounded-lg font-label-lg transition-all duration-200 hover:shadow-magenta hover:-translate-y-0.5 active:scale-95 disabled:opacity-60 disabled:pointer-events-none">{busy ? "Saving..." : "Save profile"}</button>
       </form>
+      {positioning ? <ImagePositioner file={positioning.file} kind={positioning.kind} onCancel={() => setPositioning(null)} onConfirm={(prepared) => { const kind = positioning.kind; setPositioning(null); void upload(kind, prepared); }} /> : null}
     </div>
   );
 }
