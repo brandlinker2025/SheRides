@@ -12,6 +12,20 @@ function publicAudioUrl(path?: string | null) {
   return createClient()?.storage.from("message-audio").getPublicUrl(path).data.publicUrl ?? null;
 }
 
+function microphoneErrorMessage(error: unknown) {
+  const name = error instanceof DOMException ? error.name : "";
+  if (name === "NotAllowedError" || name === "PermissionDeniedError") {
+    return "Microphone access is blocked. Tap/click the lock icon beside sherides.online, set Microphone to Allow, then tap the mic again.";
+  }
+  if (name === "NotFoundError" || name === "DevicesNotFoundError") {
+    return "No microphone was found on this device. Connect or enable a microphone, then try again.";
+  }
+  if (name === "NotReadableError" || name === "TrackStartError") {
+    return "Your microphone is busy in another app. Close the other app using the microphone, then try again.";
+  }
+  return "SheRides could not start the microphone. Check browser microphone permission and try again.";
+}
+
 export function useConversationThread(peerId: string | null) {
   const { user } = useAuth();
   const myId = user?.id;
@@ -111,7 +125,11 @@ export function useConversationThread(peerId: string | null) {
   }, [draft, myId, conversationId]);
 
   const startRecording = useCallback(async () => {
-    if (!myId || !conversationId || !navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === "undefined") { setError("Voice recording is not supported on this device/browser."); return; }
+    if (!myId || !conversationId || !navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === "undefined") {
+      setError("Voice recording is not supported on this device/browser.");
+      return;
+    }
+    setError(null);
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true }); streamRef.current = stream;
       const mime = MediaRecorder.isTypeSupported("audio/webm;codecs=opus") ? "audio/webm;codecs=opus" : "";
@@ -131,7 +149,9 @@ export function useConversationThread(peerId: string | null) {
         setSendingVoice(false); setRecordSeconds(0);
       };
       recorder.start(); setRecording(true); timerRef.current = setInterval(() => setRecordSeconds((s) => { if (s >= 179) { recorder.stop(); return 180; } return s + 1; }), 1000);
-    } catch { setError("Microphone permission is required to record a voice message."); }
+    } catch (micError) {
+      setError(microphoneErrorMessage(micError));
+    }
   }, [myId, conversationId, recordSeconds]);
 
   const stopRecording = useCallback(() => { if (recorderRef.current?.state === "recording") recorderRef.current.stop(); }, []);
