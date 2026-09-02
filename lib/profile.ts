@@ -92,6 +92,7 @@ export function riderFromProfile(
     following: (data?.following_count as number) ?? 0,
     postsCount: (data?.posts_count as number) ?? 0,
     ridesCount: (data?.rides_count as number) ?? 0,
+    hasBirthday: Boolean(data?.hasBirthday ?? data?.has_birthday),
   };
 }
 

@@ -15,6 +15,7 @@ export type Rider = {
   following: number;
   postsCount: number;
   ridesCount: number;
+  hasBirthday?: boolean;
 };
 
 export type Story = {

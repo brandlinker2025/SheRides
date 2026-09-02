@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { setRiderVerified } from "@/app/admin/actions";
 import type { AdminUserRow } from "@/lib/admin/queries";
+import { formatDobForAdmin } from "@/lib/birthday";
 import { Avatar } from "@/components/ui/Avatar";
 import { Icon } from "@/components/ui/Icon";
 
@@ -106,6 +107,7 @@ export function UsersTable({
               <th className="px-4 py-3">Rider</th>
               <th className="px-4 py-3">Location</th>
               <th className="px-4 py-3">Role</th>
+              <th className="px-4 py-3">Date of birth</th>
               <th className="px-4 py-3">Joined</th>
               <th className="px-4 py-3 text-right">Access</th>
             </tr>
@@ -135,6 +137,7 @@ export function UsersTable({
                     {user.role}
                   </span>
                 </td>
+                <td className="px-4 py-3 font-body-sm text-secondary">{formatDobForAdmin(user.date_of_birth)}</td>
                 <td className="px-4 py-3 font-body-sm text-secondary">{formatDate(user.created_at)}</td>
                 <td className="px-4 py-3 text-right">
                   <div className="flex flex-col items-end gap-2">
@@ -208,7 +211,7 @@ export function UsersTable({
             ))}
             {filtered.length === 0 && (
               <tr>
-                <td colSpan={5} className="px-4 py-10 text-center font-body-sm text-tertiary">
+                <td colSpan={6} className="px-4 py-10 text-center font-body-sm text-tertiary">
                   {emptyLabel}
                 </td>
               </tr>

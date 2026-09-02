@@ -10,6 +10,7 @@ export type AdminUserRow = {
   verified: boolean;
   role: string;
   created_at: string;
+  date_of_birth: string | null;
 };
 
 export type AdminPostRow = {
@@ -56,6 +57,7 @@ export type AdminVerificationRow = {
     username: string | null;
     avatar_url: string | null;
   } | null;
+  date_of_birth: string | null;
   document_signed_url: string | null;
 };
 
@@ -92,7 +94,25 @@ export async function loadAdminStats(supabase: SupabaseClient) {
 
 export async function loadAdminUsers(supabase: SupabaseClient) {
   const { data, error } = await supabase.rpc("admin_list_members");
-  return { users: (data ?? []) as AdminUserRow[], error: error?.message ?? null };
+  if (error) return { users: [] as AdminUserRow[], error: error.message };
+
+  const rows = (data ?? []) as Omit<AdminUserRow, "date_of_birth">[];
+  const ids = rows.map((row) => row.id);
+  const birthdays = new Map<string, string>();
+  if (ids.length) {
+    const { data: dobRows } = await supabase.from("member_birthdays").select("user_id, date_of_birth").in("user_id", ids);
+    for (const row of dobRows ?? []) {
+      birthdays.set(row.user_id as string, String(row.date_of_birth));
+    }
+  }
+
+  return {
+    users: rows.map((row) => ({
+      ...row,
+      date_of_birth: birthdays.get(row.id) ?? null,
+    })),
+    error: null,
+  };
 }
 
 export async function loadAdminVerifications(supabase: SupabaseClient) {
@@ -102,6 +122,15 @@ export async function loadAdminVerifications(supabase: SupabaseClient) {
     .order("created_at", { ascending: false });
 
   if (error) return { verifications: [] as AdminVerificationRow[], error: error.message };
+
+  const ids = [...new Set((data ?? []).map((row) => row.user_id as string))];
+  const birthdays = new Map<string, string>();
+  if (ids.length) {
+    const { data: dobRows } = await supabase.from("member_birthdays").select("user_id, date_of_birth").in("user_id", ids);
+    for (const row of dobRows ?? []) {
+      birthdays.set(row.user_id as string, String(row.date_of_birth));
+    }
+  }
 
   const verifications = await Promise.all(
     (data ?? []).map(async (row) => {
@@ -114,6 +143,7 @@ export async function loadAdminVerifications(supabase: SupabaseClient) {
       return {
         ...row,
         profile: profile ?? null,
+        date_of_birth: birthdays.get(row.user_id as string) ?? null,
         document_signed_url: documentSignedUrl,
       } as AdminVerificationRow;
     })

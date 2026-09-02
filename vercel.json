@@ -5,6 +5,10 @@
     {
       "path": "/api/keep-alive",
       "schedule": "0 8 * * *"
+    },
+    {
+      "path": "/api/cron/birthday-wishes",
+      "schedule": "20 18 * * *"
     }
   ]
 }

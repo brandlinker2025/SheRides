@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { FeedPost } from "@/components/feed/FeedPost";
 import { FeedPostSkeleton } from "@/components/feed/FeedPostSkeleton";
 import { MembersOnSheRides, useUnfollowedRiders } from "@/components/feed/MembersOnSheRides";
@@ -8,10 +9,12 @@ import { PostComposer } from "@/components/feed/PostComposer";
 import { StoriesRow } from "@/components/feed/StoriesRow";
 import { RightRail } from "@/components/layout/RightRail";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { useAuth } from "@/lib/auth-context";
 import { useFeed } from "@/lib/feed-context";
 import { useUI } from "@/lib/ui-context";
 
 export default function HomeFeedPage() {
+  const { user } = useAuth();
   const { posts, loading, addPost, toggleLike, toggleSave, incrementComments } = useFeed();
   const { setCreateOpen } = useUI();
   const { members } = useUnfollowedRiders();
@@ -32,6 +35,15 @@ export default function HomeFeedPage() {
     <div className="p-gutter flex justify-center">
       <div className="w-full max-w-[1280px] grid grid-cols-1 lg:grid-cols-12 gap-gutter">
         <div className="col-span-1 lg:col-span-8 flex flex-col gap-component-gap">
+          {user && user.hasBirthday === false ? (
+            <Link
+              href="/profile"
+              className="rounded-xl border border-accent-magenta/30 bg-accent-magenta/5 px-5 py-4 font-body-sm text-on-surface"
+            >
+              <span className="font-label-lg text-accent-magenta">Add your birthday</span>
+              <span className="text-secondary"> — optional, and it stays private. SheRides can wish you each year.</span>
+            </Link>
+          ) : null}
           <StoriesRow />
           <MembersOnSheRides members={members} />
           <PostComposer onPost={addPost} />
