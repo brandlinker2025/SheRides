@@ -85,27 +85,27 @@ export function ProfileView({ rider, isSelf }: ProfileViewProps) {
   return (
     <div className="max-w-[1280px] mx-auto px-container-margin-mobile md:px-container-margin-desktop w-full pb-section-gap">
       <div className="relative w-full bg-surface-container-lowest rounded-xl shadow-premium overflow-hidden mt-6">
-        <div className="w-full h-96 md:h-[36rem] bg-soft-off-white relative">
+        <div className="w-full h-64 sm:h-72 md:h-[24rem] bg-soft-off-white relative">
           {rider.cover ? (
-            <img src={rider.cover} alt="" className="w-full h-full object-cover" />
+            <img src={rider.cover} alt="" className="w-full h-full object-cover object-center" />
           ) : (
             <div className="w-full h-full bg-gradient-to-r from-accent-magenta/25 via-soft-off-white to-primary-fixed" />
           )}
         </div>
-        <div className="px-6 md:px-12 pb-8 relative">
-          <div className="absolute -top-20 md:-top-32 left-6 md:left-12">
-            <div className="w-40 h-40 md:w-64 md:h-64 rounded-full border-4 border-surface-container-lowest bg-soft-off-white overflow-hidden shadow-md">
-              <Avatar src={rider.avatar} alt={rider.fullName} size={256} className="h-full w-full object-cover" />
+        <div className="px-6 md:px-10 pb-7 relative">
+          <div className="absolute -top-16 md:-top-20 left-6 md:left-10">
+            <div className="w-32 h-32 md:w-44 md:h-44 rounded-full border-4 border-surface-container-lowest bg-soft-off-white overflow-hidden shadow-md">
+              <Avatar src={rider.avatar} alt={rider.fullName} size={176} className="h-full w-full object-cover" />
             </div>
           </div>
-          <div className="pt-24 md:pt-6 flex flex-col md:flex-row justify-between items-start md:items-end gap-6 md:pl-80">
-            <div className="flex-1">
-              <div className="flex items-center gap-2 mb-2 flex-wrap">
+          <div className="pt-20 md:pt-5 flex flex-col md:flex-row justify-between items-start md:items-end gap-5 md:pl-52">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-1 flex-wrap">
                 <h1 className="font-headline-xl text-headline-xl text-on-background">{rider.fullName}</h1>
                 {rider.verified && <Icon name="verified" filled className="text-emerald-600" />}
                 {giftUnlocked ? <BassGiftBadge /> : null}
               </div>
-              <div className="mb-3">
+              <div className="mb-2">
                 <RoleBadge rider={rider} />
               </div>
               <p className="font-body-lg text-body-lg text-secondary mb-2">
@@ -131,78 +131,23 @@ export function ProfileView({ rider, isSelf }: ProfileViewProps) {
               {isSelf ? (
                 <>
                   {rider.role === "admin" && (
-                    <button
-                      type="button"
-                      onClick={() => router.push("/admin")}
-                      className="flex-1 md:flex-none px-8 py-3 border border-outline rounded-lg font-label-lg"
-                    >
-                      Admin panel
-                    </button>
+                    <button type="button" onClick={() => router.push("/admin")} className="flex-1 md:flex-none px-6 py-2.5 border border-outline rounded-lg font-label-lg">Admin panel</button>
                   )}
-                  <button
-                    type="button"
-                    onClick={() => setEditing(true)}
-                    className="flex-1 md:flex-none px-8 py-3 bg-accent-magenta text-white rounded-lg font-label-lg"
-                  >
-                    Edit profile
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => router.push("/messages")}
-                    className="flex-1 md:flex-none px-8 py-3 bg-deep-charcoal text-white rounded-lg font-label-lg"
-                  >
-                    Message
-                  </button>
+                  <button type="button" onClick={() => setEditing(true)} className="flex-1 md:flex-none px-6 py-2.5 bg-accent-magenta text-white rounded-lg font-label-lg">Edit profile</button>
+                  <button type="button" onClick={() => router.push("/messages")} className="flex-1 md:flex-none px-6 py-2.5 bg-deep-charcoal text-white rounded-lg font-label-lg">Message</button>
                 </>
               ) : (
                 <>
-                  <button
-                    type="button"
-                    disabled={followBusy || !user}
-                    onClick={() => void toggleFollow()}
-                    className={`flex-1 md:flex-none px-8 py-3 rounded-lg font-label-lg disabled:opacity-60 ${
-                      following
-                        ? "border border-outline text-on-surface bg-surface-container-high"
-                        : "bg-accent-magenta text-white"
-                    }`}
-                  >
-                    {following ? "Following" : "Follow"}
-                  </button>
-                  <button
-                    type="button"
-                    disabled={messageBusy || !user}
-                    onClick={() => {
-                      if (typeof window !== "undefined" && window.matchMedia("(min-width: 1024px)").matches) {
-                        openChatDock({ id: rider.id, fullName: rider.fullName, avatar: rider.avatar });
-                        return;
-                      }
-                      setMessageBusy(true);
-                      router.push(`/messages?to=${rider.id}`);
-                    }}
-                    className="flex-1 md:flex-none px-8 py-3 bg-deep-charcoal text-white rounded-lg font-label-lg disabled:opacity-60"
-                  >
-                    Message
-                  </button>
+                  <button type="button" disabled={followBusy || !user} onClick={() => void toggleFollow()} className={`flex-1 md:flex-none px-8 py-3 rounded-lg font-label-lg disabled:opacity-60 ${following ? "border border-outline text-on-surface bg-surface-container-high" : "bg-accent-magenta text-white"}`}>{following ? "Following" : "Follow"}</button>
+                  <button type="button" disabled={messageBusy || !user} onClick={() => { if (typeof window !== "undefined" && window.matchMedia("(min-width: 1024px)").matches) { openChatDock({ id: rider.id, fullName: rider.fullName, avatar: rider.avatar }); return; } setMessageBusy(true); router.push(`/messages?to=${rider.id}`); }} className="flex-1 md:flex-none px-8 py-3 bg-deep-charcoal text-white rounded-lg font-label-lg disabled:opacity-60">Message</button>
                 </>
               )}
             </div>
           </div>
-          {actionError ? (
-            <p className="mt-4 font-body-sm text-error" role="alert">
-              {actionError}
-            </p>
-          ) : null}
-          <div className="flex gap-8 mt-8 pt-6 border-t border-surface-border">
-            {[
-              [followers, "Followers"],
-              [followingCount, "Following"],
-              [riderPosts.length || rider.postsCount, "Posts"],
-              [rider.ridesCount, "Rides"],
-            ].map(([n, label]) => (
-              <div key={String(label)} className="flex flex-col">
-                <span className="font-headline-md text-headline-md text-on-background">{n}</span>
-                <span className="font-label-caps text-label-caps text-secondary">{label}</span>
-              </div>
+          {actionError ? <p className="mt-4 font-body-sm text-error" role="alert">{actionError}</p> : null}
+          <div className="flex gap-8 mt-6 pt-5 border-t border-surface-border">
+            {[[followers, "Followers"], [followingCount, "Following"], [riderPosts.length || rider.postsCount, "Posts"], [rider.ridesCount, "Rides"]].map(([n, label]) => (
+              <div key={String(label)} className="flex flex-col"><span className="font-headline-md text-headline-md text-on-background">{n}</span><span className="font-label-caps text-label-caps text-secondary">{label}</span></div>
             ))}
           </div>
         </div>
@@ -210,96 +155,24 @@ export function ProfileView({ rider, isSelf }: ProfileViewProps) {
 
       <div className="mt-8 mb-6 flex overflow-x-auto gap-8 border-b border-surface-border pb-1 hide-scrollbar">
         {tabs.map((t) => (
-          <button
-            key={t}
-            type="button"
-            onClick={() => setTab(t)}
-            className={`font-label-lg text-label-lg pb-2 whitespace-nowrap transition-colors duration-200 ${
-              tab === t ? "text-accent-magenta border-b-2 border-accent-magenta" : "text-secondary hover:text-on-background"
-            }`}
-          >
-            {t}
-          </button>
+          <button key={t} type="button" onClick={() => setTab(t)} className={`font-label-lg text-label-lg pb-2 whitespace-nowrap transition-colors duration-200 ${tab === t ? "text-accent-magenta border-b-2 border-accent-magenta" : "text-secondary hover:text-on-background"}`}>{t}</button>
         ))}
       </div>
 
-      {tab === "Posts" &&
-        (riderPosts.length ? (
-          <div className="flex flex-col gap-6 max-w-3xl">
-            {riderPosts.map((post) => (
-              <FeedPost
-                key={post.id}
-                post={post}
-                onToggleLike={toggleLike}
-                onToggleSave={toggleSave}
-                onCommented={incrementComments}
-              />
-            ))}
-          </div>
-        ) : (
-          <EmptyState variant="feed" title="No posts yet. Create the first post! 🏍️" />
-        ))}
+      {tab === "Posts" && (riderPosts.length ? <div className="flex flex-col gap-6 max-w-3xl">{riderPosts.map((post) => <FeedPost key={post.id} post={post} onToggleLike={toggleLike} onToggleSave={toggleSave} onCommented={incrementComments} />)}</div> : <EmptyState variant="feed" title="No posts yet. Create the first post! 🏍️" />)}
 
-      {tab === "Photos" &&
-        (photos.length ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            {photos.map((post) => (
-              <img key={post.id} src={post.image} alt="" className="aspect-square object-cover rounded-xl" />
-            ))}
-          </div>
-        ) : (
-          <EmptyState title="No photos yet." body="Upload a photo with your next post." />
-        ))}
+      {tab === "Photos" && (photos.length ? <div className="grid grid-cols-2 md:grid-cols-3 gap-4">{photos.map((post) => <img key={post.id} src={post.image} alt="" className="aspect-square object-cover rounded-xl" />)}</div> : <EmptyState title="No photos yet." body="Upload a photo with your next post." />)}
 
-      {tab === "Rides" &&
-        (rides.length ? (
-          <div className="flex flex-col gap-4 max-w-3xl">
-            {rides.map((post) => (
-              <FeedPost
-                key={post.id}
-                post={post}
-                onToggleLike={toggleLike}
-                onToggleSave={toggleSave}
-                onCommented={incrementComments}
-              />
-            ))}
-          </div>
-        ) : (
-          <EmptyState title="No rides yet." body="RSVP to an event or share your first ride post." />
-        ))}
+      {tab === "Rides" && (rides.length ? <div className="flex flex-col gap-4 max-w-3xl">{rides.map((post) => <FeedPost key={post.id} post={post} onToggleLike={toggleLike} onToggleSave={toggleSave} onCommented={incrementComments} />)}</div> : <EmptyState title="No rides yet." body="RSVP to an event or share your first ride post." />)}
 
       {tab === "Achievements" && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div
-            className={`card-surface p-6 border ${
-              giftUnlocked
-                ? "border-amber-400 shadow-magenta bg-gradient-to-br from-amber-400/15 via-accent-magenta/10 to-transparent"
-                : "border-surface-border opacity-80"
-            }`}
-          >
+          <div className={`card-surface p-6 border ${giftUnlocked ? "border-amber-400 shadow-magenta bg-gradient-to-br from-amber-400/15 via-accent-magenta/10 to-transparent" : "border-surface-border opacity-80"}`}>
             <div className="mb-3">{giftUnlocked ? <BassGiftBadge /> : <Icon name="redeem" className="text-tertiary" />}</div>
             <p className="font-label-lg">{giftUnlocked ? "Bass Gift unlocked" : "Bass Gift"}</p>
-            <p className="font-body-sm text-secondary mt-1">
-              {giftUnlocked
-                ? "A rare gift for reaching 1,000 followers in Bangladesh's women riders community."
-                : `Reach ${BASS_GIFT_FOLLOWERS.toLocaleString()} followers to unlock this gift badge.`}
-            </p>
+            <p className="font-body-sm text-secondary mt-1">{giftUnlocked ? "A rare gift for reaching 1,000 followers in Bangladesh's women riders community." : `Reach ${BASS_GIFT_FOLLOWERS.toLocaleString()} followers to unlock this gift badge.`}</p>
           </div>
-          {(
-            [
-              rider.verified ? { icon: "verified", label: "Verified rider" } : null,
-              riderPosts.length > 0 ? { icon: "article", label: "First post" } : null,
-              rider.role === "admin" ? { icon: "admin_panel_settings", label: "Community admin" } : null,
-              rider.bike ? { icon: "two_wheeler", label: rider.bike } : null,
-            ] as Array<{ icon: string; label: string } | null>
-          )
-            .filter((item): item is { icon: string; label: string } => Boolean(item))
-            .map((item) => (
-              <div key={item.label} className="card-surface card-hover p-6 border border-surface-border">
-                <Icon name={item.icon} className="text-accent-magenta mb-2" />
-                <p className="font-label-lg">{item.label}</p>
-              </div>
-            ))}
+          {([rider.verified ? { icon: "verified", label: "Verified rider" } : null, riderPosts.length > 0 ? { icon: "article", label: "First post" } : null, rider.role === "admin" ? { icon: "admin_panel_settings", label: "Community admin" } : null, rider.bike ? { icon: "two_wheeler", label: rider.bike } : null] as Array<{ icon: string; label: string } | null>).filter((item): item is { icon: string; label: string } => Boolean(item)).map((item) => <div key={item.label} className="card-surface card-hover p-6 border border-surface-border"><Icon name={item.icon} className="text-accent-magenta mb-2" /><p className="font-label-lg">{item.label}</p></div>)}
         </div>
       )}
 
