@@ -7,6 +7,7 @@ import type { AdminUserRow } from "@/lib/admin/queries";
 import { formatDobForAdmin } from "@/lib/birthday";
 import { Avatar } from "@/components/ui/Avatar";
 import { Icon } from "@/components/ui/Icon";
+import { ResetPasswordControls } from "@/components/admin/ResetPasswordControls";
 
 function formatDate(value: string) {
   return new Date(value).toLocaleDateString(undefined, {
@@ -200,6 +201,7 @@ export function UsersTable({
                         </button>
                       ))}
                     </div>
+                    {user.role !== "admin" ? <ResetPasswordControls userId={user.id} /> : null}
                     {error && confirmId === user.id ? (
                       <p className="font-body-sm text-error max-w-xs text-right" role="alert">
                         {error}

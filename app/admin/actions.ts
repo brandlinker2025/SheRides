@@ -5,6 +5,7 @@ import { createClient } from "@supabase/supabase-js";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { deleteMemberById } from "@/lib/admin/remove-member";
 import { requireAdmin } from "@/lib/supabase/require-admin";
+import { createServerSupabase } from "@/lib/supabase/server";
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const EVENT_KINDS = new Set(["Ride", "Workshop", "Meetup", "Tour"]);
@@ -71,6 +72,30 @@ export async function setRiderVerified(userId: string, verified: boolean) {
   revalidatePath("/home");
   revalidatePath("/pending-approval");
   return {};
+}
+
+export async function resetMemberPassword(userId: string, newPassword: string) {
+  if (!validUuid(userId)) return { error: "Invalid request." };
+  if (typeof newPassword !== "string" || newPassword.length < 6 || newPassword.length > 72) {
+    return { error: "Use at least 6 characters for the new password." };
+  }
+
+  try {
+    await requireAdmin();
+    const session = await createServerSupabase();
+    if (!session) {
+      return { error: "Password reset is not configured on this server." };
+    }
+
+    const { error } = await session.rpc("admin_reset_member_password", {
+      target_id: userId,
+      new_password: newPassword,
+    });
+    if (error) return { error: error.message };
+    return {};
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : "Could not reset this password." };
+  }
 }
 
 export async function removeMember(userId: string) {

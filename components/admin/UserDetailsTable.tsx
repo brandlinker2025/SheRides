@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import type { AdminUserDetailRow } from "@/lib/admin/user-details";
 import { Avatar } from "@/components/ui/Avatar";
+import { ResetPasswordControls } from "@/components/admin/ResetPasswordControls";
 
 function formatDate(value: string | null) {
   if (!value) return "—";
@@ -74,9 +75,12 @@ export function UserDetailsTable({ users }: { users: AdminUserDetailRow[] }) {
                   </td>
                   <td className="px-4 py-3 font-body-sm text-secondary">{formatDate(user.created_at)}</td>
                   <td className="px-4 py-3 text-right">
-                    <button type="button" onClick={() => setSelected(user)} className="px-3 py-2 rounded-lg border border-surface-border font-label-lg text-label-lg hover:border-accent-magenta">
-                      View
-                    </button>
+                    <div className="flex flex-col items-end gap-2">
+                      <button type="button" onClick={() => setSelected(user)} className="px-3 py-2 rounded-lg border border-surface-border font-label-lg text-label-lg hover:border-accent-magenta">
+                        View
+                      </button>
+                      {user.role !== "admin" ? <ResetPasswordControls userId={user.id} /> : null}
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -115,6 +119,11 @@ export function UserDetailsTable({ users }: { users: AdminUserDetailRow[] }) {
               <Detail label="Status" value={selected.role === "admin" ? "Admin" : selected.verified ? "Approved" : "Pending"} />
               <Detail label="Joined" value={formatDate(selected.created_at)} />
             </div>
+            {selected.role !== "admin" ? (
+              <div className="mt-4 flex justify-end">
+                <ResetPasswordControls userId={selected.id} />
+              </div>
+            ) : null}
           </aside>
         </div>
       )}
