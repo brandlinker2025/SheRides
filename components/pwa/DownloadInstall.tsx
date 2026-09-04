@@ -37,8 +37,15 @@ const TARGETS: {
 
 function detectPlatform(): Platform {
   if (typeof navigator === "undefined") return "desktop";
-  const ua = navigator.userAgent;
-  if (/iPhone|iPad|iPod/i.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1)) {
+  const ua = navigator.userAgent || "";
+  const platform = navigator.platform || "";
+  const maxTouch = navigator.maxTouchPoints || 0;
+  // iPhone/iPad "Request Desktop Website" spoofs Macintosh; touch still gives it away.
+  const touchMac =
+    maxTouch > 1 && (/Mac/i.test(platform) || /Macintosh|Mac OS X/i.test(ua));
+  const touchEndMac =
+    typeof document !== "undefined" && "ontouchend" in document && /Macintosh|Mac OS X/i.test(ua);
+  if (/iPhone|iPad|iPod/i.test(ua) || touchMac || touchEndMac) {
     return "ios";
   }
   if (/Android/i.test(ua)) return "android";
@@ -48,15 +55,12 @@ function detectPlatform(): Platform {
 function isStandaloneDisplay() {
   if (typeof window === "undefined") return false;
   const nav = navigator as Navigator & { standalone?: boolean };
-  return (
-    window.matchMedia("(display-mode: standalone)").matches ||
-    window.matchMedia("(display-mode: minimal-ui)").matches ||
-    Boolean(nav.standalone)
-  );
+  return window.matchMedia("(display-mode: standalone)").matches || Boolean(nav.standalone);
 }
 
 function isSafariBrowser() {
-  const ua = navigator.userAgent;
+  if (typeof navigator === "undefined") return false;
+  const ua = navigator.userAgent || "";
   return /Safari/i.test(ua) && !/CriOS|FxiOS|EdgiOS|Android/i.test(ua) && !/Chrome|Edg|OPR/i.test(ua);
 }
 
@@ -66,12 +70,6 @@ function needsSafariHomeScreenGuide() {
 }
 
 const INSTALL_PROMPT_WAIT_MS = 1500;
-
-function waitMs(ms: number) {
-  return new Promise<void>((resolve) => {
-    window.setTimeout(resolve, ms);
-  });
-}
 
 export function DownloadInstall({ target }: { target: Target }) {
   const [platform, setPlatform] = useState<Platform>("desktop");
@@ -167,6 +165,7 @@ export function DownloadInstall({ target }: { target: Target }) {
     setPlatform(detectPlatform());
     setSafari(isSafariBrowser());
     setIosGuideOpen(true);
+    document.getElementById("iphone-steps")?.scrollIntoView({ block: "nearest" });
   };
 
   const queuedInstallEvent = () =>
@@ -176,9 +175,9 @@ export function DownloadInstall({ target }: { target: Target }) {
 
   const promptNativeInstall = async (event: BeforeInstallPromptEvent) => {
     let timeoutId: ReturnType<typeof setTimeout> | undefined;
-    setBusy(true);
     const promptPromise = event.prompt();
     void promptPromise.catch(() => undefined);
+    setBusy(true);
     try {
       await Promise.race([
         promptPromise,
@@ -186,43 +185,39 @@ export function DownloadInstall({ target }: { target: Target }) {
           timeoutId = setTimeout(() => reject(new Error("install-prompt-timeout")), INSTALL_PROMPT_WAIT_MS);
         }),
       ]);
+    } catch {
+      showIosGuide();
+      return;
+    } finally {
       if (timeoutId !== undefined) clearTimeout(timeoutId);
+      setBusy(false);
+    }
+    try {
       const choice = await event.userChoice;
       if (choice.outcome === "accepted") setJustInstalled(true);
       installEventRef.current = null;
       setInstallEvent(null);
     } catch {
       showIosGuide();
-    } finally {
-      if (timeoutId !== undefined) clearTimeout(timeoutId);
-      setBusy(false);
     }
   };
 
   const install = async () => {
-    // Detect at tap time. Safari has no beforeinstallprompt, and iPhone "desktop site"
-    // can look like a Mac — never wait on Installing for those.
-    if (needsSafariHomeScreenGuide()) {
-      showIosGuide();
-      return;
-    }
-
-    let event = queuedInstallEvent();
-    if (!event) {
-      setBusy(true);
-      await waitMs(INSTALL_PROMPT_WAIT_MS);
+    // Safari has no beforeinstallprompt. Never sit on Installing… — show A2HS steps.
+    try {
       if (needsSafariHomeScreenGuide()) {
         showIosGuide();
         return;
       }
-      event = queuedInstallEvent();
+      const event = queuedInstallEvent();
       if (!event) {
         showIosGuide();
         return;
       }
+      await promptNativeInstall(event);
+    } catch {
+      showIosGuide();
     }
-
-    await promptNativeInstall(event);
   };
 
   const installLabel = `Install ${selected.name}`;
