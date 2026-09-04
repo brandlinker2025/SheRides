@@ -38,6 +38,14 @@ const nextConfig = {
       { protocol: "https", hostname: "irjybaasydqcfuldczeu.supabase.co" },
     ],
   },
+  async rewrites() {
+    return [
+      { source: "/apple-touch-icon", destination: "/apple-touch-icon.png" },
+      { source: "/apple-touch-icon-precomposed", destination: "/apple-touch-icon-precomposed.png" },
+      { source: "/apple-icon", destination: "/apple-touch-icon.png" },
+      { source: "/apple-icon.png", destination: "/apple-touch-icon.png" },
+    ];
+  },
   async headers() {
     return [
       {

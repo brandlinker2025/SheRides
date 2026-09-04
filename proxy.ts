@@ -21,6 +21,9 @@ const PUBLIC_METADATA_PATHS = new Set([
   "/sitemap.xml",
   "/sw.js",
   "/icon.svg",
+  "/apple-touch-icon",
+  "/apple-touch-icon-precomposed",
+  "/apple-icon",
 ]);
 
 function isPublicPath(pathname: string) {
