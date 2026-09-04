@@ -40,12 +40,10 @@ function detectPlatform(): Platform {
   const ua = navigator.userAgent || "";
   const platform = navigator.platform || "";
   const maxTouch = navigator.maxTouchPoints || 0;
-  // iPhone/iPad "Request Desktop Website" spoofs Macintosh; touch still gives it away.
+  // iPhone/iPad "Request Desktop Website" spoofs Macintosh; maxTouchPoints still gives it away.
   const touchMac =
     maxTouch > 1 && (/Mac/i.test(platform) || /Macintosh|Mac OS X/i.test(ua));
-  const touchEndMac =
-    typeof document !== "undefined" && "ontouchend" in document && /Macintosh|Mac OS X/i.test(ua);
-  if (/iPhone|iPad|iPod/i.test(ua) || touchMac || touchEndMac) {
+  if (/iPhone|iPad|iPod/i.test(ua) || touchMac) {
     return "ios";
   }
   if (/Android/i.test(ua)) return "android";
