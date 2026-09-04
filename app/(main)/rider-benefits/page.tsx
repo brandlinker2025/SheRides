@@ -37,11 +37,22 @@ function getLocation() {
 function locationErrorMessage(error: unknown) {
   if (error && typeof error === "object" && "code" in error) {
     const code = Number((error as { code?: number }).code);
-    if (code === 1) return "Location permission is blocked.";
-    if (code === 2) return "Your current location is unavailable.";
-    if (code === 3) return "Location request timed out.";
+    if (code === 1) return "Location is blocked for SheRides. Tap Enable Location below for the quickest steps on this device.";
+    if (code === 2) return "Your device could not determine its location. Turn on Location/GPS and try again.";
+    if (code === 3) return "Location request timed out. Check Location/GPS and try again.";
   }
-  return "Live location could not be read.";
+  return "Live location could not be read. Check your browser and device Location settings, then try again.";
+}
+
+function locationHelpText() {
+  if (typeof navigator === "undefined") return "Allow Location for SheRides in your browser settings, then try again.";
+  const ua = navigator.userAgent;
+  if (/iPhone|iPad|iPod/i.test(ua)) return "iPhone/iPad: Settings → Privacy & Security → Location Services → Safari Websites → While Using. Then in Safari open SheRides, tap aA → Website Settings → Location → Allow.";
+  if (/Android/i.test(ua)) return "Android: tap the site controls/lock icon beside the address → Permissions → Location → Allow. Also make sure phone Location/GPS is ON.";
+  if (/Edg\//i.test(ua)) return "Microsoft Edge: click the lock/site controls beside the address → Permissions for this site → Location → Allow, then reload SheRides.";
+  if (/Chrome\//i.test(ua)) return "Chrome: click the site controls/lock icon beside the address → Site settings → Location → Allow, then reload SheRides.";
+  if (/Safari\//i.test(ua)) return "Safari: Safari → Settings → Websites → Location → sherides.online → Allow, then reload SheRides.";
+  return "Open your browser's Site permissions for sherides.online, set Location to Allow, make sure device Location/GPS is ON, then try again.";
 }
 
 export default function RiderBenefitsPage() {
@@ -50,26 +61,35 @@ export default function RiderBenefitsPage() {
   const [sending, setSending] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
   const [locationText, setLocationText] = useState("Location will be requested when you send the SOS.");
+  const [locationBlocked, setLocationBlocked] = useState(false);
+  const [showLocationHelp, setShowLocationHelp] = useState(false);
   const [nearbyEnabled, setNearbyEnabled] = useState(false);
   const [nearbyBusy, setNearbyBusy] = useState(false);
 
+  const requestAndSaveLocation = async () => {
+    setLocationText("Requesting location permission…");
+    setLocationBlocked(false);
+    const position = await getLocation();
+    const supabase = createClient();
+    if (!supabase) throw new Error("SheRides connection is unavailable.");
+    const { error } = await supabase.rpc("update_my_rider_location", { p_latitude: position.coords.latitude, p_longitude: position.coords.longitude });
+    if (error) throw error;
+    setNearbyEnabled(true);
+    setShowLocationHelp(false);
+    setLocationText("Location enabled. Nearby Help is active for 24 hours; your exact location is used only for emergency matching.");
+    return position;
+  };
+
   const enableNearbyHelp = async () => {
-    if (nearbyBusy || nearbyEnabled) return;
+    if (nearbyBusy) return;
     setNearbyBusy(true);
-    setLocationText("Fetching your current location…");
     try {
-      const position = await getLocation();
-      const supabase = createClient();
-      if (!supabase) throw new Error("SheRides connection is unavailable.");
-      const { error } = await supabase.rpc("update_my_rider_location", {
-        p_latitude: position.coords.latitude,
-        p_longitude: position.coords.longitude,
-      });
-      if (error) throw error;
-      setNearbyEnabled(true);
-      setLocationText("Nearby Help is active for 24 hours. Your exact location is only used for emergency matching.");
+      await requestAndSaveLocation();
     } catch (error) {
-      setLocationText(error instanceof Error ? error.message : locationErrorMessage(error));
+      const denied = Boolean(error && typeof error === "object" && "code" in error && Number((error as { code?: number }).code) === 1);
+      setLocationBlocked(denied);
+      setShowLocationHelp(denied);
+      setLocationText(error instanceof Error && !denied ? error.message : locationErrorMessage(error));
     } finally {
       setNearbyBusy(false);
     }
@@ -79,33 +99,28 @@ export default function RiderBenefitsPage() {
     if (sending) return;
     setSending(true);
     setStatus("Preparing emergency alert…");
-
     try {
       let latitude: number | null = null;
       let longitude: number | null = null;
-
       try {
-        setLocationText("Fetching your current location…");
+        setLocationText("Requesting your current location…");
         const position = await getLocation();
         latitude = position.coords.latitude;
         longitude = position.coords.longitude;
+        setLocationBlocked(false);
+        setShowLocationHelp(false);
         setLocationText("Live location ready. Admin and eligible nearby responders can receive it securely.");
       } catch (locationError) {
+        const denied = Boolean(locationError && typeof locationError === "object" && "code" in locationError && Number((locationError as { code?: number }).code) === 1);
+        setLocationBlocked(denied);
+        setShowLocationHelp(denied);
         setLocationText(`${locationErrorMessage(locationError)} Admin will still receive the SOS.`);
       }
-
       const supabase = createClient();
       if (!supabase) throw new Error("SheRides connection is unavailable.");
-
-      const { data, error } = await supabase.rpc("submit_emergency_alert", {
-        p_problem_type: problem,
-        p_note: note.trim() || null,
-        p_latitude: latitude,
-        p_longitude: longitude,
-      });
-
+      const { data, error } = await supabase.rpc("submit_emergency_alert", { p_problem_type: problem, p_note: note.trim() || null, p_latitude: latitude, p_longitude: longitude });
       if (error) throw error;
-      setStatus(`SOS sent successfully${data ? ` · ID ${String(data).slice(0, 8)}` : ""}. All Admins were notified. Verified riders within 25 km are notified when Nearby Help is active.`);
+      setStatus(`SOS sent successfully${data ? ` · ID ${String(data).slice(0, 8)}` : ""}. All Admins were notified. Verified riders within 25 km are notified when location is available.`);
       setNote("");
     } catch (error) {
       setStatus(error instanceof Error ? error.message : "Could not send the emergency alert. Please try again now.");
@@ -118,97 +133,21 @@ export default function RiderBenefitsPage() {
     <main className="max-w-7xl mx-auto px-4 sm:px-6 py-5 sm:py-7">
       <section id="live-sos" className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_320px] gap-4 mb-7">
         <div className="rounded-2xl border border-red-500/35 bg-black/15 p-5 sm:p-6 shadow-premium">
-          <div className="flex items-start gap-4">
-            <div className="h-16 w-16 rounded-2xl bg-red-600 text-white flex items-center justify-center shrink-0 shadow-lg">
-              <Icon name="sos" size={34} />
-            </div>
-            <div className="min-w-0">
-              <h1 className="font-headline-lg text-headline-lg text-on-surface">Send Emergency Alert (SOS)</h1>
-              <p className="mt-1 font-body-sm text-secondary max-w-3xl">Choose the problem, add a short note if needed and press the alert button. All Admins are notified immediately. Verified riders within 25 km are alerted when they have Nearby Help enabled.</p>
-            </div>
+          <div className="flex items-start gap-4"><div className="h-16 w-16 rounded-2xl bg-red-600 text-white flex items-center justify-center shrink-0 shadow-lg"><Icon name="sos" size={34} /></div><div className="min-w-0"><h1 className="font-headline-lg text-headline-lg text-on-surface">Send Emergency Alert (SOS)</h1><p className="mt-1 font-body-sm text-secondary max-w-3xl">Choose the problem, add a short note if needed and press the alert button. All Admins are notified immediately. Verified riders within 25 km are alerted when location is available.</p></div></div>
+          <div className="mt-6"><p className="mb-3 font-label-lg text-on-surface">1. What&apos;s the problem?</p><div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">{problems.map(([value,label,icon]) => { const active=problem===value; return <button key={value} type="button" onClick={()=>setProblem(value)} className={`rounded-xl border px-3 py-3 flex items-center justify-center gap-2 text-sm font-semibold transition ${active?"border-accent-magenta bg-accent-magenta/12 text-on-surface":"border-surface-border bg-surface-container-lowest/60 text-secondary hover:border-accent-magenta/50"}`}><Icon name={icon} size={20}/>{label}</button>; })}</div></div>
+          <div className="mt-5"><label htmlFor="sos-note" className="mb-2 block font-label-lg text-on-surface">2. Short note (optional)</label><textarea id="sos-note" value={note} onChange={(e)=>setNote(e.target.value)} maxLength={200} rows={3} placeholder="Describe what happened / what help you need…" className="w-full resize-none rounded-xl border border-surface-border bg-surface-container-lowest/70 px-4 py-3 text-on-surface outline-none focus:border-accent-magenta"/><div className="mt-1 text-right text-xs text-tertiary">{note.length}/200</div></div>
+          <div className="mt-4 rounded-xl border border-surface-border bg-surface-container-lowest/45 p-4">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:justify-between"><div className="flex items-start gap-3 min-w-0"><Icon name="location_on" size={24} className="text-accent-magenta shrink-0"/><div><p className="font-label-lg text-on-surface">Your location</p><p className="mt-1 text-sm text-secondary">{locationText}</p></div></div><button type="button" onClick={()=>void enableNearbyHelp()} disabled={nearbyBusy} className="shrink-0 rounded-full border border-accent-magenta px-4 py-2 text-sm font-bold text-accent-magenta disabled:opacity-60">{nearbyBusy?"Requesting…":locationBlocked?"Enable Location":"Update Location"}</button></div>
+            {showLocationHelp ? <div className="mt-4 rounded-xl border border-amber-400/40 bg-amber-400/10 p-4"><p className="font-bold text-on-surface">Allow location on this device</p><p className="mt-1 text-sm text-secondary">{locationHelpText()}</p><p className="mt-2 text-xs text-tertiary">After changing the permission, return here and press Enable Location again. Browsers do not allow websites to override a permission you previously blocked.</p></div> : null}
           </div>
-
-          <div className="mt-6">
-            <p className="mb-3 font-label-lg text-on-surface">1. What&apos;s the problem?</p>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
-              {problems.map(([value, label, icon]) => {
-                const active = problem === value;
-                return (
-                  <button key={value} type="button" onClick={() => setProblem(value)} className={`rounded-xl border px-3 py-3 flex items-center justify-center gap-2 text-sm font-semibold transition ${active ? "border-accent-magenta bg-accent-magenta/12 text-on-surface" : "border-surface-border bg-surface-container-lowest/60 text-secondary hover:border-accent-magenta/50"}`}>
-                    <Icon name={icon} size={20} /> {label}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          <div className="mt-5">
-            <label htmlFor="sos-note" className="mb-2 block font-label-lg text-on-surface">2. Short note (optional)</label>
-            <textarea id="sos-note" value={note} onChange={(e) => setNote(e.target.value)} maxLength={200} rows={3} placeholder="Describe what happened / what help you need…" className="w-full resize-none rounded-xl border border-surface-border bg-surface-container-lowest/70 px-4 py-3 text-on-surface outline-none focus:border-accent-magenta" />
-            <div className="mt-1 text-right text-xs text-tertiary">{note.length}/200</div>
-          </div>
-
-          <div className="mt-4 rounded-xl border border-surface-border bg-surface-container-lowest/45 p-4 flex flex-col sm:flex-row sm:items-center gap-3 sm:justify-between">
-            <div className="flex items-start gap-3 min-w-0">
-              <Icon name="location_on" size={24} className="text-accent-magenta shrink-0" />
-              <div><p className="font-label-lg text-on-surface">Your location</p><p className="mt-1 text-sm text-secondary">{locationText}</p></div>
-            </div>
-            <button type="button" onClick={() => void enableNearbyHelp()} disabled={nearbyBusy} className="shrink-0 rounded-full border border-accent-magenta px-4 py-2 text-sm font-bold text-accent-magenta disabled:opacity-60">{nearbyBusy ? "Updating…" : "Update Location"}</button>
-          </div>
-
-          <button type="button" onClick={() => void enableNearbyHelp()} disabled={nearbyBusy || nearbyEnabled} className={`mt-4 w-full rounded-xl border px-4 py-4 text-left transition ${nearbyEnabled ? "border-green-500/40 bg-green-500/10" : "border-accent-magenta bg-accent-magenta/5 hover:bg-accent-magenta/10"}`}>
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-full bg-accent-magenta text-white flex items-center justify-center"><Icon name="group" size={22} /></div>
-              <div className="flex-1 min-w-0"><p className="font-bold text-on-surface">Notify Nearby Help (within 25 km)</p><p className="mt-1 text-sm text-secondary">Enable your location so you can receive other riders&apos; emergency alerts and responders can find you faster.</p></div>
-              <div className={`h-7 w-12 rounded-full p-1 transition ${nearbyEnabled ? "bg-green-500" : "bg-accent-magenta"}`}><div className={`h-5 w-5 rounded-full bg-white transition-transform ${nearbyEnabled ? "translate-x-5" : "translate-x-0"}`} /></div>
-            </div>
-          </button>
-
-          <button type="button" onClick={() => void sendSOS()} disabled={sending} className="mt-4 w-full rounded-xl bg-gradient-to-r from-accent-magenta to-red-500 px-6 py-4 text-base font-extrabold text-white shadow-lg disabled:opacity-60">
-            {sending ? "SENDING SOS…" : "SEND SOS ALERT"}
-          </button>
-          <p className="mt-3 text-center text-xs text-tertiary"><Icon name="lock" size={15} className="align-middle mr-1" />Your exact location is shared only with Admin and emergency responders. It is not public.</p>
-          {status ? <p role="status" className="mt-4 rounded-xl border border-surface-border bg-surface-container-lowest/60 p-3 text-sm text-on-surface">{status}</p> : null}
+          <button type="button" onClick={()=>void enableNearbyHelp()} disabled={nearbyBusy} className={`mt-4 w-full rounded-xl border px-4 py-4 text-left transition ${nearbyEnabled?"border-green-500/40 bg-green-500/10":"border-accent-magenta bg-accent-magenta/5 hover:bg-accent-magenta/10"}`}><div className="flex items-center gap-3"><div className="h-10 w-10 rounded-full bg-accent-magenta text-white flex items-center justify-center"><Icon name="group" size={22}/></div><div className="flex-1 min-w-0"><p className="font-bold text-on-surface">Notify Nearby Help (within 25 km)</p><p className="mt-1 text-sm text-secondary">Allow location once so nearby emergency matching can work on this phone, tablet or computer.</p></div><div className={`h-7 w-12 rounded-full p-1 transition ${nearbyEnabled?"bg-green-500":"bg-accent-magenta"}`}><div className={`h-5 w-5 rounded-full bg-white transition-transform ${nearbyEnabled?"translate-x-5":"translate-x-0"}`}/></div></div></button>
+          <button type="button" onClick={()=>void sendSOS()} disabled={sending} className="mt-4 w-full rounded-xl bg-gradient-to-r from-accent-magenta to-red-500 px-6 py-4 text-base font-extrabold text-white shadow-lg disabled:opacity-60">{sending?"SENDING SOS…":"SEND SOS ALERT"}</button>
+          <p className="mt-3 text-center text-xs text-tertiary"><Icon name="lock" size={15} className="align-middle mr-1"/>Your exact location is shared only with Admin and emergency responders. It is not public.</p>{status?<p role="status" className="mt-4 rounded-xl border border-surface-border bg-surface-container-lowest/60 p-3 text-sm text-on-surface">{status}</p>:null}
         </div>
-
-        <aside className="rounded-2xl border border-surface-border bg-surface-container-lowest/55 p-5 shadow-premium h-fit">
-          <h2 className="font-headline-sm text-headline-sm text-on-surface">What happens next?</h2>
-          <div className="mt-5 space-y-5">
-            {[
-              ["shield", "1. Admins Notified", "All Admins get your alert immediately."],
-              ["groups", "2. Nearby Riders Alerted", "Verified riders within 25 km who enabled Nearby Help get the alert."],
-              ["motorcycle", "3. Help on the Way", "Responders can contact you and assist as quickly as possible."],
-              ["verified_user", "4. You Stay Safe", "Your emergency location stays restricted to Admin and responders."],
-            ].map(([icon, title, body]) => (
-              <div key={title} className="flex gap-3">
-                <div className="h-10 w-10 rounded-full bg-accent-magenta/15 text-accent-magenta flex items-center justify-center shrink-0"><Icon name={icon} size={22} /></div>
-                <div><p className="font-bold text-on-surface">{title}</p><p className="mt-1 text-sm text-secondary">{body}</p></div>
-              </div>
-            ))}
-          </div>
-        </aside>
+        <aside className="rounded-2xl border border-surface-border bg-surface-container-lowest/55 p-5 shadow-premium h-fit"><h2 className="font-headline-sm text-headline-sm text-on-surface">What happens next?</h2><div className="mt-5 space-y-5">{[["shield","1. Admins Notified","All Admins get your alert immediately."],["groups","2. Nearby Riders Alerted","Verified riders within 25 km with a recent location get the alert."],["motorcycle","3. Help on the Way","Responders can contact you and assist as quickly as possible."],["verified_user","4. You Stay Safe","Your emergency location stays restricted to Admin and responders."]].map(([icon,title,body])=><div key={title} className="flex gap-3"><div className="h-10 w-10 rounded-full bg-accent-magenta/15 text-accent-magenta flex items-center justify-center shrink-0"><Icon name={icon} size={22}/></div><div><p className="font-bold text-on-surface">{title}</p><p className="mt-1 text-sm text-secondary">{body}</p></div></div>)}</div></aside>
       </section>
-
-      <section className="mb-6">
-        <p className="font-label-caps text-label-caps text-accent-magenta mb-2">SheRides</p>
-        <h2 className="font-headline-lg text-headline-lg text-on-surface">Rider Benefits</h2>
-        <p className="mt-2 max-w-3xl font-body-md text-secondary">Safety, support, learning, maintenance and opportunity tools connected to the SheRides ecosystem.</p>
-      </section>
-
-      <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {benefits.map((item, index) => (
-          <article key={item.title} className="rounded-xl border border-surface-border bg-surface-container-lowest p-5 shadow-premium">
-            <div className="flex items-start gap-4">
-              <div className="h-11 w-11 shrink-0 rounded-full bg-accent-magenta/12 text-accent-magenta flex items-center justify-center"><Icon name={item.icon} size={24} /></div>
-              <div className="min-w-0 flex-1">
-                <div className="flex items-start gap-2"><span className="mt-1 text-xs font-semibold text-accent-magenta">{String(index + 1).padStart(2, "0")}</span><h3 className="font-headline-sm text-headline-sm text-on-surface">{item.title}</h3></div>
-                <div className="mt-3 flex flex-wrap gap-2">{item.features.map((feature) => <span key={feature} className="rounded-full border border-surface-border bg-soft-off-white px-3 py-1 text-xs font-medium text-secondary">{feature}</span>)}</div>
-                <Link href={item.href} className="mt-4 inline-flex items-center gap-2 font-label-lg text-accent-magenta">{item.action}<Icon name="arrow_forward" size={18} /></Link>
-              </div>
-            </div>
-          </article>
-        ))}
-      </section>
+      <section className="mb-6"><p className="font-label-caps text-label-caps text-accent-magenta mb-2">SheRides</p><h2 className="font-headline-lg text-headline-lg text-on-surface">Rider Benefits</h2><p className="mt-2 max-w-3xl font-body-md text-secondary">Safety, support, learning, maintenance and opportunity tools connected to the SheRides ecosystem.</p></section>
+      <section className="grid grid-cols-1 md:grid-cols-2 gap-4">{benefits.map((item,index)=><article key={item.title} className="rounded-xl border border-surface-border bg-surface-container-lowest p-5 shadow-premium"><div className="flex items-start gap-4"><div className="h-11 w-11 shrink-0 rounded-full bg-accent-magenta/12 text-accent-magenta flex items-center justify-center"><Icon name={item.icon} size={24}/></div><div className="min-w-0 flex-1"><div className="flex items-start gap-2"><span className="mt-1 text-xs font-semibold text-accent-magenta">{String(index+1).padStart(2,"0")}</span><h3 className="font-headline-sm text-headline-sm text-on-surface">{item.title}</h3></div><div className="mt-3 flex flex-wrap gap-2">{item.features.map((feature)=><span key={feature} className="rounded-full border border-surface-border bg-soft-off-white px-3 py-1 text-xs font-medium text-secondary">{feature}</span>)}</div><Link href={item.href} className="mt-4 inline-flex items-center gap-2 font-label-lg text-accent-magenta">{item.action}<Icon name="arrow_forward" size={18}/></Link></div></div></article>)}</section>
     </main>
   );
 }
