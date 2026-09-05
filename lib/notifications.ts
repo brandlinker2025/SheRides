@@ -2,30 +2,11 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "./auth-context";
-import { formatRelativeTime } from "./profile";
+import { mapInboxNotification, type InboxNotification, type NotificationRow } from "./notification-map";
 import { createClient } from "./supabase/client";
 
-export type InboxNotification = {
-  id: string;
-  actor: string;
-  actorId: string | null;
-  avatar: string;
-  body: string;
-  time: string;
-  unread: boolean;
-  href: string;
-  kind: string;
-};
-
-type NotificationRow = {
-  id: string;
-  body: string | null;
-  href: string | null;
-  read: boolean | null;
-  created_at: string;
-  kind: string | null;
-  actor_id: string | null;
-};
+export type { InboxNotification, NotificationRow } from "./notification-map";
+export { mapInboxNotification } from "./notification-map";
 
 type Client = NonNullable<ReturnType<typeof createClient>>;
 
@@ -38,23 +19,27 @@ async function hydrateNotifications(supabase: Client, rows: NotificationRow[]): 
       names.set(profile.id as string, profile);
     }
   }
-  return rows.map((row) => {
-    const actor = row.actor_id ? names.get(row.actor_id) : undefined;
-    return {
-      id: row.id,
-      actor: actor?.full_name || "SheRides",
-      actorId: row.actor_id,
-      avatar: actor?.avatar_url || "",
-      body: row.body || "",
-      time: formatRelativeTime(row.created_at),
-      unread: !row.read,
-      href: row.href || "/home",
-      kind: row.kind || "notice",
-    };
-  });
+  return rows.map((row) => mapInboxNotification(row, row.actor_id ? names.get(row.actor_id) : undefined));
+}
+
+function missingRpc(error: { message?: string; code?: string } | null) {
+  if (!error) return false;
+  return (
+    error.code === "PGRST202" ||
+    /could not find the function|schema cache|list_inbox_notifications|mark_inbox_read/i.test(error.message ?? "")
+  );
 }
 
 export async function fetchInboxNotifications(supabase: Client, userId: string, limit = 50) {
+  const rpc = await supabase.rpc("list_inbox_notifications", { p_limit: limit });
+  if (!rpc.error) {
+    return {
+      items: ((rpc.data ?? []) as NotificationRow[]).map((row) => mapInboxNotification(row)),
+      error: null as string | null,
+    };
+  }
+  if (!missingRpc(rpc.error)) return { items: [] as InboxNotification[], error: rpc.error.message };
+
   const { data, error } = await supabase
     .from("notifications")
     .select("id, body, href, read, created_at, kind, actor_id")
@@ -69,33 +54,48 @@ export async function fetchInboxNotifications(supabase: Client, userId: string, 
 }
 
 export async function markNotificationRead(supabase: Client, id: string) {
-  const { error } = await supabase.from("notifications").update({ read: true }).eq("id", id);
-  return error?.message ?? null;
+  const rpc = await supabase.rpc("mark_inbox_read", { p_id: id });
+  if (!rpc.error) return Number(rpc.data) > 0 ? null : "Could not mark this notification read.";
+  if (!missingRpc(rpc.error)) return rpc.error.message;
+
+  const { data, error } = await supabase.from("notifications").update({ read: true }).eq("id", id).select("id");
+  if (error) return error.message;
+  return data?.length ? null : "Could not mark this notification read.";
 }
 
 export async function markAllNotificationsRead(supabase: Client, userId: string) {
-  const { error } = await supabase.from("notifications").update({ read: true }).eq("user_id", userId);
+  const rpc = await supabase.rpc("mark_inbox_read", { p_id: null });
+  if (!rpc.error) return null;
+  if (!missingRpc(rpc.error)) return rpc.error.message;
+
+  const { error } = await supabase.from("notifications").update({ read: true }).eq("user_id", userId).eq("read", false);
   return error?.message ?? null;
 }
 
 export function useInboxNotifications() {
   const { user } = useAuth();
+  const userId = user?.id ?? null;
   const [items, setItems] = useState<InboxNotification[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const refresh = useCallback(async () => {
     const supabase = createClient();
-    if (!supabase || !user) {
+    if (!supabase || !userId) {
       setItems([]);
       setLoading(false);
       return;
     }
-    const { items: next, error: loadError } = await fetchInboxNotifications(supabase, user.id);
-    setError(loadError);
-    setItems(next);
-    setLoading(false);
-  }, [user]);
+    try {
+      const { items: next, error: loadError } = await fetchInboxNotifications(supabase, userId);
+      setError(loadError);
+      setItems(next);
+    } catch {
+      setError("Could not load notifications.");
+    } finally {
+      setLoading(false);
+    }
+  }, [userId]);
 
   useEffect(() => {
     void refresh();
@@ -103,12 +103,12 @@ export function useInboxNotifications() {
 
   useEffect(() => {
     const supabase = createClient();
-    if (!supabase || !user) return;
+    if (!supabase || !userId) return;
     const channel = supabase
-      .channel(`notifications-inbox:${user.id}`)
+      .channel(`notifications-inbox:${userId}`)
       .on(
         "postgres_changes",
-        { event: "*", schema: "public", table: "notifications", filter: `user_id=eq.${user.id}` },
+        { event: "*", schema: "public", table: "notifications", filter: `user_id=eq.${userId}` },
         () => {
           void refresh();
         }
@@ -116,29 +116,35 @@ export function useInboxNotifications() {
       .subscribe();
     const timer = window.setInterval(() => {
       void refresh();
-    }, 20000);
+    }, 15000);
+    const onFocus = () => {
+      void refresh();
+    };
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onFocus);
     return () => {
       window.clearInterval(timer);
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onFocus);
       void supabase.removeChannel(channel);
     };
-  }, [refresh, user]);
+  }, [refresh, userId]);
 
-  const markRead = useCallback(
-    async (id: string) => {
-      const supabase = createClient();
-      if (!supabase) return;
-      setItems((prev) => prev.map((item) => (item.id === id ? { ...item, unread: false } : item)));
-      await markNotificationRead(supabase, id);
-    },
-    []
-  );
+  const markRead = useCallback(async (id: string) => {
+    const supabase = createClient();
+    if (!supabase) return;
+    setItems((prev) => prev.map((item) => (item.id === id ? { ...item, unread: false } : item)));
+    const saveError = await markNotificationRead(supabase, id);
+    if (saveError) await refresh();
+  }, [refresh]);
 
   const markAllRead = useCallback(async () => {
     const supabase = createClient();
-    if (!supabase || !user) return;
+    if (!supabase || !userId) return;
     setItems((prev) => prev.map((item) => ({ ...item, unread: false })));
-    await markAllNotificationsRead(supabase, user.id);
-  }, [user]);
+    const saveError = await markAllNotificationsRead(supabase, userId);
+    if (saveError) await refresh();
+  }, [refresh, userId]);
 
   const unread = items.reduce((sum, item) => sum + (item.unread ? 1 : 0), 0);
 
