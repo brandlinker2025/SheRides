@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "./auth-context";
 import { mapInboxNotification, type InboxNotification, type NotificationRow } from "./notification-map";
+import { armNotificationSoundUnlock, noteInboxSnapshot, syncInboxToneUser } from "./notification-sound";
 import { createClient } from "./supabase/client";
 
 export type { InboxNotification, NotificationRow } from "./notification-map";
@@ -100,6 +101,16 @@ export function useInboxNotifications() {
   useEffect(() => {
     void refresh();
   }, [refresh]);
+
+  useEffect(() => {
+    armNotificationSoundUnlock();
+    syncInboxToneUser(userId);
+  }, [userId]);
+
+  useEffect(() => {
+    if (!userId || loading || error) return;
+    noteInboxSnapshot(items);
+  }, [error, items, loading, userId]);
 
   useEffect(() => {
     const supabase = createClient();
