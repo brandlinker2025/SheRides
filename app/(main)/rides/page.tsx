@@ -40,7 +40,7 @@ export default function RidesPage() {
         </div>
         <Link
           href="/events"
-          className="h-12 px-6 bg-accent-magenta text-white font-label-lg rounded-full inline-flex items-center justify-center"
+          className="h-12 px-6 bg-accent-magenta text-white font-label-lg rounded-full inline-flex items-center justify-center transition-all duration-200 hover:shadow-magenta hover:-translate-y-0.5 active:scale-95"
         >
           Browse all events
         </Link>
@@ -70,7 +70,10 @@ export default function RidesPage() {
                       <Icon name="location_on" size={16} /> {ride.location} • {ride.attending_count} attending
                     </p>
                   </div>
-                  <Link href="/events" className="text-accent-magenta font-label-lg">
+                  <Link
+                    href="/events"
+                    className="text-accent-magenta font-label-lg transition-all duration-200 hover:underline hover:translate-x-0.5"
+                  >
                     View ride
                   </Link>
                 </div>

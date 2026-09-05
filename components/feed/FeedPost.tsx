@@ -224,7 +224,7 @@ export function FeedPost({ post, onToggleLike, onToggleSave, onCommented, startO
               type="button"
               onClick={() => void submitComment()}
               disabled={posting || !draft.trim()}
-              className="bg-accent-magenta text-white font-label-lg px-4 rounded-full disabled:opacity-50"
+              className="bg-accent-magenta text-white font-label-lg px-4 rounded-full disabled:opacity-50 transition-all duration-200 hover:shadow-magenta hover:-translate-y-0.5 active:scale-95"
             >
               Reply
             </button>

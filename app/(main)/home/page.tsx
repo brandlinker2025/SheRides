@@ -46,7 +46,7 @@ export default function HomeFeedPage() {
                 <button
                   type="button"
                   onClick={() => setCreateOpen(true)}
-                  className="px-6 py-3 bg-accent-magenta text-white rounded-full font-label-lg transition-all duration-200 hover:shadow-magenta hover:-translate-y-0.5 active:scale-95"
+                  className="px-6 py-3 bg-accent-magenta text-white rounded-full font-label-lg transition-all duration-200 hover:shadow-magenta hover:-translate-y-0.5 active:scale-95 animate-scale-in"
                 >
                   Create post
                 </button>
