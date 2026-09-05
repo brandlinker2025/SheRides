@@ -3,12 +3,51 @@
 import { useState } from "react";
 import { BackLink } from "@/components/ui/BackLink";
 import { Icon } from "@/components/ui/Icon";
+import { locationErrorMessage, requestRiderLocation } from "@/lib/geolocation";
+import { createClient } from "@/lib/supabase/client";
 
 export default function SafetyPage() {
   const [toast, setToast] = useState<string | null>(null);
+  const [sending, setSending] = useState(false);
   const ping = (msg: string) => {
     setToast(msg);
-    window.setTimeout(() => setToast(null), 2200);
+    window.setTimeout(() => setToast(null), 3200);
+  };
+
+  const sendSOS = async () => {
+    if (sending) return;
+    setSending(true);
+    ping("Requesting Location Allow…");
+    try {
+      let latitude: number | null = null;
+      let longitude: number | null = null;
+      let locationNote = "";
+      try {
+        const position = await requestRiderLocation();
+        latitude = position.coords.latitude;
+        longitude = position.coords.longitude;
+      } catch (locationError) {
+        locationNote = ` ${locationErrorMessage(locationError)}`;
+      }
+      const supabase = createClient();
+      if (!supabase) throw new Error("SheRides connection is unavailable.");
+      const { data, error } = await supabase.rpc("submit_emergency_alert", {
+        p_problem_type: "other",
+        p_note: "SOS from Safety Center",
+        p_latitude: latitude,
+        p_longitude: longitude,
+      });
+      if (error) throw error;
+      ping(
+        `SOS sent${data ? ` · ID ${String(data).slice(0, 8)}` : ""}${
+          latitude != null ? " with your location." : "."
+        } Admins were notified.${locationNote}`
+      );
+    } catch (error) {
+      ping(error instanceof Error ? error.message : "Could not send the emergency alert. Please try again now.");
+    } finally {
+      setSending(false);
+    }
   };
 
   const tiles = [
@@ -32,15 +71,16 @@ export default function SafetyPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <button
           type="button"
-          onClick={() => ping("SOS alert sent to your emergency contacts.")}
-          className="col-span-1 md:col-span-2 lg:col-span-1 bg-accent-magenta text-on-primary rounded-xl p-8 flex flex-col items-center justify-center gap-4 shadow-lg hover:-translate-y-1 hover:shadow-xl transition-all duration-300 group relative overflow-hidden"
+          onClick={() => void sendSOS()}
+          disabled={sending}
+          className="col-span-1 md:col-span-2 lg:col-span-1 bg-accent-magenta text-on-primary rounded-xl p-8 flex flex-col items-center justify-center gap-4 shadow-lg hover:-translate-y-1 hover:shadow-xl transition-all duration-300 group relative overflow-hidden animate-sos-pulse disabled:opacity-70"
         >
           <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-10 transition-opacity" />
           <Icon name="emergency" filled className="text-[64px] drop-shadow-md" />
           <div className="text-center">
-            <h3 className="font-headline-md text-headline-md font-bold mb-1">SOS Alert</h3>
+            <h3 className="font-headline-md text-headline-md font-bold mb-1">{sending ? "Sending SOS…" : "SOS Alert"}</h3>
             <p className="font-body-sm opacity-90">
-              Send immediate distress signal with live location to emergency contacts and authorities.
+              Tap to request Location Allow, then send a live distress signal to Admins and nearby responders.
             </p>
           </div>
         </button>
@@ -50,7 +90,7 @@ export default function SafetyPage() {
             key={tile.title}
             type="button"
             onClick={() => ping(`${tile.title} opened.`)}
-            className="bg-surface-container-lowest text-on-background rounded-xl p-6 flex flex-col items-start gap-4 shadow-premium border border-surface-border hover:-translate-y-1 hover:shadow-premium-hover transition-all duration-300 group text-left"
+            className="bg-surface-container-lowest text-on-background rounded-xl p-6 flex flex-col items-start gap-4 shadow-premium border border-surface-border hover:-translate-y-1 hover:shadow-premium-hover transition-all duration-300 group text-left active:scale-[0.99]"
           >
             <div
               className={`w-12 h-12 rounded-full bg-soft-off-white flex items-center justify-center ${

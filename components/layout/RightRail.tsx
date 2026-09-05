@@ -43,7 +43,7 @@ export function RightRail() {
         </div>
         <Link
           href="/profile"
-          className="block w-full text-center bg-soft-off-white text-accent-magenta font-label-lg text-label-lg py-2 rounded-lg hover:bg-accent-magenta/10 transition-colors"
+          className="block w-full text-center bg-soft-off-white text-accent-magenta font-label-lg text-label-lg py-2 rounded-lg hover:bg-accent-magenta/10 transition-all duration-200 hover:-translate-y-0.5 active:scale-95"
         >
           View profile
         </Link>

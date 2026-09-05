@@ -144,6 +144,10 @@ const config: Config = {
           "60%": { transform: "scale(0.9)" },
           "100%": { transform: "scale(1)" },
         },
+        "sos-pulse": {
+          "0%, 100%": { boxShadow: "0 0 0 0 rgba(233, 30, 99, 0.45)", transform: "scale(1)" },
+          "70%": { boxShadow: "0 0 0 14px rgba(233, 30, 99, 0)", transform: "scale(1.03)" },
+        },
       },
       animation: {
         "fade-in-up": "fade-in-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) both",
@@ -153,6 +157,7 @@ const config: Config = {
         "ring-spin-slow": "ring-spin 6s linear infinite",
         "badge-pop": "badge-pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both",
         "heart-pop": "heart-pop 0.4s ease-out",
+        "sos-pulse": "sos-pulse 1.8s ease-out infinite",
       },
     },
   },
