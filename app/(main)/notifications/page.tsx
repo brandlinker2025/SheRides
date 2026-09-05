@@ -35,7 +35,13 @@ export default function NotificationsPage() {
       {!loading && !error && items.length > 0 ? (
         <div className="card-surface divide-y divide-surface-border overflow-hidden">
           {items.map((item) => (
-            <NotificationRow key={item.id} item={item} onOpen={(opened) => opened.unread && void markRead(opened.id)} />
+            <NotificationRow
+              key={item.id}
+              item={item}
+              onOpen={async (opened) => {
+                if (opened.unread) await markRead(opened.id);
+              }}
+            />
           ))}
         </div>
       ) : null}

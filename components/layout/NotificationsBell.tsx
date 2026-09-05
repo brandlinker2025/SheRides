@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { Avatar } from "@/components/ui/Avatar";
 import { Icon } from "@/components/ui/Icon";
 import { useInboxNotifications, type InboxNotification } from "@/lib/notifications";
@@ -11,12 +13,18 @@ export function NotificationRow({
   onOpen,
 }: {
   item: InboxNotification;
-  onOpen: (item: InboxNotification) => void;
+  onOpen: (item: InboxNotification) => void | Promise<void>;
 }) {
+  const router = useRouter();
   return (
-    <Link
+    <a
       href={item.href}
-      onClick={() => onOpen(item)}
+      onClick={(event) => {
+        event.preventDefault();
+        void Promise.resolve(onOpen(item)).finally(() => {
+          router.push(item.href);
+        });
+      }}
       className={`flex gap-3 p-3 transition-colors duration-200 hover:bg-soft-off-white ${
         item.unread ? "bg-accent-magenta/5" : ""
       }`}
@@ -35,20 +43,26 @@ export function NotificationRow({
           <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-accent-magenta" />
         </span>
       ) : null}
-    </Link>
+    </a>
   );
 }
 
 export function NotificationsBell() {
   const { items, unread, loading, error, markRead, markAllRead } = useInboxNotifications();
   const [open, setOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const boxRef = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     function onPointerDown(event: MouseEvent) {
-      if (boxRef.current && !boxRef.current.contains(event.target as Node)) {
-        setOpen(false);
-      }
+      const target = event.target as Node;
+      if (boxRef.current?.contains(target) || panelRef.current?.contains(target)) return;
+      setOpen(false);
     }
     function onKey(event: KeyboardEvent) {
       if (event.key === "Escape") setOpen(false);
@@ -60,6 +74,59 @@ export function NotificationsBell() {
       document.removeEventListener("keydown", onKey);
     };
   }, []);
+
+  const panel = open ? (
+    <div
+      ref={panelRef}
+      role="dialog"
+      aria-label="Notifications"
+      className="fixed right-3 top-[4.5rem] z-[80] w-[min(24rem,calc(100vw-1.5rem))] max-h-[min(28rem,70vh)] flex flex-col rounded-xl border border-surface-border bg-surface-container-lowest shadow-premium overflow-hidden"
+    >
+      <div className="flex items-center justify-between gap-3 px-4 py-3 border-b border-surface-border">
+        <h2 className="font-headline-md text-body-lg text-on-surface">Notifications</h2>
+        {unread > 0 ? (
+          <button type="button" onClick={() => void markAllRead()} className="font-label-lg text-accent-magenta">
+            Mark all read
+          </button>
+        ) : null}
+      </div>
+      <div className="flex-1 overflow-y-auto">
+        {loading ? <p className="px-4 py-6 font-body-sm text-tertiary">Loading notifications…</p> : null}
+        {!loading && error ? (
+          <p className="px-4 py-6 font-body-sm text-error" role="alert">
+            Could not load notifications.
+          </p>
+        ) : null}
+        {!loading && !error && items.length === 0 ? (
+          <div className="px-4 py-8 text-center">
+            <p className="font-label-lg text-on-surface mb-1">No notifications yet.</p>
+            <p className="font-body-sm text-tertiary">
+              Messages, comments, reactions, and new followers will show up here.
+            </p>
+          </div>
+        ) : null}
+        {!loading && !error
+          ? items.map((item) => (
+              <NotificationRow
+                key={item.id}
+                item={item}
+                onOpen={async (opened) => {
+                  if (opened.unread) await markRead(opened.id);
+                  setOpen(false);
+                }}
+              />
+            ))
+          : null}
+      </div>
+      <Link
+        href="/notifications"
+        onClick={() => setOpen(false)}
+        className="block text-center font-label-lg text-accent-magenta px-4 py-3 border-t border-surface-border hover:bg-soft-off-white"
+      >
+        See all
+      </Link>
+    </div>
+  ) : null;
 
   return (
     <div ref={boxRef} className="relative">
@@ -78,57 +145,7 @@ export function NotificationsBell() {
           </span>
         ) : null}
       </button>
-      {open ? (
-        <div
-          role="dialog"
-          aria-label="Notifications"
-          className="fixed right-3 top-[4.5rem] z-[60] w-[min(24rem,calc(100vw-1.5rem))] max-h-[min(28rem,70vh)] flex flex-col rounded-xl border border-surface-border bg-surface-container-lowest shadow-premium overflow-hidden"
-        >
-          <div className="flex items-center justify-between gap-3 px-4 py-3 border-b border-surface-border">
-            <h2 className="font-headline-md text-body-lg text-on-surface">Notifications</h2>
-            {unread > 0 ? (
-              <button type="button" onClick={() => void markAllRead()} className="font-label-lg text-accent-magenta">
-                Mark all read
-              </button>
-            ) : null}
-          </div>
-          <div className="flex-1 overflow-y-auto">
-            {loading ? <p className="px-4 py-6 font-body-sm text-tertiary">Loading notifications…</p> : null}
-            {!loading && error ? (
-              <p className="px-4 py-6 font-body-sm text-error" role="alert">
-                Could not load notifications.
-              </p>
-            ) : null}
-            {!loading && !error && items.length === 0 ? (
-              <div className="px-4 py-8 text-center">
-                <p className="font-label-lg text-on-surface mb-1">No notifications yet.</p>
-                <p className="font-body-sm text-tertiary">
-                  Messages, comments, reactions, and new followers will show up here.
-                </p>
-              </div>
-            ) : null}
-            {!loading && !error
-              ? items.map((item) => (
-                  <NotificationRow
-                    key={item.id}
-                    item={item}
-                    onOpen={(opened) => {
-                      if (opened.unread) void markRead(opened.id);
-                      setOpen(false);
-                    }}
-                  />
-                ))
-              : null}
-          </div>
-          <Link
-            href="/notifications"
-            onClick={() => setOpen(false)}
-            className="block text-center font-label-lg text-accent-magenta px-4 py-3 border-t border-surface-border hover:bg-soft-off-white"
-          >
-            See all
-          </Link>
-        </div>
-      ) : null}
+      {mounted ? createPortal(panel, document.body) : panel}
     </div>
   );
 }
