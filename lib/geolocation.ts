@@ -21,7 +21,7 @@ export function locationErrorMessage(error: unknown) {
   if (error && typeof error === "object" && "code" in error) {
     const code = Number((error as { code?: number }).code);
     if (code === 1) {
-      return "Tap Allow when your browser asks for Location, then tap Enable Location or Send SOS again.";
+      return "Location permission was denied. If the browser no longer shows an Allow prompt, change SheRides Location to Allow in your browser site settings, then try again.";
     }
     if (code === 2) return "Your device could not determine its location. Turn on Location/GPS and try again.";
     if (code === 3) return "Location request timed out. Check Location/GPS and try again.";
