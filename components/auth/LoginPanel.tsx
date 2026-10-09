@@ -343,7 +343,7 @@ export function LoginPanel({ admin = false }: { admin?: boolean }) {
           <p className="mt-6 text-sm text-white/70">
             New to SheRides?{" "}
             <Link href={joinHref} className="font-label-lg text-[#FF2D78]">
-              Join Community
+              Sign Up / Join Community
             </Link>
           </p>
         )}
