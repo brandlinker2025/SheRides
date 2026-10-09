@@ -5,6 +5,7 @@ import { useState } from "react";
 import { Icon } from "@/components/ui/Icon";
 import { isLocationPermissionDenied, locationErrorMessage, requestRiderLocation } from "@/lib/geolocation";
 import { createClient } from "@/lib/supabase/client";
+import { EmergencyRecipientDetail } from "@/components/safety/EmergencyRecipientDetail";
 
 const benefits = [
   { title: "Ride Log & Achievements", icon: "route", features: ["Total kilometres", "Completed rides", "First Highway Ride", "100 / 500 / 1000 km badges"], href: "/rides", action: "Open rides" },
@@ -124,6 +125,7 @@ export default function RiderBenefitsPage() {
 
   return (
     <main className="max-w-7xl mx-auto px-4 sm:px-6 py-5 sm:py-7">
+      <EmergencyRecipientDetail />
       <section id="live-sos" className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_320px] gap-4 mb-7">
         <div className="rounded-2xl border border-red-500/35 bg-black/15 p-5 sm:p-6 shadow-premium">
           <div className="flex items-start gap-4"><div className="h-16 w-16 rounded-2xl bg-red-600 text-white flex items-center justify-center shrink-0 shadow-lg animate-sos-pulse"><Icon name="sos" size={34} /></div><div className="min-w-0"><h1 className="font-headline-lg text-headline-lg text-on-surface">Send Emergency Alert (SOS)</h1><p className="mt-1 font-body-sm text-secondary max-w-3xl">Choose the problem, add a short note if needed and press the alert button. Your browser will ask for Location Allow. All Admins are notified immediately. Verified riders within 25 km are alerted when location is available.</p></div></div>
