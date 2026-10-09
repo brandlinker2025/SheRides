@@ -26,6 +26,9 @@ jobs:
           node-version: 22
           cache: npm
 
+      - name: Resolve security-patched lockfile
+        run: npm install --package-lock-only --ignore-scripts --no-audit
+
       - name: Install locked dependencies
         run: npm ci --ignore-scripts
 
