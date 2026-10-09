@@ -67,7 +67,7 @@ function needsSafariHomeScreenGuide() {
   return detectPlatform() === "ios" || isSafariBrowser();
 }
 
-const INSTALL_PROMPT_WAIT_MS = 1500;
+const INSTALL_PROMPT_WAIT_MS = 15000;
 
 export function DownloadInstall({ target }: { target: Target }) {
   const [platform, setPlatform] = useState<Platform>("desktop");
@@ -184,7 +184,7 @@ export function DownloadInstall({ target }: { target: Target }) {
         }),
       ]);
     } catch {
-      showIosGuide();
+      setHint("The browser could not open its install prompt. Open the browser menu and choose Install app or Add to Home Screen.");
       return;
     } finally {
       if (timeoutId !== undefined) clearTimeout(timeoutId);
@@ -196,7 +196,7 @@ export function DownloadInstall({ target }: { target: Target }) {
       installEventRef.current = null;
       setInstallEvent(null);
     } catch {
-      showIosGuide();
+      setHint("Installation was not completed. Open your browser menu and choose Install app or Add to Home Screen.");
     }
   };
 
@@ -209,7 +209,8 @@ export function DownloadInstall({ target }: { target: Target }) {
       }
       const event = queuedInstallEvent();
       if (!event) {
-        showIosGuide();
+        setHint("No native install prompt is available. In Chrome or Edge open the browser menu and select Install app or Add to Home Screen.");
+        fallbackRef.current?.scrollIntoView({ block: "nearest", behavior: "smooth" });
         return;
       }
       await promptNativeInstall(event);
