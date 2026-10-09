@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { isEmailIdentifier, normalizeBdPhone } from "@/lib/phone";
 import { siteOrigin } from "@/lib/site";
@@ -12,7 +12,6 @@ import { AuthScene, authFieldClass } from "./AuthScene";
 import { DustumiSubmitButton } from "./DustumiSubmitButton";
 import { usePandaForm } from "./usePandaForm";
 
-const REMEMBER_KEY = "sherides-remember-email";
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function translateAuthError(message: string, member: boolean): string {
@@ -49,40 +48,6 @@ export function LoginPanel({ admin = false }: { admin?: boolean }) {
   const identifierValid = admin
     ? EMAIL_PATTERN.test(identifier.trim())
     : Boolean(normalizeBdPhone(identifier));
-
-  useEffect(() => {
-    try {
-      const saved = window.localStorage.getItem(REMEMBER_KEY);
-      if (!saved) return;
-      if (admin) {
-        setIdentifier(saved);
-        setRememberMe(true);
-        return;
-      }
-      if (normalizeBdPhone(saved)) {
-        setIdentifier(saved);
-        setRememberMe(true);
-      } else {
-        window.localStorage.removeItem(REMEMBER_KEY);
-      }
-    } catch {
-      /* storage unavailable */
-    }
-  }, [admin]);
-
-  function persistRememberedIdentifier(value: string, remember: boolean) {
-    try {
-      if (admin) {
-        if (remember && value) window.localStorage.setItem(REMEMBER_KEY, value);
-        else window.localStorage.removeItem(REMEMBER_KEY);
-        return;
-      }
-      if (remember && normalizeBdPhone(value)) window.localStorage.setItem(REMEMBER_KEY, value);
-      else window.localStorage.removeItem(REMEMBER_KEY);
-    } catch {
-      /* storage unavailable */
-    }
-  }
 
   function dodge() {
     setDodgeToken((value) => value + 1);
@@ -163,7 +128,6 @@ export function LoginPanel({ admin = false }: { admin?: boolean }) {
         panda.onError();
         return;
       }
-      persistRememberedIdentifier(identifier.trim(), rememberMe);
       panda.onSuccess();
       window.setTimeout(() => {
         router.replace(next);
@@ -186,7 +150,6 @@ export function LoginPanel({ admin = false }: { admin?: boolean }) {
       return;
     }
 
-    persistRememberedIdentifier(identifier.trim(), rememberMe);
     let dest = next;
     const supabase = createClient();
     if (supabase) {
@@ -236,7 +199,7 @@ export function LoginPanel({ admin = false }: { admin?: boolean }) {
                   type={admin ? "email" : "tel"}
                   required={admin}
                   name={admin ? "email" : "mobile"}
-                  autoComplete={admin ? "email" : "tel"}
+                  autoComplete="off"
                   inputMode={admin ? "email" : "tel"}
                   value={identifier}
                   onChange={(event) => {
@@ -296,7 +259,6 @@ export function LoginPanel({ admin = false }: { admin?: boolean }) {
                   onChange={(event) => {
                     const nextValue = event.target.checked;
                     setRememberMe(nextValue);
-                    persistRememberedIdentifier(identifier.trim(), nextValue);
                   }}
                   className="h-4 w-4 rounded border-white/30 bg-black/40 text-[#FF2D78] accent-[#FF2D78]"
                 />
