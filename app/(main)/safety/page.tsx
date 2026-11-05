@@ -121,7 +121,7 @@ export default function SafetyPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <div
-          className={`col-span-1 md:col-span-2 lg:col-span-1 rounded-[20px] p-6 flex items-center gap-6 bg-gradient-to-br from-[#2a0610] via-[#3d0a1a] to-[#14040a] text-white shadow-xl border border-[#ff1818]/30 ${
+          className={`col-span-1 md:col-span-2 lg:col-span-3 rounded-[20px] p-6 sm:p-8 flex items-center gap-6 sm:gap-10 bg-gradient-to-br from-[#2a0610] via-[#3d0a1a] to-[#14040a] text-white shadow-xl border border-[#ff1818]/30 ${
             armed ? "animate-sos-pulse" : ""
           }`}
         >
@@ -145,7 +145,7 @@ export default function SafetyPage() {
               <Icon name="emergency" filled className="text-[#ff4d4d]" />
               <h3 className="font-headline-md text-headline-md font-bold">SOS Alert</h3>
             </div>
-            <p className="font-body-sm text-white/80" role="status" aria-live="assertive">
+            <p className="font-body-md text-white/85 max-w-md" role="status" aria-live="assertive">
               {sosStatus}
             </p>
             {countdown !== null ? (
