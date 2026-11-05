@@ -77,14 +77,14 @@ export function FeedPost({ post, onToggleLike, onToggleSave, onCommented, startO
     <article id={`post-${post.id}`} className="card-surface card-hover p-6 animate-fade-in-up scroll-mt-[88px]">
       <div className="flex justify-between items-start mb-4">
         <div className="flex gap-3 items-center">
-          <Link href={`/profile/${post.author.id}`} className="w-12 h-12 rounded-full overflow-hidden">
+          <Link href={`/profile/${post.author.id}`} className="avatar-ring w-12 h-12 rounded-full overflow-hidden shrink-0">
             <Avatar src={post.author.avatar} alt={post.author.fullName} size={48} className="w-full h-full" />
           </Link>
           <div>
             <div className="flex items-center gap-1">
               <Link
                 href={`/profile/${post.author.id}`}
-                className="font-headline-md text-body-lg font-semibold text-on-surface hover:text-accent-magenta transition-colors"
+                className="font-headline-md text-body-lg font-bold tracking-tight text-on-surface hover:text-accent-magenta transition-colors"
               >
                 {post.author.fullName}
               </Link>

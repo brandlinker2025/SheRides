@@ -131,7 +131,7 @@ export function TopNav() {
           <span className="hidden sm:block text-on-primary font-label-lg text-label-lg truncate max-w-[160px]">
             {user?.fullName || "Rider"}
           </span>
-          <span className="w-10 h-10 rounded-full overflow-hidden border border-white/20 shrink-0">
+          <span className="avatar-ring w-10 h-10 rounded-full overflow-hidden shrink-0">
             <Avatar src={user?.avatar} alt={user?.fullName ?? "Profile"} size={40} className="w-full h-full" />
           </span>
         </Link>

@@ -78,7 +78,7 @@ export function PostComposer({ onPost }: PostComposerProps) {
   return (
     <div className="card-surface p-6 hover:shadow-premium-hover">
       <div className="flex gap-4 items-center">
-        <span className="rounded-full ring-2 ring-accent-magenta/20 shrink-0">
+        <span className="avatar-ring rounded-full overflow-hidden shrink-0">
           <Avatar src={user?.avatar} alt={user?.fullName ?? "You"} size={48} />
         </span>
         <input

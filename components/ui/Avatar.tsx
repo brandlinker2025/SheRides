@@ -15,7 +15,7 @@ export function Avatar({ src, alt = "", size = 40, className = "", initials }: A
   if (!src) {
     return (
       <div
-        className={`rounded-full bg-accent-magenta/15 text-accent-magenta flex items-center justify-center font-label-lg overflow-hidden ${className}`}
+        className={`rounded-full bg-gradient-to-br from-[#ff4d8d] via-accent-magenta to-[#9c27b0] text-white flex items-center justify-center font-bold tracking-wide overflow-hidden shadow-inner ${className}`}
         style={{ ...dimStyle, fontSize: Math.max(12, size * 0.36) }}
         aria-label={alt}
       >

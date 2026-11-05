@@ -238,11 +238,77 @@ html {
 }
 
 @layer components {
+  /* Premium glow card: soft surface + thin pink→purple gradient edge (drawn in ::after so
+     border utilities and full-bleed media inside the card never fight it). */
   .card-surface {
-    @apply bg-surface-container-lowest rounded-xl shadow-premium transition-all duration-300;
+    @apply bg-surface-container-lowest transition-all duration-300;
+    position: relative;
+    border-radius: 20px;
+    box-shadow:
+      0 1px 2px rgba(42, 18, 32, 0.06),
+      0 12px 32px -14px rgba(184, 0, 73, 0.22);
   }
-  .card-hover {
-    @apply hover:shadow-premium-hover hover:-translate-y-1 transition-all duration-300;
+  .card-surface::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(163deg, rgba(255, 77, 141, 0.55) 0%, rgba(255, 138, 61, 0.22) 45%, rgba(156, 39, 176, 0.5) 100%);
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+    opacity: 0.7;
+    transition: opacity 0.3s ease;
+  }
+  .card-hover:hover {
+    transform: translateY(-2px);
+    box-shadow:
+      0 0 0 1px rgba(233, 30, 99, 0.12),
+      0 18px 40px -14px rgba(233, 30, 99, 0.45),
+      0 0 30px 1px rgba(233, 30, 99, 0.16);
+  }
+  .card-hover:hover::after,
+  .card-surface:focus-within::after {
+    opacity: 1;
+  }
+
+  /* Gradient story-style ring around profile pictures. Put on the rounded wrapper. */
+  .avatar-ring {
+    padding: 2px;
+    background-image: linear-gradient(135deg, #ff8a3d 0%, #e91e63 50%, #9c27b0 100%);
+    box-shadow: 0 4px 14px -4px rgba(233, 30, 99, 0.55);
+  }
+  .avatar-ring > img,
+  .avatar-ring > div {
+    border: 2px solid rgb(var(--color-surface-container-lowest));
+    border-radius: 9999px;
+  }
+
+  /* Glassy nav pills used on the panda sidebars (community + admin). */
+  .nav-pill {
+    @apply flex items-center gap-4 px-4 py-3 rounded-xl text-white transition-all duration-200;
+    background-color: rgba(10, 2, 10, 0.62);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.75);
+  }
+  .nav-pill:hover {
+    background-color: rgba(10, 2, 10, 0.78);
+    border-color: rgba(255, 138, 180, 0.35);
+    transform: translateX(2px);
+  }
+  .nav-pill-active {
+    font-weight: 700;
+    color: #fff;
+    border-color: rgba(255, 255, 255, 0.25);
+    background-image: linear-gradient(120deg, rgba(233, 30, 99, 0.95) 0%, rgba(156, 39, 176, 0.9) 100%);
+    box-shadow: 0 10px 24px -10px rgba(233, 30, 99, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  }
+  .nav-pill-active:hover {
+    transform: none;
   }
   .skeleton {
     @apply relative overflow-hidden bg-surface-container-high rounded-lg;
@@ -255,6 +321,43 @@ html {
     );
     background-size: 800px 100%;
   }
+}
+
+/* Premium primary buttons: every magenta CTA across the app gets a glossy gradient,
+   soft glow and press feedback without touching each component. */
+:is(button, a).bg-accent-magenta.text-white,
+.btn-primary {
+  background-image: linear-gradient(135deg, #ff4d8d 0%, #e91e63 48%, #9c27b0 100%);
+  box-shadow:
+    0 8px 20px -8px rgba(233, 30, 99, 0.7),
+    inset 0 1px 0 rgba(255, 255, 255, 0.28);
+  transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
+}
+:is(button, a).bg-accent-magenta.text-white:hover,
+.btn-primary:hover {
+  filter: brightness(1.07) saturate(1.05);
+  transform: translateY(-1px);
+  box-shadow:
+    0 14px 28px -10px rgba(233, 30, 99, 0.85),
+    0 0 22px 0 rgba(233, 30, 99, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.32);
+}
+:is(button, a).bg-accent-magenta.text-white:active,
+.btn-primary:active {
+  transform: translateY(0) scale(0.98);
+}
+:is(button, a).bg-accent-magenta.text-white:disabled,
+.btn-primary:disabled {
+  filter: grayscale(0.35);
+  opacity: 0.6;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Calm, branded focus ring for keyboard users. */
+:is(button, a):focus-visible {
+  outline: 2px solid rgba(233, 30, 99, 0.65);
+  outline-offset: 2px;
 }
 
 @media (prefers-reduced-motion: reduce) {

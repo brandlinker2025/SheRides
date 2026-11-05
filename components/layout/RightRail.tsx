@@ -27,7 +27,7 @@ export function RightRail() {
 
   return (
     <div className="hidden lg:flex flex-col col-span-4 gap-component-gap">
-      <div className="card-surface card-hover p-6 border-t-4 border-accent-magenta">
+      <div className="card-surface card-hover p-6">
         <div className="flex items-center gap-4 mb-4">
           <div className="w-14 h-14 rounded-full bg-accent-magenta/10 flex items-center justify-center text-accent-magenta">
             <Icon name="workspace_premium" filled size={32} />

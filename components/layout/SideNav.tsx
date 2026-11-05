@@ -31,8 +31,8 @@ export function SideNav() {
       <PandaNavBackdrop />
       <div className="relative z-10 px-gutter mb-6">
         {user ? (
-          <Link href="/profile" className="flex items-center gap-4 min-w-0 rounded-lg hover:bg-black/40 transition-colors">
-            <div className="w-12 h-12 rounded-full bg-accent-magenta overflow-hidden shrink-0 border border-white/20">
+          <Link href="/profile" className="flex items-center gap-3 min-w-0 rounded-2xl p-2 -m-2 bg-black/35 backdrop-blur-md border border-white/10 hover:bg-black/50 transition-colors">
+            <div className="avatar-ring w-12 h-12 rounded-full overflow-hidden shrink-0">
               <Avatar src={user.avatar} alt={user.fullName} size={48} className="h-full w-full object-cover" />
             </div>
             <div className="min-w-0">
@@ -55,16 +55,14 @@ export function SideNav() {
         )}
       </div>
 
-      <div className="relative z-10 flex-1 flex flex-col gap-1 overflow-y-auto px-4">
+      <div className="relative z-10 flex-1 flex flex-col gap-1.5 overflow-y-auto hide-scrollbar px-4">
         {items.map((item) => {
           const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
           return (
             <Link
               key={item.href}
               href={item.href}
-              className={`flex items-center gap-4 px-4 py-3 rounded-lg bg-black/90 hover:bg-black transition-all ${
-                active ? "font-bold border-r-4 border-accent-magenta text-pink-200" : "text-white"
-              }`}
+              className={`nav-pill ${active ? "nav-pill-active" : ""}`}
             >
               <Icon name={item.icon} filled={active} />
               <span className="font-label-lg text-label-lg">{item.label}</span>
@@ -77,8 +75,9 @@ export function SideNav() {
         <button
           type="button"
           onClick={() => setCreateOpen(true)}
-          className="w-full bg-accent-magenta text-white font-label-lg text-label-lg py-3 rounded-full hover:bg-primary-container transition-colors shadow-lg"
+          className="w-full bg-accent-magenta text-white font-label-lg text-label-lg py-3.5 rounded-full inline-flex items-center justify-center gap-2"
         >
+          <Icon name="two_wheeler" size={20} />
           Start a Ride
         </button>
       </div>
