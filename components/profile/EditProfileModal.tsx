@@ -23,6 +23,10 @@ export function EditProfileModal({ onClose }: { onClose: () => void }) {
   const [progress, setProgress] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [passwordMsg, setPasswordMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  const [passwordBusy, setPasswordBusy] = useState(false);
   const [positioning, setPositioning] = useState<{ kind: "avatar" | "cover"; file: File } | null>(null);
 
   useEffect(() => {
@@ -41,6 +45,30 @@ export function EditProfileModal({ onClose }: { onClose: () => void }) {
 
   if (!user) return null;
   const rider = user;
+
+  async function changePassword() {
+    setPasswordMsg(null);
+    if (newPassword.length < 6) {
+      setPasswordMsg({ ok: false, text: "Use at least 6 characters." });
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setPasswordMsg({ ok: false, text: "The two passwords do not match." });
+      return;
+    }
+    const supabase = createClient();
+    if (!supabase) return;
+    setPasswordBusy(true);
+    const { error: pwError } = await supabase.auth.updateUser({ password: newPassword });
+    setPasswordBusy(false);
+    if (pwError) {
+      setPasswordMsg({ ok: false, text: pwError.message });
+      return;
+    }
+    setNewPassword("");
+    setConfirmPassword("");
+    setPasswordMsg({ ok: true, text: "Password updated. Use it next time you sign in." });
+  }
 
   async function upload(kind: "avatar" | "cover", file: File) {
     const supabase = createClient();
@@ -114,6 +142,19 @@ export function EditProfileModal({ onClose }: { onClose: () => void }) {
             <span className="mb-1.5 block font-label-lg text-secondary">{user?.hasBirthday ? "Date of birth" : "Add your birthday"}</span>
             <input type="date" value={dateOfBirth} min={dobInputBounds().min} max={dobInputBounds().max} onChange={(e) => setDateOfBirth(e.target.value)} className="w-full bg-soft-off-white border border-surface-border rounded-lg px-4 py-3 focus:outline-none focus:border-accent-magenta focus:ring-2 focus:ring-accent-magenta/20 transition-all duration-300" />
           </label>
+        </div>
+        <div className="mt-6 rounded-xl border border-surface-border p-4">
+          <p className="font-label-lg text-on-surface mb-3 flex items-center gap-2">
+            <Icon name="lock_reset" size={20} className="text-accent-magenta" /> Change password
+          </p>
+          <div className="flex flex-col gap-3">
+            <input type="password" autoComplete="new-password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="New password" className="w-full bg-soft-off-white border border-surface-border rounded-lg px-4 py-3 focus:outline-none focus:border-accent-magenta focus:ring-2 focus:ring-accent-magenta/20" />
+            <input type="password" autoComplete="new-password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Confirm new password" className="w-full bg-soft-off-white border border-surface-border rounded-lg px-4 py-3 focus:outline-none focus:border-accent-magenta focus:ring-2 focus:ring-accent-magenta/20" />
+            <button type="button" disabled={passwordBusy || !newPassword} onClick={() => void changePassword()} className="h-11 rounded-lg border border-accent-magenta text-accent-magenta font-label-lg hover:bg-accent-magenta/10 transition-colors disabled:opacity-50">
+              {passwordBusy ? "Updating..." : "Update password"}
+            </button>
+            {passwordMsg && <p className={`font-body-sm ${passwordMsg.ok ? "text-green-600" : "text-error"}`}>{passwordMsg.text}</p>}
+          </div>
         </div>
         {progress && <p className="mt-3 font-body-sm text-accent-magenta">{progress}</p>}
         {error && <p className="mt-3 font-body-sm text-error">{error}</p>}

@@ -10,6 +10,7 @@ import { createClient } from "@/lib/supabase/client";
 import { Icon } from "@/components/ui/Icon";
 import { AuthScene, authFieldClass } from "./AuthScene";
 import { DustumiSubmitButton } from "./DustumiSubmitButton";
+import { PhoneOtpFields, postAuthJson } from "./PhoneOtpFields";
 import { usePandaForm } from "./usePandaForm";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -44,10 +45,15 @@ export function LoginPanel({ admin = false }: { admin?: boolean }) {
   const [resetMessage, setResetMessage] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [dodgeToken, setDodgeToken] = useState(0);
+  // SMS password reset (members who sign in with a mobile number).
+  const [resetMode, setResetMode] = useState(false);
+  const [codeSent, setCodeSent] = useState(false);
+  const [resetCode, setResetCode] = useState("");
+  const [newPassword, setNewPassword] = useState("");
   const panda = usePandaForm();
   const identifierValid = admin
     ? EMAIL_PATTERN.test(identifier.trim())
-    : Boolean(normalizeBdPhone(identifier));
+    : Boolean(normalizeBdPhone(identifier)) || EMAIL_PATTERN.test(identifier.trim());
 
   function dodge() {
     setDodgeToken((value) => value + 1);
@@ -82,8 +88,15 @@ export function LoginPanel({ admin = false }: { admin?: boolean }) {
       return;
     }
     if (!isEmailIdentifier(identifier)) {
-      setResetMessage("Enter the email on the account to receive a reset link, or sign in with your mobile number and password.");
-      panda.onError();
+      if (!normalizeBdPhone(identifier)) {
+        setResetMessage("Enter a valid mobile number (01XXXXXXXXX) or the email on your account.");
+        panda.onError();
+        return;
+      }
+      setResetMode(true);
+      setCodeSent(false);
+      setResetCode("");
+      setNewPassword("");
       return;
     }
     const supabase = createClient();
@@ -100,8 +113,72 @@ export function LoginPanel({ admin = false }: { admin?: boolean }) {
     else panda.onSuccess();
   }
 
+  function friendlySmsError(message: string) {
+    if (/not configured|not fully configured|cannot update passwords/i.test(message)) {
+      return "SMS reset is not switched on yet. Please ask a SheRides admin to reset your password for you.";
+    }
+    return message;
+  }
+
+  async function sendResetCode() {
+    setError(null);
+    setResetMessage(null);
+    setBusy(true);
+    const message = await postAuthJson("/api/auth/otp/send", { phone: identifier.trim(), purpose: "reset" });
+    setBusy(false);
+    if (message) {
+      setError(friendlySmsError(message));
+      panda.onError();
+      return;
+    }
+    setCodeSent(true);
+    setResetMessage("We sent a 6-digit code to your mobile. It works for 10 minutes.");
+  }
+
+  async function submitNewPassword() {
+    setError(null);
+    setResetMessage(null);
+    if (resetCode.length !== 6) {
+      setError("Enter the 6-digit code from the SMS.");
+      return;
+    }
+    if (newPassword.length < 6) {
+      setError("Use at least 6 characters for your new password.");
+      return;
+    }
+    setBusy(true);
+    const message = await postAuthJson("/api/auth/password", {
+      phone: identifier.trim(),
+      code: resetCode,
+      password: newPassword,
+    });
+    if (message) {
+      setBusy(false);
+      setError(friendlySmsError(message));
+      panda.onError();
+      return;
+    }
+    const signInError = await signIn(identifier.trim(), newPassword);
+    setBusy(false);
+    if (signInError) {
+      setResetMode(false);
+      setPassword("");
+      setResetMessage("Password changed. Please sign in with your new password.");
+      return;
+    }
+    panda.onSuccess();
+    window.setTimeout(() => {
+      router.replace(next);
+      router.refresh();
+    }, 900);
+  }
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (resetMode) {
+      void (codeSent ? submitNewPassword() : sendResetCode());
+      return;
+    }
     setError(null);
     setResetMessage(null);
 
@@ -188,7 +265,7 @@ export function LoginPanel({ admin = false }: { admin?: boolean }) {
         </p>
         <form className="flex flex-col gap-4" onSubmit={(event) => void handleSubmit(event)} noValidate={!admin}>
             <label className="block">
-              <span className="mb-1.5 block text-sm text-white/70">{admin ? "Email" : "Mobile number"}</span>
+              <span className="mb-1.5 block text-sm text-white/70">{admin ? "Email" : "Mobile number or email"}</span>
               <span className="relative block">
                 <Icon
                   name={admin ? "mail" : "smartphone"}
@@ -196,11 +273,11 @@ export function LoginPanel({ admin = false }: { admin?: boolean }) {
                   className="absolute left-3 top-1/2 -translate-y-1/2 text-white/45"
                 />
                 <input
-                  type={admin ? "email" : "tel"}
+                  type={admin ? "email" : "text"}
                   required={admin}
                   name={admin ? "email" : "mobile"}
                   autoComplete="off"
-                  inputMode={admin ? "email" : "tel"}
+                  inputMode={admin ? "email" : "text"}
                   value={identifier}
                   onChange={(event) => {
                     setIdentifier(event.target.value);
@@ -208,7 +285,7 @@ export function LoginPanel({ admin = false }: { admin?: boolean }) {
                   }}
                   onFocus={panda.onTextFocus}
                   onBlur={panda.onBlur}
-                  placeholder={admin ? "Admin email" : "01XXXXXXXXX"}
+                  placeholder={admin ? "Admin email" : "01XXXXXXXXX or email"}
                   className={`${authFieldClass} pl-11 ${identifierValid ? "pr-11" : ""}`}
                 />
                 {identifierValid ? (
@@ -221,7 +298,72 @@ export function LoginPanel({ admin = false }: { admin?: boolean }) {
                 ) : null}
               </span>
             </label>
-            <label className="relative block">
+            {resetMode ? (
+              <div className="flex flex-col gap-4 rounded-2xl border border-[#FF2D78]/30 bg-black/30 p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="font-label-lg text-white">Reset password with SMS</p>
+                    <p className="text-xs text-white/60">A code will be sent to {identifier.trim() || "your mobile"}.</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setResetMode(false);
+                      setError(null);
+                      setResetMessage(null);
+                    }}
+                    className="text-white/60 hover:text-white"
+                    aria-label="Back to sign in"
+                  >
+                    <Icon name="close" size={20} />
+                  </button>
+                </div>
+                {codeSent ? (
+                  <>
+                    <PhoneOtpFields code={resetCode} onCodeChange={setResetCode} disabled={busy} />
+                    <label className="relative block">
+                      <Icon name="lock_reset" size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/45" />
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        autoComplete="new-password"
+                        value={newPassword}
+                        onChange={(event) => setNewPassword(event.target.value)}
+                        placeholder="New password (min 6 characters)"
+                        className={`${authFieldClass} pl-11`}
+                      />
+                    </label>
+                    <button
+                      type="button"
+                      disabled={busy}
+                      onClick={() => void submitNewPassword()}
+                      className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-accent-magenta text-white font-label-lg disabled:opacity-60"
+                    >
+                      <Icon name="key" size={20} />
+                      {busy ? "Saving..." : "Save new password & sign in"}
+                    </button>
+                    <button
+                      type="button"
+                      disabled={busy}
+                      onClick={() => void sendResetCode()}
+                      className="text-sm text-[#FF2D78] hover:underline disabled:opacity-60"
+                    >
+                      Didn&apos;t get it? Send a new code
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    type="button"
+                    disabled={busy || !normalizeBdPhone(identifier)}
+                    onClick={() => void sendResetCode()}
+                    className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-accent-magenta text-white font-label-lg disabled:opacity-60"
+                  >
+                    <Icon name="sms" size={20} />
+                    {busy ? "Sending..." : "Send code by SMS"}
+                  </button>
+                )}
+              </div>
+            ) : null}
+            <label className={`relative block ${resetMode ? "hidden" : ""}`}>
               <Icon name="lock" size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/45" />
               <input
                 type={showPassword ? "text" : "password"}
@@ -251,7 +393,7 @@ export function LoginPanel({ admin = false }: { admin?: boolean }) {
                 <Icon name={showPassword ? "visibility_off" : "visibility"} size={20} />
               </button>
             </label>
-            <div className="flex items-center justify-between gap-3 -mt-1">
+            <div className={`flex items-center justify-between gap-3 -mt-1 ${resetMode ? "hidden" : ""}`}>
               <label className="inline-flex items-center gap-2 text-sm text-white/70">
                 <input
                   type="checkbox"
@@ -278,7 +420,7 @@ export function LoginPanel({ admin = false }: { admin?: boolean }) {
                 {error}
               </p>
             )}
-            {admin ? (
+            {resetMode ? null : admin ? (
               <button
                 type="submit"
                 disabled={busy}
