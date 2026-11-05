@@ -20,6 +20,7 @@ export function RightRail() {
     void supabase
       .from("events")
       .select("id, title, location, starts_at, attending_count")
+      .gte("starts_at", new Date().toISOString())
       .order("starts_at", { ascending: true })
       .limit(3)
       .then(({ data }) => setEvents((data ?? []) as RailEvent[]));
@@ -57,7 +58,7 @@ export function RightRail() {
           </Link>
         </div>
         <div className="flex flex-col gap-4">
-          {events.length === 0 && <p className="font-body-sm text-tertiary">No events yet.</p>}
+          {events.length === 0 && <p className="font-body-sm text-tertiary">No upcoming events yet.</p>}
           {events.map((event) => {
             const date = new Date(event.starts_at);
             return (
@@ -66,7 +67,7 @@ export function RightRail() {
                   <span className="block font-label-caps text-label-caps text-accent-magenta group-hover:text-white">
                     {date.toLocaleString(undefined, { month: "short" }).toUpperCase()}
                   </span>
-                  <span className="block font-headline-md text-[20px] font-bold">{date.getDate()}</span>
+                  <span className="block font-headline-md text-[20px] font-bold text-on-surface group-hover:text-white">{date.getDate()}</span>
                 </div>
                 <div>
                   <h4 className="font-label-lg text-label-lg text-on-surface group-hover:text-accent-magenta transition-colors">

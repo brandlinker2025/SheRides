@@ -36,6 +36,7 @@ export default function ExplorePage() {
     void supabase
       .from("events")
       .select("id, title, location, starts_at")
+      .gte("starts_at", new Date().toISOString())
       .order("starts_at", { ascending: true })
       .limit(3)
       .then(({ data }) => setEvents((data ?? []) as EventPreview[]));

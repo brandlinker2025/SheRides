@@ -27,6 +27,7 @@ export default function RidesPage() {
       .from("events")
       .select("*")
       .in("kind", ["Ride", "Tour", "Meetup"])
+      .gte("starts_at", new Date().toISOString())
       .order("starts_at", { ascending: true })
       .then(({ data }) => setRides((data ?? []) as RideRow[]));
   }, []);

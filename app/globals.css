@@ -326,7 +326,7 @@ html {
 
 /* Premium primary buttons: every magenta CTA across the app gets a glossy gradient,
    soft glow and press feedback without touching each component. */
-:is(button, a).bg-accent-magenta.text-white,
+:is(button, a).bg-accent-magenta:is(.text-white, .text-on-primary),
 .btn-primary {
   background-image: linear-gradient(135deg, #ff4d8d 0%, #e91e63 48%, #9c27b0 100%);
   box-shadow:
@@ -334,7 +334,7 @@ html {
     inset 0 1px 0 rgba(255, 255, 255, 0.28);
   transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
 }
-:is(button, a).bg-accent-magenta.text-white:hover,
+:is(button, a).bg-accent-magenta:is(.text-white, .text-on-primary):hover,
 .btn-primary:hover {
   filter: brightness(1.07) saturate(1.05);
   transform: translateY(-1px);
@@ -343,11 +343,11 @@ html {
     0 0 22px 0 rgba(233, 30, 99, 0.25),
     inset 0 1px 0 rgba(255, 255, 255, 0.32);
 }
-:is(button, a).bg-accent-magenta.text-white:active,
+:is(button, a).bg-accent-magenta:is(.text-white, .text-on-primary):active,
 .btn-primary:active {
   transform: translateY(0) scale(0.98);
 }
-:is(button, a).bg-accent-magenta.text-white:disabled,
+:is(button, a).bg-accent-magenta:is(.text-white, .text-on-primary):disabled,
 .btn-primary:disabled {
   filter: grayscale(0.35);
   opacity: 0.6;
