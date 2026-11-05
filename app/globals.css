@@ -288,7 +288,8 @@ html {
 
   /* Glassy nav pills used on the panda sidebars (community + admin). */
   .nav-pill {
-    @apply flex items-center gap-4 px-4 py-3 rounded-xl text-white transition-all duration-200;
+    @apply flex items-center gap-4 px-4 py-3 rounded-xl transition-all duration-200;
+    color: #fff;
     background-color: rgba(10, 2, 10, 0.62);
     border: 1px solid rgba(255, 255, 255, 0.08);
     backdrop-filter: blur(10px);
