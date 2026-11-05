@@ -115,8 +115,13 @@ export function useInboxNotifications() {
   useEffect(() => {
     const supabase = createClient();
     if (!supabase || !userId) return;
+    // The bell and the Notifications page both use this hook at the same time. Supabase
+    // returns the already-subscribed channel for a repeated name, and adding listeners to
+    // it throws ("cannot add postgres_changes callbacks after subscribe()"), which crashed
+    // the whole page. A unique name per hook instance keeps the two subscriptions apart.
+    const instance = Math.random().toString(36).slice(2, 10);
     const channel = supabase
-      .channel(`notifications-inbox:${userId}`)
+      .channel(`notifications-inbox:${userId}:${instance}`)
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "notifications", filter: `user_id=eq.${userId}` },
