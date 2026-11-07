@@ -77,6 +77,8 @@ export function DownloadInstall({ target }: { target: Target }) {
   const [hint, setHint] = useState<string | null>(null);
   const [justInstalled, setJustInstalled] = useState(false);
   const [safari, setSafari] = useState(true);
+  // Facebook / Messenger / Instagram / WhatsApp in-app browsers cannot install web apps.
+  const [inApp, setInApp] = useState(false);
   const [iosGuideOpen, setIosGuideOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const fallbackRef = useRef<HTMLElement>(null);
@@ -86,6 +88,7 @@ export function DownloadInstall({ target }: { target: Target }) {
     setPlatform(detectPlatform());
     setStandalone(isStandaloneDisplay());
     setSafari(isSafariBrowser());
+    setInApp(/FBAN|FBAV|FB_IAB|Messenger|Instagram|Line\/|WhatsApp/i.test(navigator.userAgent));
 
     const queued = (window as Window & { __sheridesBIP?: BeforeInstallPromptEvent }).__sheridesBIP;
     if (queued) {
@@ -232,6 +235,26 @@ export function DownloadInstall({ target }: { target: Target }) {
         Install SheRides on a PC, laptop, Android phone, or iPhone. No App Store, Play Store, or extra package —
         this is a Home Screen / desktop web app.
       </p>
+
+      {inApp && (
+        <div className="mb-6 rounded-xl border-2 border-accent-magenta bg-accent-magenta/10 p-4 font-body-sm" role="alert">
+          <p className="font-label-lg mb-1">You opened this inside Facebook, Messenger or Instagram</p>
+          <p>
+            Install does not work here. Tap the <strong>⋯</strong> (three dots) at the top right and choose{" "}
+            <strong>{platform === "ios" ? "Open in Safari" : "Open in Chrome / Open in browser"}</strong>, then tap Install.
+          </p>
+          <button
+            type="button"
+            onClick={() => {
+              void navigator.clipboard?.writeText(window.location.href);
+              setHint("Link copied. Paste it into Chrome or Safari.");
+            }}
+            className="mt-3 h-10 px-4 rounded-full border border-accent-magenta text-accent-magenta font-label-lg"
+          >
+            Copy link
+          </button>
+        </div>
+      )}
 
       <div className="mb-8 grid gap-4 sm:max-w-md">
         {TARGETS.map((item) => {
