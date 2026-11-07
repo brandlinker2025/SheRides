@@ -185,7 +185,7 @@ function ApplyForm() {
         )}
 
         <label className="card-surface p-5 flex items-start gap-3 cursor-pointer">
-          <input type="checkbox" checked={declared} onChange={(e) => setDeclared(e.target.checked)} className="mt-1 h-5 w-5 accent-[#E91E63]" />
+          <input type="checkbox" checked={declared} onChange={(e) => setDeclared(e.target.checked)} className="mt-1 h-5 w-5 accent-[#6c5ce7]" />
           <span className="font-body-sm">
             I confirm I am a woman and these documents are mine. I understand that a false application, or letting anyone else use my account,
             means a permanent ban from SheRides and may be reported to the police.

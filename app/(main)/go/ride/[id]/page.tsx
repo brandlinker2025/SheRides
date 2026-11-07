@@ -178,7 +178,7 @@ export default function GoRidePage() {
     <div className="w-full max-w-xl mx-auto px-container-margin-mobile lg:px-0 py-8 flex flex-col gap-5">
       <BackLink href={isRider ? "/go?tab=rider" : "/go"} label="Book a Ride" />
 
-      <header className="rounded-[24px] p-6 text-white bg-gradient-to-br from-[#4a1530] via-[#a3195b] to-[#c45c2a] shadow-xl">
+      <header className="rounded-[24px] p-6 text-white bg-gradient-to-br from-[#14163a] via-[#4c45c4] to-[#16708a] shadow-xl">
         <p className="font-label-caps text-label-caps opacity-80">{KIND_LABEL[ride.kind].toUpperCase()} · {ride.kind === "now" ? "NOW" : formatWhen(ride.scheduled_at)}</p>
         <h1 className="font-display-lg text-[30px] font-bold leading-tight mt-1 flex items-center gap-2">
           {ride.status === "requested" && <span className="w-3 h-3 rounded-full bg-white animate-pulse" />}

@@ -55,7 +55,7 @@ export function StoriesRow() {
       {stories.map((story) => (
         <div key={story.id} className="flex flex-col items-center gap-2 snap-start flex-shrink-0 group cursor-pointer">
           <div className="relative w-16 h-16 transition-transform duration-300 group-hover:scale-105">
-            <div className="absolute inset-0 rounded-full bg-[conic-gradient(from_0deg,#E91E63,#e2165f,#ffb2be,#E91E63)] animate-ring-spin-slow" />
+            <div className="absolute inset-0 rounded-full bg-[conic-gradient(from_0deg,#6c5ce7,#5b4bdb,#c7bfff,#6c5ce7)] animate-ring-spin-slow" />
             <div className="absolute inset-[2px] rounded-full border-2 border-surface-container-lowest overflow-hidden bg-surface-container-lowest">
               <Avatar src={story.avatar} alt={story.name} size={60} className="w-full h-full" />
             </div>

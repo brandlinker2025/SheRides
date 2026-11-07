@@ -34,7 +34,7 @@ function ApplyCard({ role, app }: { role: GoRole; app: GoApplication | undefined
   return (
     <div className="card-surface p-6 flex flex-col gap-3">
       <div className="flex items-center gap-3">
-        <span className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#ff4d8d] to-[#9c27b0] text-white flex items-center justify-center">
+        <span className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#8b7cf8] to-[#14b8c4] text-white flex items-center justify-center">
           <Icon name={rider ? "sports_motorsports" : "hail"} filled />
         </span>
         <div className="flex-1">
@@ -147,7 +147,7 @@ function GoHub() {
 
   return (
     <div className="w-full max-w-3xl mx-auto px-container-margin-mobile lg:px-0 py-10 flex flex-col gap-6">
-      <header className="rounded-[24px] p-6 sm:p-8 text-white bg-gradient-to-br from-[#4a1530] via-[#a3195b] to-[#c45c2a] shadow-xl relative overflow-hidden">
+      <header className="rounded-[24px] p-6 sm:p-8 text-white bg-gradient-to-br from-[#14163a] via-[#4c45c4] to-[#16708a] shadow-xl relative overflow-hidden">
         <Icon name="two_wheeler" className="absolute -right-4 -bottom-6 text-[160px] opacity-10" />
         <p className="font-label-caps text-label-caps opacity-80">RIDE BOOKING · WOMEN ONLY · VERIFIED</p>
         <h1 className="font-display-lg text-[36px] sm:text-[44px] leading-tight font-bold mt-1">SheRides</h1>

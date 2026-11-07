@@ -40,9 +40,9 @@ function SignupForm() {
         panda.mood === "idle" ? "Hey Rider! ♥ Create your account and join the ride!" : undefined
       }
     >
-      <div className="w-full rounded-[28px] border border-[#FF2D78]/50 bg-[rgba(12,10,14,0.82)] p-6 shadow-[0_20px_50px_rgba(0,0,0,0.35),0_0_0_1px_rgba(255,45,120,0.12)] backdrop-blur-xl sm:p-8">
+      <div className="w-full rounded-[28px] border border-[#6c5ce7]/50 bg-[rgba(12,10,14,0.82)] p-6 shadow-[0_20px_50px_rgba(0,0,0,0.35),0_0_0_1px_rgba(108,92,231,0.12)] backdrop-blur-xl sm:p-8">
         <h1
-          className="mb-1 text-[34px] leading-none text-[#FF2D78] sm:text-[42px]"
+          className="mb-1 text-[34px] leading-none text-[#6c5ce7] sm:text-[42px]"
           style={{ fontFamily: "var(--font-butterpop), Georgia, serif" }}
         >
           Join Community
@@ -178,7 +178,7 @@ function SignupForm() {
                   return nextValue;
                 });
               }}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-white/55 transition-colors hover:text-[#FF2D78]"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-white/55 transition-colors hover:text-[#6c5ce7]"
               aria-label={showPassword ? "Hide password" : "Show password"}
             >
               <Icon name={showPassword ? "visibility_off" : "visibility"} size={20} />
@@ -206,7 +206,7 @@ function SignupForm() {
         </form>
         <p className="mt-6 text-sm text-white/70">
           Already a member?{" "}
-          <Link href="/login" className="font-label-lg text-[#FF2D78]">
+          <Link href="/login" className="font-label-lg text-[#6c5ce7]">
             Sign In
           </Link>
         </p>
