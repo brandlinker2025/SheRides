@@ -118,7 +118,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     async signIn(identifier, password) {
       const supabase = createClient(); if (!supabase) return "Supabase is not configured.";
       const parsed = parseMemberIdentifier(identifier); if (!parsed) return "Enter a Bangladesh mobile number or your email.";
-      const { error } = await supabase.auth.signInWithPassword({ email: authEmailForIdentifier(parsed), password }); return error?.message ?? null;
+      const { error } = await supabase.auth.signInWithPassword({ email: authEmailForIdentifier(parsed), password });
+      if (!error || parsed.kind !== "phone" || !/invalid login credentials/i.test(error.message)) return error?.message ?? null;
+      // Members who linked a real email (for free password reset) log in with that address now.
+      const { data: linkedEmail, error: lookupError } = await supabase.rpc("member_login_email", { p_phone: parsed.value, p_password: password });
+      if (lookupError) return /too many/i.test(lookupError.message) ? lookupError.message : error.message;
+      if (typeof linkedEmail !== "string" || !linkedEmail) return error.message;
+      const retry = await supabase.auth.signInWithPassword({ email: linkedEmail, password });
+      return retry.error?.message ?? null;
     },
     async signUp(fullName, phoneInput, password, dateOfBirth) {
       const supabase = createClient(); if (!supabase) return "Supabase is not configured.";

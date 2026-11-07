@@ -5,6 +5,8 @@ import { bangladeshCities } from "@/lib/data";
 import { bikeBrandNames } from "@/lib/bikes";
 import { dobInputBounds } from "@/lib/birthday";
 import { createClient } from "@/lib/supabase/client";
+import { isPhoneAuthEmail } from "@/lib/phone";
+import { siteOrigin } from "@/lib/site";
 import { uploadPublicImage } from "@/lib/storage";
 import { useAuth } from "@/lib/auth-context";
 import { Avatar } from "../ui/Avatar";
@@ -24,6 +26,10 @@ export function EditProfileModal({ onClose }: { onClose: () => void }) {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [newPassword, setNewPassword] = useState("");
+  const [linkedEmail, setLinkedEmail] = useState<string | null>(null);
+  const [recoveryEmail, setRecoveryEmail] = useState("");
+  const [emailBusy, setEmailBusy] = useState(false);
+  const [emailMsg, setEmailMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const [confirmPassword, setConfirmPassword] = useState("");
   const [passwordMsg, setPasswordMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const [passwordBusy, setPasswordBusy] = useState(false);
@@ -43,8 +49,47 @@ export function EditProfileModal({ onClose }: { onClose: () => void }) {
       });
   }, [user]);
 
+  useEffect(() => {
+    const supabase = createClient();
+    if (!supabase) return;
+    void supabase.auth.getUser().then(({ data }) => {
+      const email = data.user?.email ?? "";
+      setLinkedEmail(email && !isPhoneAuthEmail(email) ? email : null);
+      const pending = data.user?.new_email ?? "";
+      if (pending) setEmailMsg({ ok: true, text: `Waiting for you to open the link sent to ${pending}.` });
+    });
+  }, []);
+
   if (!user) return null;
   const rider = user;
+
+  async function linkRecoveryEmail() {
+    setEmailMsg(null);
+    const email = recoveryEmail.trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setEmailMsg({ ok: false, text: "Enter a valid email address." });
+      return;
+    }
+    const supabase = createClient();
+    if (!supabase) return;
+    setEmailBusy(true);
+    const { error: emailError } = await supabase.auth.updateUser(
+      { email },
+      { emailRedirectTo: `${siteOrigin()}/auth/callback?next=email` }
+    );
+    setEmailBusy(false);
+    if (emailError) {
+      const text = /already|registered|exists/i.test(emailError.message)
+        ? "This email is already used by another SheRides account."
+        : /rate limit/i.test(emailError.message)
+          ? "Too many emails right now. Please try again in an hour."
+          : emailError.message;
+      setEmailMsg({ ok: false, text });
+      return;
+    }
+    setRecoveryEmail("");
+    setEmailMsg({ ok: true, text: `Verification link sent to ${email}. Open it to finish (check Spam too).` });
+  }
 
   async function changePassword() {
     setPasswordMsg(null);
@@ -142,6 +187,24 @@ export function EditProfileModal({ onClose }: { onClose: () => void }) {
             <span className="mb-1.5 block font-label-lg text-secondary">{user?.hasBirthday ? "Date of birth" : "Add your birthday"}</span>
             <input type="date" value={dateOfBirth} min={dobInputBounds().min} max={dobInputBounds().max} onChange={(e) => setDateOfBirth(e.target.value)} className="w-full bg-soft-off-white border border-surface-border rounded-lg px-4 py-3 focus:outline-none focus:border-accent-magenta focus:ring-2 focus:ring-accent-magenta/20 transition-all duration-300" />
           </label>
+        </div>
+        <div className="mt-6 rounded-xl border border-surface-border p-4">
+          <p className="font-label-lg text-on-surface mb-1 flex items-center gap-2">
+            <Icon name="mail" size={20} className="text-accent-magenta" /> Recovery email
+          </p>
+          <p className="font-body-sm text-secondary mb-3">
+            {linkedEmail
+              ? `Linked: ${linkedEmail}. Forgot your password? Type this email on the login page — the reset link is free.`
+              : "Add your email so you can reset a forgotten password for free. You will still log in with your mobile number."}
+          </p>
+          <div className="flex flex-col gap-3">
+            <label className="sr-only" htmlFor="recovery-email">Recovery email</label>
+            <input id="recovery-email" type="email" autoComplete="email" inputMode="email" value={recoveryEmail} onChange={(e) => setRecoveryEmail(e.target.value)} placeholder={linkedEmail ? "Change to another email" : "you@example.com"} className="w-full bg-soft-off-white border border-surface-border rounded-lg px-4 py-3 focus:outline-none focus:border-accent-magenta focus:ring-2 focus:ring-accent-magenta/20" />
+            <button type="button" disabled={emailBusy || !recoveryEmail.trim()} onClick={() => void linkRecoveryEmail()} className="h-11 rounded-lg border border-accent-magenta text-accent-magenta font-label-lg hover:bg-accent-magenta/10 transition-colors disabled:opacity-50">
+              {emailBusy ? "Sending..." : "Send verification link"}
+            </button>
+            {emailMsg && <p className={`font-body-sm ${emailMsg.ok ? "text-green-600" : "text-error"}`} role="status">{emailMsg.text}</p>}
+          </div>
         </div>
         <div className="mt-6 rounded-xl border border-surface-border p-4">
           <p className="font-label-lg text-on-surface mb-3 flex items-center gap-2">

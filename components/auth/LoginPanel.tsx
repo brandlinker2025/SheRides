@@ -70,7 +70,7 @@ export function LoginPanel({ admin = false }: { admin?: boolean }) {
     const supabase = createClient();
     if (!supabase) return;
     const { error: resetError } = await supabase.auth.resetPasswordForEmail(identifier.trim(), {
-      redirectTo: `${siteOrigin()}/admin-login`,
+      redirectTo: `${siteOrigin()}/auth/callback?next=reset`,
     });
     setResetMessage(
       resetError ? translateAuthError(resetError.message, false) : "A password reset link has been sent to your email."
@@ -103,7 +103,7 @@ export function LoginPanel({ admin = false }: { admin?: boolean }) {
     if (!supabase) return;
     setBusy(true);
     const { error: resetError } = await supabase.auth.resetPasswordForEmail(identifier.trim(), {
-      redirectTo: `${siteOrigin()}/login`,
+      redirectTo: `${siteOrigin()}/auth/callback?next=reset`,
     });
     setBusy(false);
     setResetMessage(
@@ -304,6 +304,9 @@ export function LoginPanel({ admin = false }: { admin?: boolean }) {
                   <div>
                     <p className="font-label-lg text-white">Reset password with SMS</p>
                     <p className="text-xs text-white/60">A code will be sent to {identifier.trim() || "your mobile"}.</p>
+                    <p className="mt-1 text-xs text-[#2ee6c5]">
+                      Free option: if you linked an email in Edit profile, close this, type that email instead of your number and tap Forgot password.
+                    </p>
                   </div>
                   <button
                     type="button"

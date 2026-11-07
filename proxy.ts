@@ -10,6 +10,7 @@ const PUBLIC_PATHS = new Set([
   "/admin-login",
   "/signup",
   "/download",
+  "/auth/callback",
   "/api/keep-alive",
   "/api/cron/birthday-wishes",
 ]);
