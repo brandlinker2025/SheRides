@@ -16,6 +16,7 @@ const nav = [
   { href: "/admin/posts", label: "Posts", icon: "article" },
   { href: "/admin/events", label: "Events", icon: "event" },
   { href: "/admin/verifications", label: "Verifications", icon: "verified_user" },
+  { href: "/admin/go", label: "SheRides Go", icon: "two_wheeler" },
 ];
 
 export function AdminShell({
