@@ -140,13 +140,13 @@ function ApplyForm() {
 
   return (
     <div className="w-full max-w-2xl mx-auto px-container-margin-mobile lg:px-0 py-10">
-      <BackLink href="/go" label="SheRides Go" className="mb-4" />
+      <BackLink href="/go" label="Book a Ride" className="mb-4" />
       <p className="font-label-caps text-label-caps text-accent-magenta mb-2">WOMEN-ONLY VERIFICATION</p>
       <h1 className="font-headline-xl text-headline-xl mb-2">
-        {role === "rider" ? "Become a SheRides Go rider" : "Get verified to book rides"}
+        {role === "rider" ? "Become a SheRides rider" : "Get verified to book rides"}
       </h1>
       <p className="font-body-md text-secondary mb-8">
-        SheRides Go is only for women. An admin checks your face, name and NID by hand before you can{" "}
+        SheRides rides are only for women. An admin checks your face, name and NID by hand before you can{" "}
         {role === "rider" ? "carry passengers" : "book a ride"}. Your documents are stored privately and only admins can see them.
       </p>
 

@@ -146,7 +146,7 @@ export async function uploadGoDocument(supabase: SupabaseClient, userId: string,
 export function goErrorMessage(error: unknown) {
   const message = error && typeof error === "object" && "message" in error ? String((error as { message: string }).message) : "";
   if (/go_applications|go_rides|go_request_ride|go_submit_application|function .* does not exist|relation .* does not exist/i.test(message)) {
-    return "SheRides Go is still being set up. Please try again later.";
+    return "Ride booking is still being set up. Please try again later.";
   }
   return message || "Something went wrong. Please try again.";
 }

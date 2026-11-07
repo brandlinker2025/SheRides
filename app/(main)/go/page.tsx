@@ -149,8 +149,8 @@ function GoHub() {
     <div className="w-full max-w-3xl mx-auto px-container-margin-mobile lg:px-0 py-10 flex flex-col gap-6">
       <header className="rounded-[24px] p-6 sm:p-8 text-white bg-gradient-to-br from-[#4a1530] via-[#a3195b] to-[#c45c2a] shadow-xl relative overflow-hidden">
         <Icon name="two_wheeler" className="absolute -right-4 -bottom-6 text-[160px] opacity-10" />
-        <p className="font-label-caps text-label-caps opacity-80">WOMEN ONLY · VERIFIED · SAFE</p>
-        <h1 className="font-display-lg text-[36px] sm:text-[44px] leading-tight font-bold mt-1">SheRides Go</h1>
+        <p className="font-label-caps text-label-caps opacity-80">RIDE BOOKING · WOMEN ONLY · VERIFIED</p>
+        <h1 className="font-display-lg text-[36px] sm:text-[44px] leading-tight font-bold mt-1">SheRides</h1>
         <p className="font-body-md opacity-90 max-w-md mt-1">
           Rides by women, for women. Every rider and passenger is checked by an admin. Ride now, pre-book, or hire for hours.
         </p>

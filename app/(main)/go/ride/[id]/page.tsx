@@ -132,7 +132,7 @@ export default function GoRidePage() {
     if (!supabase) return;
     const { error } = await supabase.rpc("submit_emergency_alert", {
       p_problem_type: "harassment",
-      p_note: `SheRides Go ride ${ride.id.slice(0, 8)} — ${ride.pickup_text} → ${ride.drop_text ?? "hire"}`,
+      p_note: `SheRides ride ${ride.id.slice(0, 8)} — ${ride.pickup_text} → ${ride.drop_text ?? "hire"}`,
       p_latitude: lat,
       p_longitude: lng,
     });
@@ -142,10 +142,10 @@ export default function GoRidePage() {
   async function shareTrip() {
     if (!secret) return;
     const url = `${window.location.origin}/track/${secret.share_token}`;
-    const text = "Follow my SheRides Go ride live:";
+    const text = "Follow my SheRides ride live:";
     try {
       if (navigator.share) {
-        await navigator.share({ title: "My SheRides Go ride", text, url });
+        await navigator.share({ title: "My SheRides ride", text, url });
         return;
       }
       await navigator.clipboard.writeText(url);
@@ -158,7 +158,7 @@ export default function GoRidePage() {
   if (loadError) {
     return (
       <div className="max-w-xl mx-auto px-container-margin-mobile py-10">
-        <BackLink href="/go" label="SheRides Go" className="mb-4" />
+        <BackLink href="/go" label="Book a Ride" className="mb-4" />
         <p className="card-surface p-6 font-body-sm text-error">{loadError}</p>
       </div>
     );
@@ -176,7 +176,7 @@ export default function GoRidePage() {
 
   return (
     <div className="w-full max-w-xl mx-auto px-container-margin-mobile lg:px-0 py-8 flex flex-col gap-5">
-      <BackLink href={isRider ? "/go?tab=rider" : "/go"} label="SheRides Go" />
+      <BackLink href={isRider ? "/go?tab=rider" : "/go"} label="Book a Ride" />
 
       <header className="rounded-[24px] p-6 text-white bg-gradient-to-br from-[#4a1530] via-[#a3195b] to-[#c45c2a] shadow-xl">
         <p className="font-label-caps text-label-caps opacity-80">{KIND_LABEL[ride.kind].toUpperCase()} · {ride.kind === "now" ? "NOW" : formatWhen(ride.scheduled_at)}</p>

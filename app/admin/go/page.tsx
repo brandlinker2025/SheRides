@@ -73,13 +73,13 @@ export default async function AdminGoPage() {
   return (
     <div>
       <BackLink href="/admin" label="Dashboard" className="mb-3" />
-      <h1 className="font-headline-xl text-headline-xl mb-2">SheRides Go</h1>
+      <h1 className="font-headline-xl text-headline-xl mb-2">Ride Booking</h1>
       <p className="font-body-lg text-secondary mb-8">
         Check every face, name and NID by hand. Approve only when the selfie clearly matches the NID and the person is a woman.
       </p>
       {setupMissing ? (
         <p className="card-surface p-6 font-body-sm text-error">
-          SheRides Go database tables are not installed yet. Run the SheRides Go SQL in Supabase first.
+          Ride booking database tables are not installed yet. Run the ride booking SQL in Supabase first.
           {appError ? ` (${appError.message})` : ""}
         </p>
       ) : (

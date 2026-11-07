@@ -59,7 +59,7 @@ export function BottomNav() {
         />
         <span className="font-label-caps text-label-caps">Messages</span>
       </Link>
-      <div className="relative">{item("/go", "two_wheeler", "Go")}</div>
+      <div className="relative">{item("/go", "two_wheeler", "Ride")}</div>
     </nav>
   );
 }

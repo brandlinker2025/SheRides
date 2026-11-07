@@ -61,7 +61,7 @@ export default function TrackTripPage() {
         {state === "ok" && trip && (
           <>
             <div>
-              <p className="font-label-caps text-label-caps text-accent-magenta">LIVE TRIP · SHERIDES GO</p>
+              <p className="font-label-caps text-label-caps text-accent-magenta">LIVE TRIP · SHERIDES</p>
               <h1 className="font-headline-xl text-[28px] font-bold flex items-center gap-2">
                 {trip.status !== "completed" && trip.status !== "cancelled" && <span className="w-3 h-3 rounded-full bg-accent-magenta animate-pulse" />}
                 {RIDE_STATUS_LABEL[trip.status]}

@@ -1,4 +1,4 @@
--- SheRides Go: women-only ride booking (instant, pre-book, hire) inside SheRides.
+-- SheRides ride: women-only ride booking (instant, pre-book, hire) inside SheRides.
 --
 -- Security model
 --   * Only admin-approved SheRides members can use Go at all.
@@ -237,7 +237,7 @@ begin
   end if;
   if p_role not in ('passenger', 'rider') then raise exception 'Invalid role'; end if;
   if coalesce(p_declared_female, false) is not true then
-    raise exception 'SheRides Go is for women only';
+    raise exception 'SheRides rides are for women only';
   end if;
 
   -- Every document must be inside the applicant's own private folder.
@@ -255,7 +255,7 @@ begin
     raise exception 'You already have a % application (%).', p_role, existing.status;
   end if;
   if found and existing.status = 'suspended' then
-    raise exception 'This account is suspended from SheRides Go. Contact an admin.';
+    raise exception 'This account is suspended from SheRides rides. Contact an admin.';
   end if;
 
   insert into public.go_applications as a (
@@ -312,7 +312,7 @@ declare
   notified integer := 0;
 begin
   if me is null or not public.go_is_approved('passenger') then
-    raise exception 'Your SheRides Go passenger verification must be approved first';
+    raise exception 'Your SheRides passenger verification must be approved first';
   end if;
   if p_kind not in ('now', 'scheduled', 'hire') then raise exception 'Invalid ride type'; end if;
   if exists (
@@ -368,9 +368,9 @@ begin
   loop
     perform public.notify_member(
       rider.user_id, me, 'go_request',
-      case p_kind when 'now' then 'New SheRides Go ride request near you'
-                  when 'hire' then 'New hire request on SheRides Go'
-                  else 'New pre-booked ride on SheRides Go' end,
+      case p_kind when 'now' then 'New SheRides ride request near you'
+                  when 'hire' then 'New hire request on SheRides'
+                  else 'New pre-booked ride on SheRides' end,
       '/go?tab=rider'
     );
     notified := notified + 1;
@@ -392,7 +392,7 @@ declare
   me uuid := (select auth.uid());
   r public.go_rides;
 begin
-  if me is null or not public.go_is_approved('rider') then raise exception 'Only approved SheRides Go riders can accept rides'; end if;
+  if me is null or not public.go_is_approved('rider') then raise exception 'Only approved SheRides riders can accept rides'; end if;
   select * into r from public.go_rides where id = p_ride_id for update;
   if not found then raise exception 'Ride not found'; end if;
   if r.passenger_id = me then raise exception 'You cannot accept your own ride'; end if;
@@ -404,7 +404,7 @@ begin
   end if;
 
   update public.go_rides set rider_id = me, status = 'accepted', accepted_at = now() where id = p_ride_id;
-  perform public.notify_member(r.passenger_id, me, 'go_accepted', 'Your SheRides Go rider is confirmed', '/go/ride/' || p_ride_id);
+  perform public.notify_member(r.passenger_id, me, 'go_accepted', 'Your SheRides rider is confirmed', '/go/ride/' || p_ride_id);
 end;
 $$;
 revoke all on function public.go_accept_ride(uuid) from public, anon;
@@ -429,7 +429,7 @@ begin
     raise exception 'Wrong PIN. Ask the passenger for her 4-digit PIN.';
   end if;
   update public.go_rides set status = 'in_progress', started_at = now() where id = p_ride_id;
-  perform public.notify_member(r.passenger_id, me, 'go_started', 'Your SheRides Go ride has started. Stay safe!', '/go/ride/' || p_ride_id);
+  perform public.notify_member(r.passenger_id, me, 'go_started', 'Your SheRides ride has started. Stay safe!', '/go/ride/' || p_ride_id);
 end;
 $$;
 revoke all on function public.go_start_ride(uuid, text) from public, anon;
@@ -487,7 +487,7 @@ begin
   where id = p_ride_id;
   other := case when me = r.passenger_id then r.rider_id else r.passenger_id end;
   if other is not null then
-    perform public.notify_member(other, me, 'go_cancelled', 'A SheRides Go ride was cancelled', '/go/ride/' || p_ride_id);
+    perform public.notify_member(other, me, 'go_cancelled', 'A SheRides ride was cancelled', '/go/ride/' || p_ride_id);
   end if;
 end;
 $$;
@@ -527,7 +527,7 @@ begin
   if p_stars <= 2 then
     for admin_row in select id from public.profiles where role = 'admin' loop
       perform public.notify_member(admin_row.id, me, 'go_low_rating',
-        'Low SheRides Go rating (' || p_stars || '★) needs review', '/admin/go');
+        'Low SheRides ride rating (' || p_stars || '★) needs review', '/admin/go');
     end loop;
   end if;
 end;
@@ -638,10 +638,10 @@ begin
   perform public.notify_member(
     app.user_id, (select auth.uid()), 'go_review',
     case p_status
-      when 'approved' then 'Your SheRides Go ' || app.role || ' verification is approved!'
-      when 'rejected' then 'Your SheRides Go ' || app.role || ' verification needs changes'
-      when 'suspended' then 'Your SheRides Go ' || app.role || ' access is suspended'
-      else 'Your SheRides Go application is back under review' end,
+      when 'approved' then 'Your SheRides ' || app.role || ' verification is approved!'
+      when 'rejected' then 'Your SheRides ' || app.role || ' verification needs changes'
+      when 'suspended' then 'Your SheRides ' || app.role || ' access is suspended'
+      else 'Your SheRides ride application is back under review' end,
     '/go'
   );
 end;

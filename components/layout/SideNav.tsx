@@ -11,7 +11,7 @@ import { Icon } from "../ui/Icon";
 
 const items = [
   { href: "/home", label: "Home", icon: "home" },
-  { href: "/go", label: "SheRides Go", icon: "two_wheeler" },
+  { href: "/go", label: "Book a Ride", icon: "two_wheeler" },
   { href: "/explore", label: "Explore", icon: "explore" },
   { href: "/groups", label: "Groups", icon: "group" },
   { href: "/events", label: "Events & Rides", icon: "event" },
