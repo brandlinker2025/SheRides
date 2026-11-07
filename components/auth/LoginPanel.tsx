@@ -27,7 +27,9 @@ function translateAuthError(message: string, member: boolean): string {
 }
 
 function safeUserNextPath(value: string | null) {
-  if (!value?.startsWith("/") || value.startsWith("//")) return "/home";
+  // Block protocol-relative and backslash tricks ("//evil.com", "/\evil.com")
+  // that browsers resolve to another origin — classic open redirect.
+  if (!value?.startsWith("/") || value.startsWith("//") || /[\\\s]/.test(value)) return "/home";
   if (value === "/admin-login" || value.startsWith("/admin")) return "/home";
   return value;
 }
