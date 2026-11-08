@@ -20,6 +20,8 @@ import {
   type GoRide,
 } from "@/lib/go";
 import { createClient } from "@/lib/supabase/client";
+import { useDriverLocationSender } from "@/hooks/useDriverLocationSender";
+import { useRideTracking } from "@/hooks/useRideTracking";
 
 type RiderCard = { full_name: string; avatar_url: string | null; bike_model: string; bike_plate: string; rating: number | null; completed_rides: number };
 type Person = { full_name: string; avatar_url: string | null };
@@ -70,36 +72,32 @@ export default function GoRidePage() {
 
   useEffect(() => {
     void load();
-    const supabase = createClient();
-    if (!supabase || !id) return;
-    const channel = supabase
-      .channel(`go-ride:${id}:${Math.random().toString(36).slice(2, 10)}`)
-      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "go_rides", filter: `id=eq.${id}` }, () => void load())
-      .subscribe();
-    const poll = window.setInterval(() => void load(), 15000);
-    return () => {
-      window.clearInterval(poll);
-      void supabase.removeChannel(channel);
-    };
-  }, [id, load]);
+    // Realtime is handled by useRideTracking; this slow poll is only a safety net.
+    const poll = window.setInterval(() => void load(), 30000);
+    return () => window.clearInterval(poll);
+  }, [load]);
 
-  // The rider's phone reports her position while she has this ride open.
+  // Live ride updates (status + rider position) through Supabase Realtime.
+  const live = useRideTracking(id);
+  const rideStatus = ride?.status;
   useEffect(() => {
-    if (!isRider || !ride || !["accepted", "in_progress"].includes(ride.status)) return;
-    const beat = async () => {
-      const supabase = createClient();
-      if (!supabase) return;
-      try {
-        const pos = await requestRiderLocation();
-        await supabase.rpc("go_set_online", { p_online: null, p_lat: pos.coords.latitude, p_lng: pos.coords.longitude });
-      } catch {
-        /* location off: passenger simply sees the last known position */
-      }
-    };
-    void beat();
-    const timer = window.setInterval(() => void beat(), 15000);
-    return () => window.clearInterval(timer);
-  }, [isRider, ride]);
+    // Status changed (accepted / started / completed / cancelled) → reload full details.
+    if (live.status && rideStatus && live.status !== rideStatus) void load();
+  }, [live.status, rideStatus, load]);
+  useEffect(() => {
+    const pos = live.position;
+    if (!pos) return;
+    setRide((prev) =>
+      prev && (prev.rider_lat !== pos.lat || prev.rider_lng !== pos.lng || prev.rider_seen_at !== pos.seenAt)
+        ? { ...prev, rider_lat: pos.lat, rider_lng: pos.lng, rider_seen_at: pos.seenAt }
+        : prev
+    );
+  }, [live.position]);
+
+  // The rider's phone streams her position (~every 4 s) while the ride is active.
+  const gps = useDriverLocationSender(
+    isRider && (rideStatus === "accepted" || rideStatus === "in_progress")
+  );
 
   async function call(fn: string, args: Record<string, unknown>, done?: string) {
     const supabase = createClient();
@@ -257,7 +255,14 @@ export default function GoRidePage() {
           <a href={mapsLink(ride.rider_lat, ride.rider_lng)} target="_blank" rel="noreferrer" className="flex gap-3 text-accent-magenta font-label-lg">
             <Icon name="near_me" />
             See rider on map{riderAway != null && ride.status === "accepted" ? ` · ${riderAway.toFixed(1)} km away` : ""}
+            {live.isStale && <span className="text-secondary font-body-sm"> · signal weak</span>}
           </a>
+        )}
+        {isRider && active && (
+          <p className={`flex gap-3 font-body-sm ${gps.error ? "text-error" : "text-secondary"}`} role="status">
+            <Icon name={gps.status === "tracking" ? "my_location" : "location_disabled"} />
+            {gps.error ?? (gps.status === "tracking" ? "Sharing live location with the passenger" : "Starting live location…")}
+          </p>
         )}
       </div>
 
