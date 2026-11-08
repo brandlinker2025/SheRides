@@ -3,11 +3,14 @@ import { readFileSync } from "node:fs";
 import { test } from "node:test";
 import { isLocationPermissionDenied, locationErrorMessage } from "./geolocation";
 
-test("Permissions-Policy allows same-origin geolocation and keeps camera blocked", () => {
+test("Permissions-Policy allows same-origin geolocation, microphone and camera only", () => {
   const config = readFileSync(new URL("../next.config.mjs", import.meta.url), "utf8");
   assert.match(config, /geolocation=\(self\)/);
   assert.match(config, /microphone=\(self\)/);
-  assert.match(config, /camera=\(\)/);
+  // NID / selfie photos need the camera on our own pages; third-party frames stay blocked.
+  assert.match(config, /camera=\(self\)/);
+  assert.doesNotMatch(config, /camera=\(\)[, ]/);
+  assert.doesNotMatch(config, /camera=\*/);
   assert.doesNotMatch(config, /geolocation=\(\)[, ]/);
 });
 
