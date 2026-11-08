@@ -5,15 +5,30 @@
  * phone, iPhone, desktop browser and inside the SheRides Android app — it does
  * not depend on the phone's camera app or the file chooser.
  *
- *   guide="face" → step 1, live selfie: one large face oval (max 280×360),
- *                  front camera, optional 3-second self-timer
+ *   guide="face" → live selfie: oval, 3-second countdown inside the oval,
+ *                  Capture Photo button underneath
  *   guide="card" → document: card frame with corner brackets, back camera
  *
+ * There is no app/ekyc route. The selfie opens from the ride application.
  * Returns a JPEG File (max 2560 px) via onCapture. Saved un-mirrored so the
  * NID text reads correctly for the admin.
  */
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { Icon } from "@/components/ui/Icon";
+import {
+  FACE_TIMER_SECONDS,
+  beginCapture,
+  cancelCaptureSession,
+  classifyCameraFailure,
+  countdownFiresCapture,
+  createCaptureSession,
+  finishCapture,
+  isCurrentCapture,
+  isUsableVideoFrame,
+  tickCountdown,
+  type CaptureSession,
+} from "@/lib/camera-capture";
 
 type Facing = "user" | "environment";
 type Guide = "card" | "face";
@@ -56,12 +71,39 @@ export function CameraCapture({
   const [timerOn, setTimerOn] = useState(false);
   const [countdown, setCountdown] = useState<number | null>(null);
   const [flash, setFlash] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  const sessionRef = useRef<CaptureSession>(createCaptureSession());
+  const openRef = useRef(open);
 
   const stop = useCallback(() => {
     streamRef.current?.getTracks().forEach((t) => t.stop());
     streamRef.current = null;
     setReady(false);
   }, []);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    openRef.current = open;
+  }, [open]);
+
+  // Hide the app tab bar and sidebar. They share the viewport stacking level
+  // with this layer when it is trapped inside <main>.
+  useEffect(() => {
+    if (!open) return;
+    document.body.dataset.ekycCamera = "open";
+    return () => {
+      delete document.body.dataset.ekycCamera;
+    };
+  }, [open]);
+
+  useEffect(() => {
+    if (open) return;
+    cancelCaptureSession(sessionRef.current);
+    setCountdown(null);
+  }, [open]);
 
   // Reset when (re)opened
   useEffect(() => {
@@ -148,28 +190,30 @@ export function CameraCapture({
         if (video) {
           video.srcObject = stream;
           await video.play().catch(() => {});
+          const usable = await waitForUsableFrame(video, () => cancelled);
+          if (cancelled) return;
+          if (!usable) {
+            setError({ kind: "other", message: "Could not open the camera. Tap Try again." });
+            return;
+          }
           setReady(true);
         }
       } catch (e) {
         if (cancelled) return;
         const name = e instanceof DOMException ? e.name : "";
-        if (name === "NotAllowedError" || name === "SecurityError") {
-          // An instant refusal means no popup was shown: the camera is blocked
-          // for this app/site and only phone Settings can turn it back on.
-          const state = await cameraPermissionState();
-          const blocked = state === "denied" || Date.now() - startedAt < 450;
-          setError(
-            blocked
-              ? { kind: "blocked", message: "Camera is blocked for SheRides on this phone." }
-              : { kind: "denied", message: "You chose “Don’t allow”. SheRides needs the camera for your selfie and NID photo." },
-          );
-        } else if (name === "NotFoundError" || name === "OverconstrainedError") {
-          setError({ kind: "nocamera", message: "No camera was found on this device." });
-        } else if (name === "NotReadableError") {
-          setError({ kind: "busy", message: "The camera is busy in another app. Close it and tap Try again." });
-        } else {
-          setError({ kind: "other", message: "Could not open the camera. Tap Try again." });
-        }
+        const state = await cameraPermissionState();
+        const kind = classifyCameraFailure(name, Date.now() - startedAt, state === "unknown" ? "unknown" : state);
+        const message =
+          kind === "blocked"
+            ? "Camera is blocked for SheRides on this phone."
+            : kind === "denied"
+              ? "You chose “Don’t allow”. SheRides needs the camera for your selfie and NID photo."
+              : kind === "nocamera"
+                ? "No camera was found on this device."
+                : kind === "busy"
+                  ? "The camera is busy in another app. Close it and tap Try again."
+                  : "Could not open the camera. Tap Try again.";
+        setError({ kind, message });
       }
     })();
 
@@ -195,9 +239,13 @@ export function CameraCapture({
     return () => window.removeEventListener("keydown", onKey);
   }, [open, onClose]);
 
-  const takePhoto = useCallback(() => {
+  const capturePhoto = useCallback(() => {
+    if (!openRef.current) return;
     const video = videoRef.current;
-    if (!video || !video.videoWidth) return;
+    if (!video || !isUsableVideoFrame(video)) return;
+    const generation = beginCapture(sessionRef.current);
+    if (generation === null) return;
+    setCountdown(null);
     const scale = Math.min(1, MAX_PX / Math.max(video.videoWidth, video.videoHeight));
     const w = Math.round(video.videoWidth * scale);
     const h = Math.round(video.videoHeight * scale);
@@ -205,13 +253,19 @@ export function CameraCapture({
     canvas.width = w;
     canvas.height = h;
     const ctx = canvas.getContext("2d");
-    if (!ctx) return;
+    if (!ctx) {
+      finishCapture(sessionRef.current, generation);
+      return;
+    }
     ctx.drawImage(video, 0, 0, w, h);
     setFlash(true);
     window.setTimeout(() => setFlash(false), 180);
     canvas.toBlob(
       (blob) => {
-        if (!blob) return;
+        if (!isCurrentCapture(sessionRef.current, generation) || !openRef.current || !blob) {
+          finishCapture(sessionRef.current, generation);
+          return;
+        }
         const file = new File([blob], `${guide === "face" ? "selfie" : "photo"}-${Date.now()}.jpg`, {
           type: "image/jpeg",
         });
@@ -223,33 +277,48 @@ export function CameraCapture({
     );
   }, [guide, stop]);
 
-  // Self-timer
+  // Face photos count down inside the oval as soon as a real frame is ready.
+  useEffect(() => {
+    if (!open || guide !== "face" || !ready || shot || askFirst) return;
+    setCountdown(FACE_TIMER_SECONDS);
+    return () => setCountdown(null);
+  }, [open, guide, ready, shot, askFirst]);
+
   useEffect(() => {
     if (countdown === null) return;
-    if (countdown === 0) {
-      setCountdown(null);
-      takePhoto();
+    if (countdownFiresCapture(countdown)) {
+      capturePhoto();
       return;
     }
-    const t = window.setTimeout(() => setCountdown((c) => (c === null ? null : c - 1)), 1000);
+    const t = window.setTimeout(() => setCountdown((c) => (c === null ? null : tickCountdown(c))), 1000);
     return () => window.clearTimeout(t);
-  }, [countdown, takePhoto]);
+  }, [countdown, capturePhoto]);
 
-  if (!open) return null;
+  if (!open || !mounted) return null;
 
   const mirrored = current === "user";
   const isFace = guide === "face";
   const shutter = () => {
-    if (countdown !== null) {
-      setCountdown(null); // tap again to cancel the timer
+    if (isFace) {
+      capturePhoto();
       return;
     }
-    if (timerOn) setCountdown(3);
-    else takePhoto();
+    if (countdown !== null) {
+      setCountdown(null);
+      return;
+    }
+    if (timerOn) setCountdown(FACE_TIMER_SECONDS);
+    else capturePhoto();
   };
 
-  return (
-    <div role="dialog" aria-modal="true" aria-label={title} className="fixed inset-0 z-[100] bg-black text-white flex flex-col select-none">
+  const releaseShot = () => {
+    cancelCaptureSession(sessionRef.current);
+    setCountdown(null);
+    setShot(null);
+  };
+
+  const dialog = (
+    <div role="dialog" aria-modal="true" aria-label={title} className="fixed inset-0 z-50 flex flex-col select-none overflow-hidden bg-[#0b0b1a] text-white">
       {/* Camera / preview area */}
       <div ref={stageRef} className="relative flex-1 min-h-0 overflow-hidden">
         {shot ? (
@@ -287,6 +356,40 @@ export function CameraCapture({
             onRetry={() => setAttempt((n) => n + 1)}
             onUpload={onFallbackUpload}
           />
+        ) : isFace ? (
+          <div className="absolute inset-0 flex flex-col pt-[max(4.75rem,calc(env(safe-area-inset-top)+4.25rem))]">
+            <p className="shrink-0 px-6 pb-3 text-center font-body-md">Position your face inside the oval</p>
+            <div className="flex min-h-0 flex-1 items-center justify-center px-4">
+              <div className="relative aspect-[4/5] h-full max-h-[350px] w-auto max-w-[min(280px,86vw)] overflow-hidden rounded-[50%] bg-black ring-2 ring-white">
+                <video
+                  ref={videoRef}
+                  playsInline
+                  muted
+                  autoPlay
+                  className="absolute inset-0 h-full w-full object-cover -scale-x-100"
+                />
+                {countdown !== null && (
+                  <div className="pointer-events-none absolute inset-0 flex items-center justify-center" aria-live="assertive">
+                    <span key={countdown} className="sr-pop text-7xl font-bold leading-none text-white drop-shadow-[0_4px_16px_rgba(0,0,0,0.85)]">
+                      {countdown}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+            <div className="flex shrink-0 flex-col items-center px-6 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))]">
+              <button
+                type="button"
+                onClick={capturePhoto}
+                disabled={!ready}
+                aria-label="Capture Photo"
+                className="flex flex-col items-center gap-2 disabled:opacity-40"
+              >
+                <span className="h-[88px] w-[88px] rounded-full border-4 border-white bg-white shadow-[0_0_0_8px_rgba(255,255,255,0.28),0_0_36px_rgba(255,255,255,0.7)]" />
+                <span className="font-label-lg">Capture Photo</span>
+              </button>
+            </div>
+          </div>
         ) : (
           <>
             <video
@@ -303,7 +406,7 @@ export function CameraCapture({
               </div>
             )}
             {ready && stage.w > 0 && <GuideOverlay w={stage.w} h={stage.h} guide={guide} />}
-            {countdown !== null && countdown > 0 && (
+            {!isFace && countdown !== null && countdown > 0 && (
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none" aria-live="assertive">
                 <span key={countdown} className="sr-pop text-[120px] font-bold leading-none drop-shadow-[0_4px_24px_rgba(0,0,0,0.6)]">
                   {countdown}
@@ -314,8 +417,18 @@ export function CameraCapture({
         )}
 
         {/* Top bar (over the camera) */}
-        <div className="absolute inset-x-0 top-0 z-20 flex items-center gap-2 px-3 pt-[max(0.75rem,env(safe-area-inset-top))] pb-6 bg-gradient-to-b from-black/70 to-transparent">
-          <button type="button" onClick={onClose} aria-label="Close camera" className="h-11 w-11 shrink-0 inline-flex items-center justify-center rounded-full bg-black/40 backdrop-blur">
+        <div className="absolute inset-x-0 top-0 z-20 flex items-center gap-2 bg-[#0b0b1a] px-3 pt-[max(0.75rem,env(safe-area-inset-top))] pb-3">
+          <button
+            type="button"
+            onClick={() => {
+              cancelCaptureSession(sessionRef.current);
+              setCountdown(null);
+              stop();
+              onClose();
+            }}
+            aria-label="Close camera"
+            className="h-11 w-11 shrink-0 inline-flex items-center justify-center rounded-full bg-black/40 backdrop-blur"
+          >
             <Icon name="close" />
           </button>
           <div className="flex-1 min-w-0 text-center">
@@ -344,15 +457,16 @@ export function CameraCapture({
         <style>{`.sr-pop{animation:sr-pop .9s ease-out both}@keyframes sr-pop{0%{transform:scale(.6);opacity:0}25%{transform:scale(1.08);opacity:1}100%{transform:scale(1);opacity:.85}}.sr-flash{animation:sr-flash .18s ease-out forwards}@keyframes sr-flash{from{opacity:.9}to{opacity:0}}@media (prefers-reduced-motion:reduce){.sr-pop,.sr-flash{animation:none}}`}</style>
       </div>
 
-      {/* Bottom controls */}
-      <div className="relative z-20 bg-black px-6 pt-4 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
+      {/* Bottom controls. The selfie shutter lives under the oval, not in this bar. */}
+      {!(isFace && !shot && !error && !askFirst) && (
+      <div className="relative z-20 shrink-0 bg-[#0b0b1a] px-6 pt-4 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
         {shot ? (
           <div className="flex flex-col items-center gap-3">
             <p className="font-body-sm text-white/80 text-center">
               {isFace ? "Is your whole face clear and in focus?" : "Can you read every line on the card? No glare?"}
             </p>
             <div className="flex w-full max-w-sm gap-3">
-              <button type="button" onClick={() => setShot(null)} className="flex-1 h-14 rounded-full bg-white/10 border border-white/25 font-label-lg inline-flex items-center justify-center gap-2">
+              <button type="button" onClick={releaseShot} className="flex-1 h-14 rounded-full bg-white/10 border border-white/25 font-label-lg inline-flex items-center justify-center gap-2">
                 <Icon name="refresh" size={20} /> Retake
               </button>
               <button
@@ -368,7 +482,7 @@ export function CameraCapture({
             </div>
           </div>
         ) : (
-          !error && !askFirst && (
+          !isFace && !error && !askFirst && (
             <div className="flex flex-col items-center gap-4">
               <ul className="flex flex-wrap justify-center gap-x-4 gap-y-1 text-[12px] text-white/75">
                 {(isFace
@@ -405,8 +519,20 @@ export function CameraCapture({
           )
         )}
       </div>
+      )}
     </div>
   );
+
+  return createPortal(dialog, document.body);
+}
+
+async function waitForUsableFrame(video: HTMLVideoElement, cancelled: () => boolean) {
+  const started = Date.now();
+  while (!cancelled() && Date.now() - started < 4000) {
+    if (isUsableVideoFrame(video)) return true;
+    await new Promise((resolve) => window.setTimeout(resolve, 50));
+  }
+  return isUsableVideoFrame(video);
 }
 
 type CamError = {
