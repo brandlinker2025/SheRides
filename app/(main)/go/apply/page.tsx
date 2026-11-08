@@ -98,6 +98,18 @@ function FilePick({
   );
 }
 
+function StepHeading({ n, title, sub }: { n: number; title: string; sub: string }) {
+  return (
+    <div className="flex items-start gap-3">
+      <span className="mt-0.5 h-7 w-7 shrink-0 rounded-full bg-accent-magenta text-white text-[13px] font-bold inline-flex items-center justify-center">{n}</span>
+      <div className="min-w-0">
+        <p className="font-label-lg">Step {n} · {title}</p>
+        <p className="font-body-sm text-secondary">{sub}</p>
+      </div>
+    </div>
+  );
+}
+
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
     <section className="card-surface p-6 flex flex-col gap-4">
@@ -139,7 +151,7 @@ function ApplyForm() {
     if (!emergencyName.trim() || !/^(\+?88)?01[3-9]\d{8}$/.test(emergencyPhone.trim())) {
       return setError("Add an emergency contact with a valid Bangladesh mobile number.");
     }
-    if (!nidFront || !selfie) return setError("NID front photo and a live selfie are required.");
+    if (!nidFront || !selfie) return setError("Step 1 live selfie and Step 2 NID front photo are both required.");
     if (role === "rider" && (!licenseNo.trim() || !licenseFile || !bikeModel.trim() || !bikePlate.trim() || !bikePapers)) {
       return setError("Riders must add licence number + photo, bike model, number plate and bike papers.");
     }
@@ -204,15 +216,23 @@ function ApplyForm() {
         <Section title="1. Your identity">
           <input value={fullName} onChange={(e) => setFullName(e.target.value)} maxLength={80} placeholder="Full name (as on NID)" className={field} />
           <input value={nid} onChange={(e) => setNid(e.target.value.replace(/\D/g, "").slice(0, 17))} inputMode="numeric" placeholder="NID number" className={field} />
-          <FilePick label="NID front" hint="Clear photo, all corners visible" file={nidFront} onPick={setNidFront} capture="environment" />
-          <FilePick label="NID back" hint="Back side of the card" file={nidBack} onPick={setNidBack} capture="environment" required={false} />
-          <FilePick
-            label="Live selfie holding your NID"
-            hint="Front camera opens. Hold your NID next to your face."
-            file={selfie}
-            onPick={setSelfie}
-            capture="user"
-          />
+          <div className="space-y-6 pt-2">
+            <div className="space-y-3">
+              <StepHeading n={1} title="Face photo" sub="Live selfie — front camera, your whole face inside the oval." />
+              <FilePick
+                label="Live selfie"
+                hint="Opens the front camera with a face guide."
+                file={selfie}
+                onPick={setSelfie}
+                capture="user"
+              />
+            </div>
+            <div className="space-y-3">
+              <StepHeading n={2} title="NID card" sub="Back camera, card inside the 1.58 : 1 frame. Or upload a clear photo / PDF." />
+              <FilePick label="NID front" hint="Clear photo, all 4 corners visible" file={nidFront} onPick={setNidFront} capture="environment" />
+              <FilePick label="NID back" hint="Back side of the card" file={nidBack} onPick={setNidBack} capture="environment" required={false} />
+            </div>
+          </div>
         </Section>
 
         <Section title="2. Emergency contact">
