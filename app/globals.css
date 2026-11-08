@@ -155,7 +155,9 @@ html {
 /* The selfie camera is portaled to the body. Hide the bars that share z-50. */
 body[data-ekyc-camera] .panda-bottomnav,
 body[data-ekyc-camera] nav[aria-label="Main navigation"],
-body[data-ekyc-camera] .panda-install-prompt {
+body[data-ekyc-camera] .panda-install-prompt,
+body[data-ekyc-camera] .go-apply-bar,
+body[data-go-apply] .panda-install-prompt {
   display: none;
 }
 

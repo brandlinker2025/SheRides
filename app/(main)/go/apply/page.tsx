@@ -1,12 +1,13 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useRef, useState, type FormEvent, type ReactNode } from "react";
+import { Suspense, useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { BackLink } from "@/components/ui/BackLink";
 import { CameraCapture } from "@/components/ui/CameraCapture";
 import { Icon } from "@/components/ui/Icon";
 import { useAuth } from "@/lib/auth-context";
-import { goErrorMessage, uploadGoDocument, type GoRole } from "@/lib/go";
+import { createSubmitLock, runGoApplicationSubmit, validateGoApplication } from "@/lib/go-application";
+import { uploadGoDocument, type GoRole } from "@/lib/go";
 import { createClient } from "@/lib/supabase/client";
 
 const field =
@@ -139,65 +140,108 @@ function ApplyForm() {
   const [bikePapers, setBikePapers] = useState<File | null>(null);
   const [declared, setDeclared] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [saved, setSaved] = useState(false);
   const [progress, setProgress] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const lockRef = useRef(createSubmitLock());
+  const barRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    document.body.dataset.goApply = "open";
+    return () => {
+      delete document.body.dataset.goApply;
+    };
+  }, []);
+
+  useEffect(() => {
+    const bar = barRef.current;
+    const viewport = window.visualViewport;
+    if (!bar || !viewport) return;
+    const place = () => {
+      const covered = Math.max(0, window.innerHeight - viewport.height - viewport.offsetTop);
+      bar.style.transform = covered > 0 ? `translateY(-${covered}px)` : "";
+    };
+    place();
+    viewport.addEventListener("resize", place);
+    viewport.addEventListener("scroll", place);
+    return () => {
+      viewport.removeEventListener("resize", place);
+      viewport.removeEventListener("scroll", place);
+    };
+  }, []);
 
   async function submit(event: FormEvent) {
     event.preventDefault();
     setError(null);
-    if (!user) return;
-    if (fullName.trim().length < 2) return setError("Write your full name as on your NID.");
-    if (!/^\d{10,17}$/.test(nid)) return setError("NID number must be 10 to 17 digits.");
-    if (!emergencyName.trim() || !/^(\+?88)?01[3-9]\d{8}$/.test(emergencyPhone.trim())) {
-      return setError("Add an emergency contact with a valid Bangladesh mobile number.");
+    const draft = {
+      role,
+      userId: user?.id ?? null,
+      fullName,
+      nid,
+      emergencyName,
+      emergencyPhone,
+      hasNidFront: Boolean(nidFront),
+      hasNidBack: Boolean(nidBack),
+      hasSelfie: Boolean(selfie),
+      licenseNo,
+      hasLicenseFile: Boolean(licenseFile),
+      bikeModel,
+      bikePlate,
+      hasBikePapers: Boolean(bikePapers),
+      declared,
+    };
+    const problem = validateGoApplication(draft);
+    if (problem) {
+      setError(problem);
+      return;
     }
-    if (!nidFront || !selfie) return setError("Step 1 live selfie and Step 2 NID front photo are both required.");
-    if (role === "rider" && (!licenseNo.trim() || !licenseFile || !bikeModel.trim() || !bikePlate.trim() || !bikePapers)) {
-      return setError("Riders must add licence number + photo, bike model, number plate and bike papers.");
-    }
-    if (!declared) return setError("Please confirm the declaration.");
-
     const supabase = createClient();
-    if (!supabase) return;
+    if (!supabase) {
+      setError("SheRides could not connect. Please try again.");
+      return;
+    }
     setBusy(true);
-    try {
-      setProgress("Uploading NID…");
-      const nidFrontPath = await uploadGoDocument(supabase, user.id, nidFront, "NID front");
-      const nidBackPath = nidBack ? await uploadGoDocument(supabase, user.id, nidBack, "NID back") : null;
-      setProgress("Uploading selfie…");
-      const selfiePath = await uploadGoDocument(supabase, user.id, selfie, "Selfie");
-      let licensePath: string | null = null;
-      let papersPath: string | null = null;
-      if (role === "rider" && licenseFile && bikePapers) {
-        setProgress("Uploading licence and bike papers…");
-        licensePath = await uploadGoDocument(supabase, user.id, licenseFile, "Licence");
-        papersPath = await uploadGoDocument(supabase, user.id, bikePapers, "Bike papers");
-      }
-      setProgress("Sending for admin approval…");
-      const { error: rpcError } = await supabase.rpc("go_submit_application", {
-        p_role: role,
-        p_full_name: fullName.trim(),
-        p_nid_number: nid,
-        p_emergency_name: emergencyName.trim(),
-        p_emergency_phone: emergencyPhone.trim(),
-        p_nid_front_path: nidFrontPath,
-        p_nid_back_path: nidBackPath,
-        p_selfie_path: selfiePath,
-        p_license_number: role === "rider" ? licenseNo.trim() : null,
-        p_license_path: licensePath,
-        p_bike_model: role === "rider" ? bikeModel.trim() : null,
-        p_bike_plate: role === "rider" ? bikePlate.trim() : null,
-        p_bike_papers_path: papersPath,
-        p_declared_female: true,
-      });
-      if (rpcError) throw rpcError;
-      router.replace("/go?submitted=" + role);
+    const result = await runGoApplicationSubmit({
+      draft,
+      files: { nidFront, nidBack, selfie, licenseFile, bikePapers },
+      lock: lockRef.current,
+      onProgress: setProgress,
+      transport: {
+        upload: async (slot) => {
+          if (!user) throw new Error("Sign in to submit your application.");
+          const file =
+            slot === "nid-front" ? nidFront
+            : slot === "nid-back" ? nidBack
+            : slot === "selfie" ? selfie
+            : slot === "licence" ? licenseFile
+            : bikePapers;
+          const label =
+            slot === "nid-front" ? "NID front"
+            : slot === "nid-back" ? "NID back"
+            : slot === "selfie" ? "Selfie"
+            : slot === "licence" ? "Licence"
+            : "Bike papers";
+          if (!file) throw new Error(`${label} is missing.`);
+          return uploadGoDocument(supabase, user.id, file, label);
+        },
+        save: async (payload) => {
+          const { error: rpcError } = await supabase.rpc("go_submit_application", payload);
+          if (rpcError) throw rpcError;
+        },
+      },
+    });
+    if (result.ok) {
+      setSaved(true);
+      setProgress(null);
+      router.replace(result.href);
       router.refresh();
-    } catch (err) {
-      setError(goErrorMessage(err));
-      setBusy(false);
+      return;
+    }
+    if (!result.duplicate) {
+      setError(result.error ?? "Something went wrong. Please try again.");
       setProgress(null);
     }
+    setBusy(false);
   }
 
   return (
@@ -212,7 +256,7 @@ function ApplyForm() {
         {role === "rider" ? "carry passengers" : "book a ride"}. Your documents are stored privately and only admins can see them.
       </p>
 
-      <form onSubmit={(event) => void submit(event)} className="flex flex-col gap-5">
+      <form id="go-apply-form" onSubmit={(event) => void submit(event)} className="flex flex-col gap-5 pb-36 lg:pb-32">
         <Section title="1. Your identity">
           <input value={fullName} onChange={(e) => setFullName(e.target.value)} maxLength={80} placeholder="Full name (as on NID)" className={field} />
           <input value={nid} onChange={(e) => setNid(e.target.value.replace(/\D/g, "").slice(0, 17))} inputMode="numeric" placeholder="NID number" className={field} />
@@ -262,15 +306,28 @@ function ApplyForm() {
           </span>
         </label>
 
-        {error && (
-          <p className="font-body-sm text-error" role="alert">
-            {error}
-          </p>
-        )}
-        <button type="submit" disabled={busy} className="h-14 rounded-full bg-accent-magenta text-white font-label-lg inline-flex items-center justify-center gap-2">
-          <Icon name="verified_user" />
-          {busy ? progress ?? "Submitting…" : "Submit for admin approval"}
-        </button>
+        <div
+          ref={barRef}
+          className="go-apply-bar pointer-events-none fixed inset-x-0 z-40 px-3 bottom-[calc(5.25rem+env(safe-area-inset-bottom))] lg:bottom-4 lg:left-64 lg:right-0"
+        >
+          <div className="pointer-events-auto mx-auto w-full max-w-2xl rounded-2xl border border-white/15 bg-[#0b0b1a]/88 px-3 py-3 shadow-[0_10px_40px_rgba(11,11,26,0.55),0_0_32px_rgba(108,92,231,0.38)] backdrop-blur-xl">
+            {error && (
+              <p id="go-apply-error" className="mb-2 text-center font-body-sm text-red-200" role="alert">
+                {error}
+              </p>
+            )}
+            <button
+              type="submit"
+              disabled={busy || saved}
+              aria-busy={busy}
+              aria-describedby={error ? "go-apply-error" : undefined}
+              className="h-14 w-full rounded-full bg-gradient-to-r from-[#241b4a] via-[#6c5ce7] to-[#16708a] text-white font-label-lg inline-flex items-center justify-center gap-2 shadow-[0_0_24px_rgba(108,92,231,0.55)] transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_0_36px_rgba(22,112,138,0.75)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white active:scale-[0.99] disabled:pointer-events-none disabled:opacity-70 motion-reduce:transform-none motion-reduce:transition-none motion-reduce:hover:translate-y-0"
+            >
+              <Icon name="verified_user" />
+              {saved ? "Application saved" : busy ? progress ?? "Submitting…" : "Confirm & Submit Application"}
+            </button>
+          </div>
+        </div>
       </form>
     </div>
   );
