@@ -14,6 +14,7 @@
  * NID text reads correctly for the admin.
  */
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { Icon } from "@/components/ui/Icon";
 
 type Facing = "user" | "environment";
@@ -59,12 +60,27 @@ export function CameraCapture({
   const [timerOn, setTimerOn] = useState(false);
   const [countdown, setCountdown] = useState<number | null>(null);
   const [flash, setFlash] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   const stop = useCallback(() => {
     streamRef.current?.getTracks().forEach((t) => t.stop());
     streamRef.current = null;
     setReady(false);
   }, []);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // The camera is portaled to <body>, but the tab bar is a later sibling of the
+  // page and would still paint over a z-50 layer trapped in <main>. Hide it.
+  useEffect(() => {
+    if (!open) return;
+    document.body.dataset.ekycCamera = "open";
+    return () => {
+      delete document.body.dataset.ekycCamera;
+    };
+  }, [open]);
 
   // Reset when (re)opened
   useEffect(() => {
@@ -238,7 +254,7 @@ export function CameraCapture({
     return () => window.clearTimeout(t);
   }, [countdown, takePhoto]);
 
-  if (!open) return null;
+  if (!open || !mounted) return null;
 
   const mirrored = current === "user";
   const isFace = guide === "face";
@@ -252,8 +268,8 @@ export function CameraCapture({
     else takePhoto();
   };
 
-  return (
-    <div role="dialog" aria-modal="true" aria-label={title} className="fixed inset-0 z-[100] bg-black text-white flex flex-col select-none">
+  return createPortal(
+    <div role="dialog" aria-modal="true" aria-label={title} className="fixed inset-0 z-50 flex flex-col select-none overflow-hidden bg-black/90 text-white">
       {/* Camera / preview area */}
       <div className="relative flex flex-1 min-h-0 flex-col overflow-hidden">
         {shot ? (
@@ -332,7 +348,7 @@ export function CameraCapture({
         )}
 
         {/* Top bar (over the camera) */}
-        <div className="absolute inset-x-0 top-0 z-20 flex items-center gap-2 px-3 pt-[max(0.75rem,env(safe-area-inset-top))] pb-6 bg-gradient-to-b from-black/70 to-transparent">
+        <div className="absolute inset-x-0 top-0 z-20 flex items-center gap-2 bg-black px-3 pt-[max(0.75rem,env(safe-area-inset-top))] pb-3">
           <button type="button" onClick={onClose} aria-label="Close camera" className="h-11 w-11 shrink-0 inline-flex items-center justify-center rounded-full bg-black/40 backdrop-blur">
             <Icon name="close" />
           </button>
@@ -358,7 +374,7 @@ export function CameraCapture({
       </div>
 
       {/* Bottom controls */}
-      <div className="relative z-20 bg-black px-6 pt-4 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
+      <div className="relative z-20 shrink-0 bg-black px-6 pt-3 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
         {shot ? (
           <div className="flex flex-col items-center gap-3">
             <p className="font-body-sm text-white/80 text-center">
@@ -400,10 +416,8 @@ export function CameraCapture({
                   onClick={shutter}
                   disabled={!ready}
                   aria-label={countdown !== null ? "Cancel timer" : timerOn ? "Take photo in 3 seconds" : "Take photo"}
-                  className="justify-self-center relative h-[76px] w-[76px] rounded-full border-[5px] border-white disabled:opacity-40 active:scale-95 transition-transform"
-                >
-                  <span className={`absolute inset-[5px] rounded-full transition-colors ${countdown !== null ? "bg-red-500" : "bg-white"}`} />
-                </button>
+                  className={`justify-self-center h-20 w-20 rounded-full border-[5px] border-white shadow-[0_0_0_8px_rgba(255,255,255,0.22),0_0_36px_rgba(255,255,255,0.75)] disabled:opacity-40 active:scale-95 transition-transform ${countdown !== null ? "bg-red-500" : "bg-white"}`}
+                />
                 <button
                   type="button"
                   onClick={() => setTimerOn((v) => !v)}
@@ -418,7 +432,8 @@ export function CameraCapture({
           )
         )}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 

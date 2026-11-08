@@ -152,6 +152,12 @@ html {
   border-color: rgb(216 217 236);
 }
 
+/* eKYC camera is a full-screen layer. The app tab bar must not stay on top of it. */
+body[data-ekyc-camera] .panda-bottomnav,
+body[data-ekyc-camera] .panda-install-prompt {
+  display: none;
+}
+
 /* High-contrast labels over the panda sidenav (admin + community). */
 .panda-nav-item {
   color: #f7f7ff;
