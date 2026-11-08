@@ -47,7 +47,10 @@ export function CameraCapture({
   const [stage, setStage] = useState({ w: 0, h: 0 });
   const [current, setCurrent] = useState<Facing>(facing);
   const [ready, setReady] = useState(false);
-  const [error, setError] = useState<{ message: string; noCamera: boolean } | null>(null);
+  const [error, setError] = useState<CamError | null>(null);
+  // Ask first with our own "Allow camera" screen, so the phone's Allow popup
+  // appears right after the user taps — never a surprise "permission off".
+  const [askFirst, setAskFirst] = useState(true);
   const [shot, setShot] = useState<{ url: string; file: File } | null>(null);
   const [attempt, setAttempt] = useState(0);
   const [timerOn, setTimerOn] = useState(false);
@@ -68,8 +71,40 @@ export function CameraCapture({
       setError(null);
       setCountdown(null);
       setTimerOn(false);
+      setAskFirst(true);
+      // Already allowed before? Skip the intro and open the camera straight away.
+      void cameraPermissionState().then((state) => {
+        if (state === "granted") setAskFirst(false);
+      });
     }
   }, [open, facing, guide]);
+
+  // Coming back from phone Settings (or permission changed) → reconnect by itself
+  useEffect(() => {
+    if (!open || !error || (error.kind !== "blocked" && error.kind !== "denied")) return;
+    const retry = () => {
+      if (document.visibilityState !== "visible") return;
+      void cameraPermissionState().then((state) => {
+        if (state !== "denied") setAttempt((n) => n + 1);
+      });
+    };
+    document.addEventListener("visibilitychange", retry);
+    let status: PermissionStatus | null = null;
+    const onChange = () => {
+      if (status?.state === "granted") setAttempt((n) => n + 1);
+    };
+    navigator.permissions
+      ?.query({ name: "camera" as PermissionName })
+      .then((st) => {
+        status = st;
+        st.addEventListener("change", onChange);
+      })
+      .catch(() => {});
+    return () => {
+      document.removeEventListener("visibilitychange", retry);
+      status?.removeEventListener("change", onChange);
+    };
+  }, [open, error]);
 
   // Measure the camera area so the guide shapes are drawn in real pixels
   useLayoutEffect(() => {
@@ -85,15 +120,16 @@ export function CameraCapture({
 
   // Start / restart the camera stream
   useEffect(() => {
-    if (!open || shot) return;
+    if (!open || shot || askFirst) return;
     let cancelled = false;
 
     (async () => {
       setError(null);
       if (typeof navigator === "undefined" || !navigator.mediaDevices?.getUserMedia) {
-        setError({ message: "This browser cannot open the camera.", noCamera: true });
+        setError({ kind: "nocamera", message: "This browser cannot open the camera." });
         return;
       }
+      const startedAt = Date.now();
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
           audio: false,
@@ -118,17 +154,21 @@ export function CameraCapture({
         if (cancelled) return;
         const name = e instanceof DOMException ? e.name : "";
         if (name === "NotAllowedError" || name === "SecurityError") {
-          setError({
-            message:
-              "Camera permission is off. Tap Try again and choose Allow. If no prompt appears, open phone Settings → Apps → SheRides (or your browser) → Permissions → Camera → Allow.",
-            noCamera: false,
-          });
+          // An instant refusal means no popup was shown: the camera is blocked
+          // for this app/site and only phone Settings can turn it back on.
+          const state = await cameraPermissionState();
+          const blocked = state === "denied" || Date.now() - startedAt < 450;
+          setError(
+            blocked
+              ? { kind: "blocked", message: "Camera is blocked for SheRides on this phone." }
+              : { kind: "denied", message: "You chose “Don’t allow”. SheRides needs the camera for your selfie and NID photo." },
+          );
         } else if (name === "NotFoundError" || name === "OverconstrainedError") {
-          setError({ message: "No camera was found on this device.", noCamera: true });
+          setError({ kind: "nocamera", message: "No camera was found on this device." });
         } else if (name === "NotReadableError") {
-          setError({ message: "The camera is busy in another app. Close it and tap Try again.", noCamera: false });
+          setError({ kind: "busy", message: "The camera is busy in another app. Close it and tap Try again." });
         } else {
-          setError({ message: "Could not open the camera. Tap Try again.", noCamera: false });
+          setError({ kind: "other", message: "Could not open the camera. Tap Try again." });
         }
       }
     })();
@@ -137,7 +177,7 @@ export function CameraCapture({
       cancelled = true;
       stop();
     };
-  }, [open, current, shot, attempt, stop]);
+  }, [open, current, shot, attempt, askFirst, stop]);
 
   // Free the preview URL
   useEffect(
@@ -215,25 +255,38 @@ export function CameraCapture({
         {shot ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={shot.url} alt="Captured photo preview" className="absolute inset-0 h-full w-full object-contain bg-black" />
-        ) : error ? (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="max-w-sm px-6 text-center flex flex-col items-center gap-4">
-              <span className="h-16 w-16 rounded-full bg-white/10 inline-flex items-center justify-center">
-                <Icon name="no_photography" size={32} />
+        ) : askFirst ? (
+          <div className="absolute inset-0 flex items-center justify-center bg-black">
+            <div className="max-w-sm px-6 text-center flex flex-col items-center gap-5">
+              <span className="h-20 w-20 rounded-full bg-accent-magenta/20 ring-1 ring-accent-magenta/50 inline-flex items-center justify-center">
+                <Icon name={guide === "face" ? "photo_camera_front" : "photo_camera"} size={40} />
               </span>
-              <p className="font-body-md leading-relaxed" role="alert">{error.message}</p>
-              {!error.noCamera && (
-                <button type="button" onClick={() => setAttempt((n) => n + 1)} className="h-12 px-7 rounded-full bg-white text-black font-label-lg">
-                  Try again
-                </button>
-              )}
-              {error.noCamera && onFallbackUpload && (
-                <button type="button" onClick={onFallbackUpload} className="h-12 px-7 rounded-full bg-white text-black font-label-lg">
-                  Upload a photo instead
-                </button>
-              )}
+              <div className="space-y-2">
+                <p className="font-headline-md text-[20px] font-bold">Allow camera</p>
+                <p className="font-body-sm text-white/75 leading-relaxed">
+                  {guide === "face"
+                    ? "SheRides uses your front camera only to take your verification selfie."
+                    : "SheRides uses your camera only to photograph your document."}{" "}
+                  Your phone will ask next — tap <strong className="text-white">Allow</strong>.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setAskFirst(false)}
+                className="h-14 w-full rounded-full bg-accent-magenta font-label-lg inline-flex items-center justify-center gap-2"
+                autoFocus
+              >
+                <Icon name="photo_camera" size={20} /> Allow camera
+              </button>
             </div>
           </div>
+        ) : error ? (
+          <CameraErrorPanel
+            error={error}
+            canUpload={Boolean(onFallbackUpload) && (error.kind === "nocamera" || guide !== "face")}
+            onRetry={() => setAttempt((n) => n + 1)}
+            onUpload={onFallbackUpload}
+          />
         ) : (
           <>
             <video
@@ -267,13 +320,13 @@ export function CameraCapture({
           </button>
           <div className="flex-1 min-w-0 text-center">
             <p className="font-label-lg truncate">{shot ? "Check your photo" : title}</p>
-            {!shot && !error && (
+            {!shot && !error && !askFirst && (
               <p className="text-[12px] text-white/75 truncate">
                 {isFace ? "Look straight at the camera" : "Whole card inside the frame · 1.58 : 1"}
               </p>
             )}
           </div>
-          {allowSwitch && !shot && !error ? (
+          {allowSwitch && !shot && !error && !askFirst ? (
             <button
               type="button"
               onClick={() => setCurrent((c) => (c === "user" ? "environment" : "user"))}
@@ -315,7 +368,7 @@ export function CameraCapture({
             </div>
           </div>
         ) : (
-          !error && (
+          !error && !askFirst && (
             <div className="flex flex-col items-center gap-4">
               <ul className="flex flex-wrap justify-center gap-x-4 gap-y-1 text-[12px] text-white/75">
                 {(isFace
@@ -350,6 +403,102 @@ export function CameraCapture({
               </div>
             </div>
           )
+        )}
+      </div>
+    </div>
+  );
+}
+
+type CamError = {
+  kind: "blocked" | "denied" | "nocamera" | "busy" | "other";
+  message: string;
+};
+
+type SheRidesBridge = { openAppSettings?: () => void };
+
+/** "granted" | "denied" | "prompt" | "unknown" — never throws. */
+async function cameraPermissionState(): Promise<PermissionState | "unknown"> {
+  try {
+    const st = await navigator.permissions?.query({ name: "camera" as PermissionName });
+    return st?.state ?? "unknown";
+  } catch {
+    return "unknown";
+  }
+}
+
+function appBridge(): SheRidesBridge | undefined {
+  if (typeof window === "undefined") return undefined;
+  return (window as unknown as { SheRidesApp?: SheRidesBridge }).SheRidesApp;
+}
+
+function CameraErrorPanel({
+  error,
+  canUpload,
+  onRetry,
+  onUpload,
+}: {
+  error: CamError;
+  canUpload: boolean;
+  onRetry: () => void;
+  onUpload?: () => void;
+}) {
+  const bridge = appBridge();
+  const inApp = Boolean(bridge?.openAppSettings) || (typeof navigator !== "undefined" && /; wv\)/.test(navigator.userAgent));
+  const blocked = error.kind === "blocked";
+
+  return (
+    <div className="absolute inset-0 flex items-center justify-center overflow-y-auto bg-black">
+      <div className="max-w-sm px-6 py-20 text-center flex flex-col items-center gap-4">
+        <span className="h-16 w-16 rounded-full bg-white/10 inline-flex items-center justify-center">
+          <Icon name={blocked || error.kind === "denied" ? "no_photography" : "videocam_off"} size={32} />
+        </span>
+        <p className="font-body-md leading-relaxed" role="alert">{error.message}</p>
+
+        {error.kind === "denied" && (
+          <button type="button" onClick={onRetry} className="h-14 w-full rounded-full bg-accent-magenta font-label-lg">
+            Allow camera
+          </button>
+        )}
+
+        {blocked && bridge?.openAppSettings && (
+          <>
+            <button type="button" onClick={() => bridge.openAppSettings?.()} className="h-14 w-full rounded-full bg-accent-magenta font-label-lg inline-flex items-center justify-center gap-2">
+              <Icon name="settings" size={20} /> Open settings
+            </button>
+            <p className="font-body-sm text-white/75">
+              Tap <strong className="text-white">Permissions → Camera → Allow</strong>, then come back. The camera connects by itself.
+            </p>
+          </>
+        )}
+
+        {blocked && !bridge?.openAppSettings && (
+          <ol className="w-full text-left font-body-sm text-white/85 space-y-2 rounded-2xl bg-white/5 p-4 list-decimal pl-8">
+            {inApp ? (
+              <>
+                <li>Open phone <strong>Settings → Apps</strong> (Oppo / Realme: <strong>Settings → Apps → App management</strong>)</li>
+                <li>Tap <strong>SheRides → Permissions → Camera</strong></li>
+                <li>Choose <strong>Allow</strong> (or “Allow only while using the app”) and come back</li>
+              </>
+            ) : (
+              <>
+                <li>Tap the <strong>⋮ / tune icon</strong> left of the address bar</li>
+                <li>Tap <strong>Permissions → Camera → Allow</strong></li>
+                <li>If it is still off: phone <strong>Settings → Apps → Chrome → Permissions → Camera → Allow</strong></li>
+              </>
+            )}
+          </ol>
+        )}
+
+        {(blocked || error.kind === "busy" || error.kind === "other") && (
+          <button type="button" onClick={onRetry} className={`h-12 w-full rounded-full font-label-lg ${blocked ? "border border-white/30" : "bg-white text-black"}`}>
+            {blocked ? "I’ve allowed it — try again" : "Try again"}
+          </button>
+        )}
+
+        {canUpload && onUpload && (
+          <button type="button" onClick={onUpload} className="h-12 w-full rounded-full border border-white/30 font-label-lg">
+            Upload a photo instead
+          </button>
         )}
       </div>
     </div>
