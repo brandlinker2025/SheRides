@@ -86,6 +86,13 @@ function FilePick({
         facing={selfie ? "user" : "environment"}
         guide={selfie ? "face" : "card"}
         title={label}
+        instruction={
+          selfie
+            ? "Position your face inside the oval"
+            : /nid/i.test(label)
+              ? "Hold your NID card steadily"
+              : "Hold the document steadily"
+        }
         allowSwitch={!selfie}
         onCapture={onPick}
         onClose={() => setCameraOpen(false)}
@@ -138,6 +145,7 @@ function ApplyForm() {
   const [bikePlate, setBikePlate] = useState("");
   const [bikePapers, setBikePapers] = useState<File | null>(null);
   const [declared, setDeclared] = useState(false);
+  const [photoStep, setPhotoStep] = useState<1 | 2>(1);
   const [busy, setBusy] = useState(false);
   const [progress, setProgress] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -217,21 +225,39 @@ function ApplyForm() {
           <input value={fullName} onChange={(e) => setFullName(e.target.value)} maxLength={80} placeholder="Full name (as on NID)" className={field} />
           <input value={nid} onChange={(e) => setNid(e.target.value.replace(/\D/g, "").slice(0, 17))} inputMode="numeric" placeholder="NID number" className={field} />
           <div className="space-y-6 pt-2">
-            <div className="space-y-3">
-              <StepHeading n={1} title="Face photo" sub="Live selfie — front camera, your whole face inside the oval." />
-              <FilePick
-                label="Live selfie"
-                hint="Opens the front camera with a face guide."
-                file={selfie}
-                onPick={setSelfie}
-                capture="user"
-              />
-            </div>
-            <div className="space-y-3">
-              <StepHeading n={2} title="NID card" sub="Back camera, card inside the 1.58 : 1 frame. Or upload a clear photo / PDF." />
-              <FilePick label="NID front" hint="Clear photo, all 4 corners visible" file={nidFront} onPick={setNidFront} capture="environment" />
-              <FilePick label="NID back" hint="Back side of the card" file={nidBack} onPick={setNidBack} capture="environment" required={false} />
-            </div>
+            {photoStep === 1 ? (
+              <div className="space-y-6">
+                <StepHeading n={1} title="Face photo" sub="Live selfie — front camera, your whole face inside the oval." />
+                <FilePick
+                  label="Live selfie"
+                  hint="Opens the front camera with a face guide."
+                  file={selfie}
+                  onPick={setSelfie}
+                  capture="user"
+                />
+                <button
+                  type="button"
+                  disabled={!selfie}
+                  onClick={() => setPhotoStep(2)}
+                  className="h-12 w-full rounded-full bg-accent-magenta font-label-lg text-white disabled:opacity-50"
+                >
+                  Continue to NID card
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-6">
+                <StepHeading n={2} title="NID card" sub="Back camera. Hold the card steadily inside the frame, or upload a clear photo / PDF." />
+                <FilePick label="NID front" hint="Clear photo, all 4 corners visible" file={nidFront} onPick={setNidFront} capture="environment" />
+                <FilePick label="NID back" hint="Back side of the card" file={nidBack} onPick={setNidBack} capture="environment" required={false} />
+                <button
+                  type="button"
+                  onClick={() => setPhotoStep(1)}
+                  className="h-12 w-full rounded-full border border-surface-border bg-surface font-label-lg"
+                >
+                  Back to face photo
+                </button>
+              </div>
+            )}
           </div>
         </Section>
 
