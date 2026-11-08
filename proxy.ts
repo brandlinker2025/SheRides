@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { isAdminProfileRole } from "./lib/admin-access";
 import { isApprovedProfile } from "./lib/profile";
 
 const PUBLIC_PATHS = new Set([
@@ -81,7 +82,7 @@ export async function proxy(request: NextRequest) {
     return redirectToLogin(request, pathname);
   }
 
-  const { data: profile } = await supabase
+  const { data: profile, error: profileError } = await supabase
     .from("profiles")
     .select("verified, role")
     .eq("id", user.id)
@@ -106,12 +107,12 @@ export async function proxy(request: NextRequest) {
   }
 
   // Admin APIs: non-admins get a hard 403 before the route even runs.
-  if (isAdminApiPath(pathname) && profile?.role !== "admin") {
+  if (isAdminApiPath(pathname) && (profileError || !isAdminProfileRole(profile?.role))) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   if (isAdminAppPath(pathname)) {
-    if (profile?.role !== "admin") {
+    if (profileError || !isAdminProfileRole(profile?.role)) {
       return NextResponse.redirect(new URL("/home", request.url));
     }
     return response;

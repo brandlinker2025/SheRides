@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/lib/auth-context";
+import { useUI } from "@/lib/ui-context";
 import { toDiscoverableRiders } from "@/lib/profile";
 import { createClient } from "@/lib/supabase/client";
 import type { Rider } from "@/lib/types";
@@ -14,6 +15,7 @@ import { NotificationsBell } from "./NotificationsBell";
 
 export function TopNav() {
   const { user, signOut } = useAuth();
+  const { navOpen, setNavOpen } = useUI();
   const [query, setQuery] = useState("");
   const [hits, setHits] = useState<Rider[]>([]);
   const [open, setOpen] = useState(false);
@@ -30,7 +32,7 @@ export function TopNav() {
     const handle = window.setTimeout(() => {
       void supabase
         .from("profiles")
-        .select("*")
+        .select("id, username, full_name, avatar_url, location, verified")
         .order("created_at", { ascending: false })
         .limit(80)
         .then(({ data }) => {
@@ -108,6 +110,15 @@ export function TopNav() {
         </div>
       </div>
       <div className="flex items-center gap-2 sm:gap-4">
+        <button
+          type="button"
+          className="lg:hidden inline-flex h-10 items-center rounded-full px-3 text-on-primary hover:bg-white/10 font-label-lg"
+          aria-expanded={navOpen}
+          aria-controls="mobile-nav"
+          onClick={() => setNavOpen(!navOpen)}
+        >
+          {navOpen ? "Close" : "Menu"}
+        </button>
         {user?.role === "admin" && (
           <Link
             href="/admin"

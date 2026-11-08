@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useFeed } from "@/lib/feed-context";
 import { PANDA_HERO_SRC } from "@/lib/brand-art";
 import { useScrollTopOnNavigate } from "@/hooks/useScrollTopOnNavigate";
+import { useUI } from "@/lib/ui-context";
 import { AuthGate } from "../auth/AuthGate";
 import { CreatePostModal } from "../feed/CreatePostModal";
 import { ChatDock } from "../messages/ChatDock";
@@ -14,16 +15,16 @@ import { TopNav } from "./TopNav";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const { addPost } = useFeed();
+  const { navOpen } = useUI();
   const mainRef = useScrollTopOnNavigate<HTMLElement>();
 
   return (
     <AuthGate>
       <PresenceHeartbeat />
-      <div className="panda-app-bg text-on-surface font-body-md antialiased h-dvh overflow-hidden">
+      <div className="panda-app-bg text-on-surface font-body-md antialiased h-dvh max-h-dvh overflow-hidden">
         <TopNav />
-        <div className="flex pt-[72px] h-dvh">
+        <div className="flex h-full min-h-0 min-w-0 pt-[72px]">
           <SideNav />
-          {/* Background art stays put while only the content scrolls */}
           <div className="pointer-events-none fixed inset-0 top-[72px] lg:left-64 overflow-hidden" aria-hidden="true">
             <Image
               src={PANDA_HERO_SRC}
@@ -34,16 +35,23 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             />
             <div className="absolute inset-0 panda-app-veil" />
           </div>
-          {/* Sidebar + top bar are fixed; this is the ONLY scrolling area */}
+          {/* The inner wrapper must grow with its content. flex-1 + min-h-0 here
+              shrinks long pages to the viewport and clips the bottom. */}
           <main
             id="app-main"
             ref={mainRef}
-            className="relative z-10 flex-1 lg:ml-64 w-full min-w-0 h-[calc(100dvh-72px)] overflow-y-auto overscroll-contain flex flex-col"
+            inert={navOpen ? true : undefined}
+            aria-hidden={navOpen || undefined}
+            className={`relative z-10 min-w-0 flex-1 min-h-0 overscroll-contain overflow-x-hidden ${
+              navOpen ? "overflow-hidden" : "overflow-y-auto"
+            }`}
           >
-            <div className="flex-1 min-h-0 pb-24 lg:pb-0">{children}</div>
+            <div className="min-h-full pb-[calc(12.5rem+env(safe-area-inset-bottom))] lg:pb-10">{children}</div>
           </main>
         </div>
-        <BottomNav />
+        <div inert={navOpen ? true : undefined}>
+          <BottomNav />
+        </div>
         <ChatDock />
         <CreatePostModal onPost={addPost} />
       </div>

@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
+import { isAdminProfileRole } from "@/lib/admin-access";
 import { useAuth } from "@/lib/auth-context";
 
 export function AuthGate({ children }: { children: React.ReactNode }) {
@@ -33,7 +34,7 @@ export function AdminGate({ children }: { children: React.ReactNode }) {
       router.replace("/admin-login");
       return;
     }
-    if (user.role !== "admin") {
+    if (!isAdminProfileRole(user.role)) {
       router.replace("/home");
     }
   }, [loading, user, router]);
@@ -46,6 +47,6 @@ export function AdminGate({ children }: { children: React.ReactNode }) {
     );
   }
 
-  if (user.role !== "admin") return null;
+  if (!isAdminProfileRole(user.role)) return null;
   return <>{children}</>;
 }

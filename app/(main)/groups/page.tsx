@@ -14,7 +14,6 @@ type CommunityRow = {
   location: string;
   description: string;
   cover: string;
-  members: number;
   activity?: string;
   category: string;
   joined: boolean;
@@ -22,20 +21,35 @@ type CommunityRow = {
 
 export default function CommunitiesPage() {
   const { user } = useAuth();
-  // Member counts are community statistics — admins only.
-  const isAdmin = user?.role === "admin";
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<(typeof filters)[number]>("All Regions");
   const [communities, setCommunities] = useState<CommunityRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const supabase = createClient();
-    if (!supabase) return;
+    if (!supabase) {
+      setLoading(false);
+      setError("SheRides connection is unavailable.");
+      return;
+    }
+    let cancelled = false;
     const load = async () => {
-      const { data } = await supabase.from("communities").select("*").order("name");
-      const { data: mine } = user
+      setError(null);
+      const { data, error: loadError } = await supabase
+        .from("communities")
+        .select("id, name, location, description, cover_url, activity, category")
+        .order("name");
+      const { data: mine, error: memberError } = user
         ? await supabase.from("community_members").select("community_id").eq("user_id", user.id)
-        : { data: [] };
+        : { data: [], error: null };
+      if (cancelled) return;
+      if (loadError || memberError) {
+        setError("Communities could not be loaded.");
+        setLoading(false);
+        return;
+      }
       const joined = new Set((mine ?? []).map((row) => row.community_id as string));
       setCommunities(
         (data ?? []).map((row) => ({
@@ -44,14 +58,17 @@ export default function CommunitiesPage() {
           location: (row.location as string) || "",
           description: (row.description as string) || "",
           cover: (row.cover_url as string) || "",
-          members: (row.members_count as number) ?? 0,
           activity: (row.activity as string) || undefined,
           category: (row.category as string) || "Meetup",
           joined: joined.has(row.id as string),
         }))
       );
+      setLoading(false);
     };
     void load();
+    return () => {
+      cancelled = true;
+    };
   }, [user]);
 
   const list = useMemo(
@@ -68,15 +85,19 @@ export default function CommunitiesPage() {
     const supabase = createClient();
     if (!supabase || !user) return;
     if (community.joined) {
-      await supabase.from("community_members").delete().eq("community_id", community.id).eq("user_id", user.id);
-      setCommunities((prev) =>
-        prev.map((c) => (c.id === community.id ? { ...c, joined: false, members: Math.max(0, c.members - 1) } : c))
-      );
+      const { error: leaveError } = await supabase.from("community_members").delete().eq("community_id", community.id).eq("user_id", user.id);
+      if (leaveError) {
+        setError("Could not update this group.");
+        return;
+      }
+      setCommunities((prev) => prev.map((c) => (c.id === community.id ? { ...c, joined: false } : c)));
     } else {
-      await supabase.from("community_members").insert({ community_id: community.id, user_id: user.id, status: "joined" });
-      setCommunities((prev) =>
-        prev.map((c) => (c.id === community.id ? { ...c, joined: true, members: c.members + 1 } : c))
-      );
+      const { error: joinError } = await supabase.from("community_members").insert({ community_id: community.id, user_id: user.id, status: "joined" });
+      if (joinError) {
+        setError("Could not update this group.");
+        return;
+      }
+      setCommunities((prev) => prev.map((c) => (c.id === community.id ? { ...c, joined: true } : c)));
     }
   }
 
@@ -115,8 +136,11 @@ export default function CommunitiesPage() {
         ))}
       </div>
 
-      {list.length === 0 ? (
-        <EmptyState variant="groups" title="No communities yet." body="Run supabase/seed.sql to add the four city groups." />
+      {error ? <p className="mb-6 font-body-sm text-error">{error}</p> : null}
+      {loading ? (
+        <p className="font-body-md text-secondary">Loading communities…</p>
+      ) : error ? null : list.length === 0 ? (
+        <EmptyState variant="groups" title="No communities yet." body="City groups will show up here." />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
           {list.map((c) => (
@@ -139,8 +163,7 @@ export default function CommunitiesPage() {
                   <Icon name="location_on" size={16} /> {c.location}
                 </p>
                 <p className="font-body-sm text-body-sm text-tertiary mb-6 line-clamp-2">{c.description}</p>
-                <div className="mt-auto flex items-center justify-between border-t border-surface-border pt-4">
-                  {isAdmin ? <span className="font-body-sm text-tertiary">{c.members} members</span> : <span aria-hidden="true" />}
+                <div className="mt-auto flex items-center justify-end border-t border-surface-border pt-4">
                   <button
                     type="button"
                     onClick={() => void toggleJoin(c)}
