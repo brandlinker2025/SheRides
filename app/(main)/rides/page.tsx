@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Icon } from "@/components/ui/Icon";
+import { useAuth } from "@/lib/auth-context";
 import { img } from "@/lib/images";
 import { createClient } from "@/lib/supabase/client";
 
@@ -18,6 +19,9 @@ type RideRow = {
 };
 
 export default function RidesPage() {
+  const { user } = useAuth();
+  // Attendee counts are community statistics — admins only.
+  const isAdmin = user?.role === "admin";
   const [rides, setRides] = useState<RideRow[]>([]);
 
   useEffect(() => {
@@ -68,7 +72,7 @@ export default function RidesPage() {
                   <div className="flex-1">
                     <h3 className="font-headline-md text-body-lg font-semibold">{ride.title}</h3>
                     <p className="font-body-sm text-tertiary flex items-center gap-1 mt-1">
-                      <Icon name="location_on" size={16} /> {ride.location} • {ride.attending_count} attending
+                      <Icon name="location_on" size={16} /> {ride.location}{isAdmin ? ` • ${ride.attending_count} attending` : ""}
                     </p>
                   </div>
                   <Link

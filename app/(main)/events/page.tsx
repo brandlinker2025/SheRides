@@ -31,6 +31,8 @@ function dateParts(value: string) {
 
 export default function EventsPage() {
   const { user } = useAuth();
+  // Attendee counts are community statistics — admins only.
+  const isAdmin = user?.role === "admin";
   const [view, setView] = useState<"list" | "calendar">("list");
   const [kind, setKind] = useState<"All" | "Rides" | "Workshops">("All");
   const [events, setEvents] = useState<EventRow[]>([]);
@@ -133,7 +135,7 @@ export default function EventsPage() {
               <h2 className="font-headline-md text-headline-md text-on-background mb-4">{featured.title}</h2>
               <p className="font-body-md text-body-md text-tertiary mb-6">{featured.description}</p>
               <div className="flex items-center justify-between mt-auto">
-                <span className="font-body-sm text-tertiary">{featured.attending_count} attending</span>
+                {isAdmin ? <span className="font-body-sm text-tertiary">{featured.attending_count} attending</span> : <span aria-hidden="true" />}
                 <button
                   type="button"
                   onClick={() => void toggleRsvp(featured)}
@@ -211,7 +213,7 @@ export default function EventsPage() {
                       <h4 className="font-label-lg text-label-lg mb-2">{e.title}</h4>
                       <p className="font-body-sm text-body-sm text-tertiary mb-6 flex-grow">{e.description}</p>
                       <div className="flex items-center justify-between border-t border-surface-border pt-4">
-                        <span className="font-body-sm text-tertiary">{e.attending_count} attending</span>
+                        {isAdmin ? <span className="font-body-sm text-tertiary">{e.attending_count} attending</span> : <span aria-hidden="true" />}
                         <button
                           type="button"
                           onClick={() => void toggleRsvp(e)}

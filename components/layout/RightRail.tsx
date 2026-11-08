@@ -12,6 +12,8 @@ type RailEvent = { id: string; title: string; location: string; starts_at: strin
 
 export function RightRail() {
   const { user } = useAuth();
+  // Attendee counts are community statistics — admins only.
+  const isAdmin = user?.role === "admin";
   const [events, setEvents] = useState<RailEvent[]>([]);
 
   useEffect(() => {
@@ -74,7 +76,8 @@ export function RightRail() {
                     {event.title}
                   </h4>
                   <p className="font-body-sm text-body-sm text-tertiary">
-                    {event.location} • {event.attending_count} attending
+                    {event.location}
+                    {isAdmin ? ` • ${event.attending_count} attending` : ""}
                   </p>
                 </div>
               </Link>

@@ -1,37 +1,16 @@
-import type { User } from "@supabase/supabase-js";
 import { redirect } from "next/navigation";
-import { ADMIN_OPEN_ACCESS } from "@/lib/admin/open-access";
 import { createAdminClient } from "./admin";
 import { createServerSupabase } from "./server";
 
-const OPEN_ACCESS_USER = { id: "open-access" } as User;
-
+/**
+ * Server-side admin guard. Every admin page, layout, server action and admin API
+ * route calls this. There is no bypass flag: a real signed-in admin session is
+ * always required.
+ *   - not signed in      → /admin-login
+ *   - signed in, not admin → /home
+ */
 export async function requireAdmin() {
   const sessionClient = await createServerSupabase();
-  const dataClient = createAdminClient() ?? sessionClient;
-
-  if (ADMIN_OPEN_ACCESS) {
-    if (!dataClient) {
-      throw new Error("Supabase is not configured.");
-    }
-
-    const {
-      data: { user },
-    } = sessionClient ? await sessionClient.auth.getUser() : { data: { user: null } };
-
-    let profile = null;
-    if (user) {
-      const { data } = await dataClient
-        .from("profiles")
-        .select("id, role, full_name, username, avatar_url")
-        .eq("id", user.id)
-        .maybeSingle();
-      profile = data;
-    }
-
-    return { user: user ?? OPEN_ACCESS_USER, profile, supabase: dataClient };
-  }
-
   if (!sessionClient) redirect("/admin-login");
 
   const {
@@ -43,7 +22,9 @@ export async function requireAdmin() {
     redirect("/admin-login");
   }
 
-  const { data: profile } = await (dataClient ?? sessionClient)
+  const dataClient = createAdminClient() ?? sessionClient;
+
+  const { data: profile } = await dataClient
     .from("profiles")
     .select("id, role, full_name, username, avatar_url")
     .eq("id", user.id)
@@ -53,5 +34,5 @@ export async function requireAdmin() {
     redirect("/home");
   }
 
-  return { user, profile, supabase: dataClient ?? sessionClient };
+  return { user, profile, supabase: dataClient };
 }

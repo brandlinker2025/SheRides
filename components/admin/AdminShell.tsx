@@ -7,6 +7,7 @@ import { Icon } from "@/components/ui/Icon";
 import { BrandLogo } from "@/components/ui/BrandLogo";
 import { PandaNavBackdrop } from "@/components/brand/PandaNavBackdrop";
 import { PANDA_HERO_SRC } from "@/lib/brand-art";
+import { useScrollTopOnNavigate } from "@/hooks/useScrollTopOnNavigate";
 
 const nav = [
   { href: "/admin", label: "Dashboard", icon: "dashboard", exact: true },
@@ -29,16 +30,17 @@ export function AdminShell({
   pendingCount?: number;
 }) {
   const pathname = usePathname();
+  const mainRef = useScrollTopOnNavigate<HTMLElement>();
 
   return (
-    <div className="panda-app-bg min-h-screen text-on-surface">
+    <div className="panda-app-bg h-dvh overflow-hidden text-on-surface">
       <header className="panda-topnav fixed top-0 w-full z-50 flex justify-between items-center px-gutter py-base md:hidden">
         <BrandLogo suffix="Admin" className="text-[28px]" />
         <Link href="/home" className="text-on-primary/80 font-label-lg text-label-lg">
           App
         </Link>
       </header>
-      <nav className="hidden md:flex flex-col h-screen fixed left-0 top-0 pt-8 pb-6 w-64 shadow-xl z-50 overflow-hidden">
+      <nav aria-label="Admin navigation" className="hidden md:flex flex-col h-dvh fixed left-0 top-0 pt-8 pb-6 w-64 shadow-xl z-50 overflow-hidden">
         <PandaNavBackdrop />
         <div className="relative z-10 px-6 mb-6">
           <Link href="/home" aria-label="SheRides community home">
@@ -97,18 +99,26 @@ export function AdminShell({
           );
         })}
       </div>
-      <main className="relative flex-1 mt-16 md:mt-0 md:ml-64 p-container-margin-mobile md:p-container-margin-desktop pb-28 md:pb-container-margin-desktop">
-        <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
-          <Image
-            src={PANDA_HERO_SRC}
-            alt=""
-            fill
-            sizes="(min-width: 768px) 70vw, 100vw"
-            className="object-cover object-[42%_40%] opacity-[0.22]"
-          />
-          <div className="absolute inset-0 panda-app-veil" />
+      {/* Background art stays put while only the content scrolls */}
+      <div className="pointer-events-none fixed inset-0 md:left-64 overflow-hidden" aria-hidden="true">
+        <Image
+          src={PANDA_HERO_SRC}
+          alt=""
+          fill
+          sizes="(min-width: 768px) 70vw, 100vw"
+          className="object-cover object-[42%_40%] opacity-[0.22]"
+        />
+        <div className="absolute inset-0 panda-app-veil" />
+      </div>
+      {/* Sidebar is fixed; this is the ONLY scrolling area */}
+      <main
+        id="admin-main"
+        ref={mainRef}
+        className="relative z-10 h-dvh overflow-y-auto overscroll-contain md:ml-64 pt-16 md:pt-0"
+      >
+        <div className="p-container-margin-mobile md:p-container-margin-desktop pb-28 md:pb-container-margin-desktop">
+          {children}
         </div>
-        <div className="relative z-10">{children}</div>
       </main>
     </div>
   );
