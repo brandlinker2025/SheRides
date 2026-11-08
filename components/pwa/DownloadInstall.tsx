@@ -232,8 +232,8 @@ export function DownloadInstall({ target }: { target: Target }) {
       <p className="mb-2 font-label-lg text-accent-magenta">INSTALL THE APP</p>
       <h1 className="mb-2 font-headline-xl text-headline-xl">Ride from your home screen</h1>
       <p className="mb-6 font-body-sm text-secondary">
-        Install SheRides on a PC, laptop, Android phone, or iPhone. No App Store, Play Store, or extra package —
-        this is a Home Screen / desktop web app.
+        On Android, download the SheRides app and install the file when your phone asks. On iPhone, add SheRides to
+        your Home Screen from Safari. On a computer, use your browser’s install prompt.
       </p>
 
       {inApp && (
@@ -241,7 +241,8 @@ export function DownloadInstall({ target }: { target: Target }) {
           <p className="font-label-lg mb-1">You opened this inside Facebook, Messenger or Instagram</p>
           <p>
             Install does not work here. Tap the <strong>⋯</strong> (three dots) at the top right and choose{" "}
-            <strong>{platform === "ios" ? "Open in Safari" : "Open in Chrome / Open in browser"}</strong>, then tap Install.
+            <strong>{platform === "ios" ? "Open in Safari" : "Open in Chrome / Open in browser"}</strong>
+            {platform === "android" ? ", then tap Download Android app." : ", then tap Install."}
           </p>
           <button
             type="button"
@@ -282,7 +283,14 @@ export function DownloadInstall({ target }: { target: Target }) {
                 </div>
               </div>
               <p className="mb-4 flex-1 font-body-sm text-secondary">{item.description}</p>
-              {active ? (
+              {active && platform === "android" ? (
+                <a
+                  href="https://sherides.online/sherides.apk"
+                  className="flex h-12 items-center justify-center rounded-full bg-accent-magenta px-6 font-label-lg text-label-lg text-on-primary shadow-magenta transition-transform hover:scale-[1.02] active:scale-95"
+                >
+                  Download Android app
+                </a>
+              ) : active ? (
                 <button
                   type="button"
                   onClick={() => void install()}
@@ -323,17 +331,40 @@ export function DownloadInstall({ target }: { target: Target }) {
         </p>
       )}
 
+      <section id="android-download" className={`mb-6 rounded-2xl p-5 ${platform === "android" ? "bg-primary-fixed/80" : "bg-soft-off-white"}`}>
+        <div className="mb-3 flex items-center gap-2">
+          <Icon name="install_mobile" className="text-accent-magenta" />
+          <h2 className="font-headline-md text-headline-md">Android</h2>
+        </div>
+        <p className="mb-3 font-body-sm text-secondary">
+          Download SheRides.apk, then open the file. Android will ask you to confirm the install. The app does not install by itself.
+        </p>
+        <a
+          href="https://sherides.online/sherides.apk"
+          className="inline-flex h-12 items-center justify-center rounded-full bg-accent-magenta px-6 font-label-lg text-label-lg text-on-primary shadow-magenta"
+        >
+          Download Android app
+        </a>
+        <ol className="mt-4 list-decimal space-y-2 pl-5 font-body-sm text-on-surface">
+          <li>Tap <strong>Download Android app</strong>.</li>
+          <li>Open the downloaded <strong>SheRides.apk</strong> file.</li>
+          <li>If Android asks, allow your browser to install unknown apps.</li>
+          <li>Confirm the install prompt, then open SheRides.</li>
+        </ol>
+      </section>
+
+      {platform !== "android" && (
       <section
         ref={fallbackRef}
         id="computer-android"
         className={`mb-6 rounded-2xl p-5 ${platform !== "ios" ? "bg-primary-fixed/80" : "bg-soft-off-white"}`}
       >
         <div className="mb-3 flex items-center gap-2">
-          <Icon name={platform === "android" ? "install_mobile" : "install_desktop"} className="text-accent-magenta" />
-          <h2 className="font-headline-md text-headline-md">PC, Mac, and Android</h2>
+          <Icon name="install_desktop" className="text-accent-magenta" />
+          <h2 className="font-headline-md text-headline-md">PC and Mac</h2>
         </div>
         <p className="mb-3 font-body-sm text-secondary">
-          Use the Install button above. Chrome, Edge, and Samsung Internet can add a real app window (standalone).
+          Use the Install button above. Chrome and Edge can add a real app window (standalone).
         </p>
         <ol className="list-decimal space-y-2 pl-5 font-body-sm text-on-surface">
           <li>Tap or click <strong>Install</strong> when the browser offers it.</li>
@@ -352,6 +383,7 @@ export function DownloadInstall({ target }: { target: Target }) {
           </button>
         )}
       </section>
+      )}
 
       <section
         id="iphone-steps"

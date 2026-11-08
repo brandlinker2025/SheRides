@@ -40,3 +40,8 @@ Thumbs.db
 
 .vercel
 supabase/.temp
+
+# Android build output and signing keys. The public APK is intentional.
+android/build/
+*.jks
+*.keystore
