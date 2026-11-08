@@ -1,22 +1,25 @@
 "use client";
 
 /**
- * In-page camera (getUserMedia). Works the same on every Android phone, iPhone,
- * desktop browser and inside the SheRides Android app — it does not depend on
- * the phone's own camera app or the file chooser showing a "Camera" option.
+ * In-page camera (getUserMedia), eKYC style. Works the same on every Android
+ * phone, iPhone, desktop browser and inside the SheRides Android app — it does
+ * not depend on the phone's camera app or the file chooser.
  *
- *   facing="user"        → front camera (live selfie)
- *   facing="environment" → back camera (NID / documents)
+ *   guide="face" → live selfie: face oval + NID card frame, front camera,
+ *                  3-second self-timer so both hands can hold the card
+ *   guide="card" → document: card frame with corner brackets, back camera
  *
- * Returns a JPEG File (max 2560 px, ~0.3–1.5 MB) via onCapture.
+ * Returns a JPEG File (max 2560 px) via onCapture. Saved un-mirrored so the
+ * NID text reads correctly for the admin.
  */
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Icon } from "@/components/ui/Icon";
 
 type Facing = "user" | "environment";
 type Guide = "card" | "face";
 
 const MAX_PX = 2560;
+const CARD_RATIO = 1.586; // ID-1 card (NID) width / height
 
 export function CameraCapture({
   open,
@@ -40,11 +43,16 @@ export function CameraCapture({
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
+  const stageRef = useRef<HTMLDivElement>(null);
+  const [stage, setStage] = useState({ w: 0, h: 0 });
   const [current, setCurrent] = useState<Facing>(facing);
   const [ready, setReady] = useState(false);
   const [error, setError] = useState<{ message: string; noCamera: boolean } | null>(null);
   const [shot, setShot] = useState<{ url: string; file: File } | null>(null);
   const [attempt, setAttempt] = useState(0);
+  const [timerOn, setTimerOn] = useState(guide === "face");
+  const [countdown, setCountdown] = useState<number | null>(null);
+  const [flash, setFlash] = useState(false);
 
   const stop = useCallback(() => {
     streamRef.current?.getTracks().forEach((t) => t.stop());
@@ -58,8 +66,22 @@ export function CameraCapture({
       setCurrent(facing);
       setShot(null);
       setError(null);
+      setCountdown(null);
+      setTimerOn(guide === "face");
     }
-  }, [open, facing]);
+  }, [open, facing, guide]);
+
+  // Measure the camera area so the guide shapes are drawn in real pixels
+  useLayoutEffect(() => {
+    if (!open) return;
+    const el = stageRef.current;
+    if (!el) return;
+    const measure = () => setStage({ w: el.clientWidth, h: el.clientHeight });
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [open, shot, error]);
 
   // Start / restart the camera stream
   useEffect(() => {
@@ -118,9 +140,12 @@ export function CameraCapture({
   }, [open, current, shot, attempt, stop]);
 
   // Free the preview URL
-  useEffect(() => () => {
-    if (shot) URL.revokeObjectURL(shot.url);
-  }, [shot]);
+  useEffect(
+    () => () => {
+      if (shot) URL.revokeObjectURL(shot.url);
+    },
+    [shot],
+  );
 
   // Escape closes
   useEffect(() => {
@@ -130,9 +155,7 @@ export function CameraCapture({
     return () => window.removeEventListener("keydown", onKey);
   }, [open, onClose]);
 
-  if (!open) return null;
-
-  const takePhoto = () => {
+  const takePhoto = useCallback(() => {
     const video = videoRef.current;
     if (!video || !video.videoWidth) return;
     const scale = Math.min(1, MAX_PX / Math.max(video.videoWidth, video.videoHeight));
@@ -143,62 +166,73 @@ export function CameraCapture({
     canvas.height = h;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
-    ctx.drawImage(video, 0, 0, w, h); // saved un-mirrored (text on NID reads correctly)
+    ctx.drawImage(video, 0, 0, w, h);
+    setFlash(true);
+    window.setTimeout(() => setFlash(false), 180);
     canvas.toBlob(
       (blob) => {
         if (!blob) return;
-        const file = new File([blob], `${current === "user" ? "selfie" : "photo"}-${Date.now()}.jpg`, {
+        const file = new File([blob], `${guide === "face" ? "selfie" : "photo"}-${Date.now()}.jpg`, {
           type: "image/jpeg",
         });
         stop();
         setShot({ url: URL.createObjectURL(blob), file });
       },
       "image/jpeg",
-      0.88,
+      0.9,
     );
-  };
+  }, [guide, stop]);
+
+  // Self-timer
+  useEffect(() => {
+    if (countdown === null) return;
+    if (countdown === 0) {
+      setCountdown(null);
+      takePhoto();
+      return;
+    }
+    const t = window.setTimeout(() => setCountdown((c) => (c === null ? null : c - 1)), 1000);
+    return () => window.clearTimeout(t);
+  }, [countdown, takePhoto]);
+
+  if (!open) return null;
 
   const mirrored = current === "user";
+  const isFace = guide === "face";
+  const shutter = () => {
+    if (countdown !== null) {
+      setCountdown(null); // tap again to cancel the timer
+      return;
+    }
+    if (timerOn) setCountdown(3);
+    else takePhoto();
+  };
 
   return (
-    <div role="dialog" aria-modal="true" aria-label={title} className="fixed inset-0 z-[100] bg-black text-white flex flex-col">
-      <div className="flex items-center justify-between px-4 py-3">
-        <button type="button" onClick={onClose} aria-label="Close camera" className="h-11 w-11 inline-flex items-center justify-center rounded-full bg-white/10">
-          <Icon name="close" />
-        </button>
-        <p className="font-label-lg text-center flex-1 px-2 truncate">{title}</p>
-        {allowSwitch && !shot && !error ? (
-          <button
-            type="button"
-            onClick={() => setCurrent((c) => (c === "user" ? "environment" : "user"))}
-            aria-label="Switch camera"
-            className="h-11 w-11 inline-flex items-center justify-center rounded-full bg-white/10"
-          >
-            <Icon name="cameraswitch" />
-          </button>
-        ) : (
-          <span className="h-11 w-11" />
-        )}
-      </div>
-
-      <div className="relative flex-1 min-h-0 flex items-center justify-center overflow-hidden">
+    <div role="dialog" aria-modal="true" aria-label={title} className="fixed inset-0 z-[100] bg-black text-white flex flex-col select-none">
+      {/* Camera / preview area */}
+      <div ref={stageRef} className="relative flex-1 min-h-0 overflow-hidden">
         {shot ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={shot.url} alt="Captured photo preview" className="max-h-full max-w-full object-contain" />
+          <img src={shot.url} alt="Captured photo preview" className="absolute inset-0 h-full w-full object-contain bg-black" />
         ) : error ? (
-          <div className="max-w-sm px-6 text-center flex flex-col items-center gap-4">
-            <Icon name="no_photography" size={48} />
-            <p className="font-body-md" role="alert">{error.message}</p>
-            {!error.noCamera && (
-              <button type="button" onClick={() => setAttempt((n) => n + 1)} className="h-12 px-6 rounded-full bg-white text-black font-label-lg">
-                Try again
-              </button>
-            )}
-            {error.noCamera && onFallbackUpload && (
-              <button type="button" onClick={onFallbackUpload} className="h-12 px-6 rounded-full bg-white text-black font-label-lg">
-                Upload a photo instead
-              </button>
-            )}
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="max-w-sm px-6 text-center flex flex-col items-center gap-4">
+              <span className="h-16 w-16 rounded-full bg-white/10 inline-flex items-center justify-center">
+                <Icon name="no_photography" size={32} />
+              </span>
+              <p className="font-body-md leading-relaxed" role="alert">{error.message}</p>
+              {!error.noCamera && (
+                <button type="button" onClick={() => setAttempt((n) => n + 1)} className="h-12 px-7 rounded-full bg-white text-black font-label-lg">
+                  Try again
+                </button>
+              )}
+              {error.noCamera && onFallbackUpload && (
+                <button type="button" onClick={onFallbackUpload} className="h-12 px-7 rounded-full bg-white text-black font-label-lg">
+                  Upload a photo instead
+                </button>
+              )}
+            </div>
           </div>
         ) : (
           <>
@@ -207,55 +241,207 @@ export function CameraCapture({
               playsInline
               muted
               autoPlay
-              className={`h-full w-full object-cover ${mirrored ? "-scale-x-100" : ""}`}
+              className={`absolute inset-0 h-full w-full object-cover ${mirrored ? "-scale-x-100" : ""}`}
             />
-            {!ready && <p className="absolute font-body-md">Opening camera…</p>}
-            {/* Framing guide */}
-            <div className="pointer-events-none absolute inset-0 flex items-center justify-center" aria-hidden="true">
-              {guide === "card" ? (
-                <div className="w-[86%] max-w-[520px] aspect-[1.586] rounded-2xl border-4 border-white/80 shadow-[0_0_0_9999px_rgba(0,0,0,0.35)]" />
-              ) : (
-                <div className="w-[62%] max-w-[320px] aspect-[3/4] rounded-[50%] border-4 border-white/80 shadow-[0_0_0_9999px_rgba(0,0,0,0.35)]" />
-              )}
-            </div>
+            {!ready && (
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-black">
+                <span className="h-10 w-10 rounded-full border-2 border-white/25 border-t-white animate-spin" />
+                <p className="font-body-sm text-white/80">Opening camera…</p>
+              </div>
+            )}
+            {ready && stage.w > 0 && <GuideOverlay w={stage.w} h={stage.h} guide={guide} />}
+            {countdown !== null && countdown > 0 && (
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none" aria-live="assertive">
+                <span key={countdown} className="sr-pop text-[120px] font-bold leading-none drop-shadow-[0_4px_24px_rgba(0,0,0,0.6)]">
+                  {countdown}
+                </span>
+              </div>
+            )}
           </>
         )}
-      </div>
 
-      <div className="px-6 pt-3 pb-[max(1.5rem,env(safe-area-inset-bottom))] flex flex-col items-center gap-3">
-        {!shot && !error && (
-          <p className="font-body-sm text-white/80 text-center">
-            {guide === "card" ? "Fit the whole card inside the frame. Avoid glare." : "Face and NID card both clearly visible."}
-          </p>
-        )}
-        {shot ? (
-          <div className="flex w-full max-w-sm gap-3">
-            <button type="button" onClick={() => setShot(null)} className="flex-1 h-14 rounded-full bg-white/15 font-label-lg">
-              Retake
-            </button>
+        {/* Top bar (over the camera) */}
+        <div className="absolute inset-x-0 top-0 z-20 flex items-center gap-2 px-3 pt-[max(0.75rem,env(safe-area-inset-top))] pb-6 bg-gradient-to-b from-black/70 to-transparent">
+          <button type="button" onClick={onClose} aria-label="Close camera" className="h-11 w-11 shrink-0 inline-flex items-center justify-center rounded-full bg-black/40 backdrop-blur">
+            <Icon name="close" />
+          </button>
+          <div className="flex-1 min-w-0 text-center">
+            <p className="font-label-lg truncate">{shot ? "Check your photo" : title}</p>
+            {!shot && !error && (
+              <p className="text-[12px] text-white/75 truncate">
+                {isFace ? "Face in the oval · NID card in the box" : "Whole card inside the frame"}
+              </p>
+            )}
+          </div>
+          {allowSwitch && !shot && !error ? (
             <button
               type="button"
-              onClick={() => {
-                onCapture(shot.file);
-                onClose();
-              }}
-              className="flex-1 h-14 rounded-full bg-accent-magenta font-label-lg"
+              onClick={() => setCurrent((c) => (c === "user" ? "environment" : "user"))}
+              aria-label="Switch camera"
+              className="h-11 w-11 shrink-0 inline-flex items-center justify-center rounded-full bg-black/40 backdrop-blur"
             >
-              Use photo
+              <Icon name="cameraswitch" />
             </button>
+          ) : (
+            <span className="h-11 w-11 shrink-0" />
+          )}
+        </div>
+
+        {flash && <div className="sr-flash absolute inset-0 z-30 bg-white pointer-events-none" />}
+        <style>{`.sr-pop{animation:sr-pop .9s ease-out both}@keyframes sr-pop{0%{transform:scale(.6);opacity:0}25%{transform:scale(1.08);opacity:1}100%{transform:scale(1);opacity:.85}}.sr-flash{animation:sr-flash .18s ease-out forwards}@keyframes sr-flash{from{opacity:.9}to{opacity:0}}@media (prefers-reduced-motion:reduce){.sr-pop,.sr-flash{animation:none}}`}</style>
+      </div>
+
+      {/* Bottom controls */}
+      <div className="relative z-20 bg-black px-6 pt-4 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
+        {shot ? (
+          <div className="flex flex-col items-center gap-3">
+            <p className="font-body-sm text-white/80 text-center">
+              {isFace ? "Is your face clear and is the NID readable?" : "Can you read every line on the card? No glare?"}
+            </p>
+            <div className="flex w-full max-w-sm gap-3">
+              <button type="button" onClick={() => setShot(null)} className="flex-1 h-14 rounded-full bg-white/10 border border-white/25 font-label-lg inline-flex items-center justify-center gap-2">
+                <Icon name="refresh" size={20} /> Retake
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  onCapture(shot.file);
+                  onClose();
+                }}
+                className="flex-1 h-14 rounded-full bg-accent-magenta font-label-lg inline-flex items-center justify-center gap-2"
+              >
+                <Icon name="check" size={20} /> Use photo
+              </button>
+            </div>
           </div>
         ) : (
           !error && (
-            <button
-              type="button"
-              onClick={takePhoto}
-              disabled={!ready}
-              aria-label="Take photo"
-              className="h-20 w-20 rounded-full border-4 border-white bg-white/20 disabled:opacity-40 active:scale-95 transition-transform"
-            />
+            <div className="flex flex-col items-center gap-4">
+              <ul className="flex flex-wrap justify-center gap-x-4 gap-y-1 text-[12px] text-white/75">
+                {(isFace
+                  ? ["Bright light on your face", "No mask or sunglasses", "Hold NID beside your chin"]
+                  : ["Card flat on a dark surface", "All 4 corners visible", "No glare or blur"]
+                ).map((tip) => (
+                  <li key={tip} className="inline-flex items-center gap-1">
+                    <Icon name="check_circle" size={14} className="text-emerald-400" /> {tip}
+                  </li>
+                ))}
+              </ul>
+              <div className="grid w-full max-w-sm grid-cols-3 items-center">
+                <span />
+                <button
+                  type="button"
+                  onClick={shutter}
+                  disabled={!ready}
+                  aria-label={countdown !== null ? "Cancel timer" : timerOn ? "Take photo in 3 seconds" : "Take photo"}
+                  className="justify-self-center relative h-[76px] w-[76px] rounded-full border-[5px] border-white disabled:opacity-40 active:scale-95 transition-transform"
+                >
+                  <span className={`absolute inset-[5px] rounded-full transition-colors ${countdown !== null ? "bg-red-500" : "bg-white"}`} />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTimerOn((v) => !v)}
+                  aria-pressed={timerOn}
+                  aria-label="3 second timer"
+                  className={`justify-self-end h-11 px-3 rounded-full inline-flex items-center gap-1 text-[13px] font-label-lg border ${timerOn ? "bg-white text-black border-white" : "border-white/30 text-white/85"}`}
+                >
+                  <Icon name="timer" size={18} /> 3s
+                </button>
+              </div>
+            </div>
           )
         )}
       </div>
     </div>
+  );
+}
+
+/** Dimmed mask with clear cut-outs, drawn in real pixels so shapes never stretch. */
+function GuideOverlay({ w, h, guide }: { w: number; h: number; guide: Guide }) {
+  const top = 72; // below the top bar
+  const usableH = h - top - 16;
+
+  if (guide === "face") {
+    // Face oval in the upper part, NID card frame underneath (like bank eKYC screens)
+    let rx = Math.min(w * 0.3, usableH * 0.2);
+    let ry = rx * 1.32;
+    let cardW = Math.min(w * 0.62, rx * 2.6);
+    let cardH = cardW / CARD_RATIO;
+    const gap = 18;
+    const total = ry * 2 + gap + cardH;
+    if (total > usableH * 0.94) {
+      const k = (usableH * 0.94) / total;
+      rx *= k;
+      ry *= k;
+      cardW *= k;
+      cardH *= k;
+    }
+    const startY = top + (usableH - (ry * 2 + gap + cardH)) / 2;
+    const cx = w / 2;
+    const cy = startY + ry;
+    const cardX = cx - cardW / 2;
+    const cardY = cy + ry + gap;
+
+    return (
+      <svg className="absolute inset-0 z-10 pointer-events-none" width={w} height={h} aria-hidden="true">
+        <defs>
+          <mask id="sr-face-mask">
+            <rect width={w} height={h} fill="white" />
+            <ellipse cx={cx} cy={cy} rx={rx} ry={ry} fill="black" />
+            <rect x={cardX} y={cardY} width={cardW} height={cardH} rx={12} fill="black" />
+          </mask>
+        </defs>
+        <rect width={w} height={h} fill="rgba(0,0,0,0.58)" mask="url(#sr-face-mask)" />
+        <ellipse cx={cx} cy={cy} rx={rx} ry={ry} fill="none" stroke="white" strokeWidth={3} />
+        <ellipse cx={cx} cy={cy} rx={rx + 5} ry={ry + 5} fill="none" stroke="rgba(167,139,250,0.55)" strokeWidth={6} className="sr-breathe" />
+        <rect x={cardX} y={cardY} width={cardW} height={cardH} rx={12} fill="none" stroke="white" strokeWidth={2.5} strokeDasharray="10 8" />
+        <Chip x={cx} y={cy - ry - 14} text="Your face" />
+        <Chip x={cx} y={cardY + cardH + 22} text="Your NID card" />
+        <style>{`.sr-breathe{animation:sr-breathe 2.4s ease-in-out infinite}@keyframes sr-breathe{0%,100%{opacity:.25}50%{opacity:.9}}@media (prefers-reduced-motion:reduce){.sr-breathe{animation:none}}`}</style>
+      </svg>
+    );
+  }
+
+  // Document: one big card frame with corner brackets
+  const cardW = Math.min(w * 0.88, 560, (usableH * 0.8) * CARD_RATIO);
+  const cardH = cardW / CARD_RATIO;
+  const x = (w - cardW) / 2;
+  const y = top + (usableH - cardH) / 2 - 12;
+  const L = Math.min(34, cardW * 0.12);
+  const r = 14;
+  const corners = [
+    `M${x} ${y + L} V${y + r} Q${x} ${y} ${x + r} ${y} H${x + L}`,
+    `M${x + cardW - L} ${y} H${x + cardW - r} Q${x + cardW} ${y} ${x + cardW} ${y + r} V${y + L}`,
+    `M${x + cardW} ${y + cardH - L} V${y + cardH - r} Q${x + cardW} ${y + cardH} ${x + cardW - r} ${y + cardH} H${x + cardW - L}`,
+    `M${x + L} ${y + cardH} H${x + r} Q${x} ${y + cardH} ${x} ${y + cardH - r} V${y + cardH - L}`,
+  ];
+
+  return (
+    <svg className="absolute inset-0 z-10 pointer-events-none" width={w} height={h} aria-hidden="true">
+      <defs>
+        <mask id="sr-card-mask">
+          <rect width={w} height={h} fill="white" />
+          <rect x={x} y={y} width={cardW} height={cardH} rx={r} fill="black" />
+        </mask>
+      </defs>
+      <rect width={w} height={h} fill="rgba(0,0,0,0.58)" mask="url(#sr-card-mask)" />
+      <rect x={x} y={y} width={cardW} height={cardH} rx={r} fill="none" stroke="rgba(255,255,255,0.35)" strokeWidth={1.5} />
+      {corners.map((d) => (
+        <path key={d} d={d} fill="none" stroke="white" strokeWidth={5} strokeLinecap="round" strokeLinejoin="round" />
+      ))}
+      <Chip x={w / 2} y={y + cardH + 26} text="Fit the NID card inside the frame" />
+    </svg>
+  );
+}
+
+function Chip({ x, y, text }: { x: number; y: number; text: string }) {
+  const width = text.length * 7.2 + 24;
+  return (
+    <g>
+      <rect x={x - width / 2} y={y - 13} width={width} height={26} rx={13} fill="rgba(0,0,0,0.55)" />
+      <text x={x} y={y + 4.5} textAnchor="middle" fill="white" fontSize={13} fontWeight={600} fontFamily="inherit">
+        {text}
+      </text>
+    </g>
   );
 }
