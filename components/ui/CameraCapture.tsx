@@ -5,27 +5,29 @@
  * phone, iPhone, desktop browser and inside the SheRides Android app — it does
  * not depend on the phone's camera app or the file chooser.
  *
- *   guide="face" → step 1, live selfie: one large face oval (max 280×360),
+ *   guide="face" → step 1, live selfie: a 280×350 oval (max height 360),
  *                  front camera, optional 3-second self-timer
- *   guide="card" → document: card frame with corner brackets, back camera
+ *   guide="card" → step 2, NID: card frame with corner brackets, back camera
+ *                  Instructions sit outside the camera frame.
  *
  * Returns a JPEG File (max 2560 px) via onCapture. Saved un-mirrored so the
  * NID text reads correctly for the admin.
  */
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { Icon } from "@/components/ui/Icon";
 
 type Facing = "user" | "environment";
 type Guide = "card" | "face";
 
 const MAX_PX = 2560;
-const CARD_RATIO = 1.586; // ID-1 card (NID) width / height
 
 export function CameraCapture({
   open,
   facing = "environment",
   guide = "card",
   title,
+  instruction,
   allowSwitch = true,
   onCapture,
   onClose,
@@ -35,6 +37,8 @@ export function CameraCapture({
   facing?: Facing;
   guide?: Guide;
   title: string;
+  /** Shown above the camera frame, never on top of the guide. */
+  instruction?: string;
   allowSwitch?: boolean;
   onCapture: (file: File) => void;
   onClose: () => void;
@@ -56,12 +60,27 @@ export function CameraCapture({
   const [timerOn, setTimerOn] = useState(false);
   const [countdown, setCountdown] = useState<number | null>(null);
   const [flash, setFlash] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   const stop = useCallback(() => {
     streamRef.current?.getTracks().forEach((t) => t.stop());
     streamRef.current = null;
     setReady(false);
   }, []);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // The camera is portaled to <body>, but the tab bar is a later sibling of the
+  // page and would still paint over a z-50 layer trapped in <main>. Hide it.
+  useEffect(() => {
+    if (!open) return;
+    document.body.dataset.ekycCamera = "open";
+    return () => {
+      delete document.body.dataset.ekycCamera;
+    };
+  }, [open]);
 
   // Reset when (re)opened
   useEffect(() => {
@@ -235,10 +254,11 @@ export function CameraCapture({
     return () => window.clearTimeout(t);
   }, [countdown, takePhoto]);
 
-  if (!open) return null;
+  if (!open || !mounted) return null;
 
   const mirrored = current === "user";
   const isFace = guide === "face";
+  const guideText = instruction ?? (isFace ? "Position your face inside the oval" : "Hold your NID card steadily");
   const shutter = () => {
     if (countdown !== null) {
       setCountdown(null); // tap again to cancel the timer
@@ -248,10 +268,10 @@ export function CameraCapture({
     else takePhoto();
   };
 
-  return (
-    <div role="dialog" aria-modal="true" aria-label={title} className="fixed inset-0 z-[100] bg-black text-white flex flex-col select-none">
+  return createPortal(
+    <div role="dialog" aria-modal="true" aria-label={title} className="fixed inset-0 z-50 flex flex-col select-none overflow-hidden bg-black/90 text-white">
       {/* Camera / preview area */}
-      <div ref={stageRef} className="relative flex-1 min-h-0 overflow-hidden">
+      <div className="relative flex flex-1 min-h-0 flex-col overflow-hidden">
         {shot ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={shot.url} alt="Captured photo preview" className="absolute inset-0 h-full w-full object-contain bg-black" />
@@ -289,20 +309,34 @@ export function CameraCapture({
           />
         ) : (
           <>
-            <video
-              ref={videoRef}
-              playsInline
-              muted
-              autoPlay
-              className={`absolute inset-0 h-full w-full object-cover ${mirrored ? "-scale-x-100" : ""}`}
-            />
-            {!ready && (
-              <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-black">
-                <span className="h-10 w-10 rounded-full border-2 border-white/25 border-t-white animate-spin" />
-                <p className="font-body-sm text-white/80">Opening camera…</p>
+            <p className="relative z-20 px-6 pt-[max(4.75rem,calc(env(safe-area-inset-top)+4.25rem))] pb-4 text-center font-body-md text-white">
+              {guideText}
+            </p>
+            <div className="relative z-10 flex flex-1 items-center justify-center bg-black/70 px-6 pb-4 backdrop-blur-md">
+              <div
+                ref={stageRef}
+                className={
+                  isFace
+                    ? "relative h-[350px] max-h-[360px] w-[280px] max-w-[90vw] overflow-hidden rounded-[50%] bg-black ring-2 ring-white"
+                    : "relative aspect-[1.586/1] w-full max-w-[420px] overflow-hidden rounded-2xl bg-black ring-2 ring-white"
+                }
+              >
+                <video
+                  ref={videoRef}
+                  playsInline
+                  muted
+                  autoPlay
+                  className={`absolute inset-0 h-full w-full object-cover ${mirrored ? "-scale-x-100" : ""}`}
+                />
+                {!ready && (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-black">
+                    <span className="h-10 w-10 rounded-full border-2 border-white/25 border-t-white animate-spin" />
+                    <p className="font-body-sm text-white/80">Opening camera…</p>
+                  </div>
+                )}
+                {ready && !isFace && stage.w > 0 && <GuideOverlay w={stage.w} h={stage.h} />}
               </div>
-            )}
-            {ready && stage.w > 0 && <GuideOverlay w={stage.w} h={stage.h} guide={guide} />}
+            </div>
             {countdown !== null && countdown > 0 && (
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none" aria-live="assertive">
                 <span key={countdown} className="sr-pop text-[120px] font-bold leading-none drop-shadow-[0_4px_24px_rgba(0,0,0,0.6)]">
@@ -314,17 +348,12 @@ export function CameraCapture({
         )}
 
         {/* Top bar (over the camera) */}
-        <div className="absolute inset-x-0 top-0 z-20 flex items-center gap-2 px-3 pt-[max(0.75rem,env(safe-area-inset-top))] pb-6 bg-gradient-to-b from-black/70 to-transparent">
+        <div className="absolute inset-x-0 top-0 z-20 flex items-center gap-2 bg-black px-3 pt-[max(0.75rem,env(safe-area-inset-top))] pb-3">
           <button type="button" onClick={onClose} aria-label="Close camera" className="h-11 w-11 shrink-0 inline-flex items-center justify-center rounded-full bg-black/40 backdrop-blur">
             <Icon name="close" />
           </button>
           <div className="flex-1 min-w-0 text-center">
             <p className="font-label-lg truncate">{shot ? "Check your photo" : title}</p>
-            {!shot && !error && !askFirst && (
-              <p className="text-[12px] text-white/75 truncate">
-                {isFace ? "Look straight at the camera" : "Whole card inside the frame · 1.58 : 1"}
-              </p>
-            )}
           </div>
           {allowSwitch && !shot && !error && !askFirst ? (
             <button
@@ -345,7 +374,7 @@ export function CameraCapture({
       </div>
 
       {/* Bottom controls */}
-      <div className="relative z-20 bg-black px-6 pt-4 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
+      <div className="relative z-20 shrink-0 bg-black px-6 pt-3 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
         {shot ? (
           <div className="flex flex-col items-center gap-3">
             <p className="font-body-sm text-white/80 text-center">
@@ -387,10 +416,8 @@ export function CameraCapture({
                   onClick={shutter}
                   disabled={!ready}
                   aria-label={countdown !== null ? "Cancel timer" : timerOn ? "Take photo in 3 seconds" : "Take photo"}
-                  className="justify-self-center relative h-[76px] w-[76px] rounded-full border-[5px] border-white disabled:opacity-40 active:scale-95 transition-transform"
-                >
-                  <span className={`absolute inset-[5px] rounded-full transition-colors ${countdown !== null ? "bg-red-500" : "bg-white"}`} />
-                </button>
+                  className={`justify-self-center h-20 w-20 rounded-full border-[5px] border-white shadow-[0_0_0_8px_rgba(255,255,255,0.22),0_0_36px_rgba(255,255,255,0.75)] disabled:opacity-40 active:scale-95 transition-transform ${countdown !== null ? "bg-red-500" : "bg-white"}`}
+                />
                 <button
                   type="button"
                   onClick={() => setTimerOn((v) => !v)}
@@ -405,7 +432,8 @@ export function CameraCapture({
           )
         )}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 
@@ -506,44 +534,15 @@ function CameraErrorPanel({
 }
 
 /** Dimmed mask with clear cut-outs, drawn in real pixels so shapes never stretch. */
-function GuideOverlay({ w, h, guide }: { w: number; h: number; guide: Guide }) {
-  const top = 72; // below the top bar
-  const usableH = h - top - 16;
-
-  if (guide === "face") {
-    // Step 1 — face only. Large, human-proportioned oval (max 280 × 360 px),
-    // centred, nothing else competing for space.
-    const maxW = Math.min(280, w * 0.72);
-    const maxH = Math.min(360, usableH * 0.78);
-    const rx = Math.min(maxW / 2, (maxH / 2) / 1.29);
-    const ry = rx * 1.29;
-    const cx = w / 2;
-    const cy = top + usableH / 2 - 8;
-
-    return (
-      <svg className="absolute inset-0 z-10 pointer-events-none" width={w} height={h} aria-hidden="true">
-        <defs>
-          <mask id="sr-face-mask">
-            <rect width={w} height={h} fill="white" />
-            <ellipse cx={cx} cy={cy} rx={rx} ry={ry} fill="black" />
-          </mask>
-        </defs>
-        <rect width={w} height={h} fill="rgba(0,0,0,0.6)" mask="url(#sr-face-mask)" />
-        <ellipse cx={cx} cy={cy} rx={rx + 5} ry={ry + 5} fill="none" stroke="rgba(167,139,250,0.55)" strokeWidth={6} className="sr-breathe" />
-        <ellipse cx={cx} cy={cy} rx={rx} ry={ry} fill="none" stroke="white" strokeWidth={3} />
-        <Chip x={cx} y={cy + ry + 30} text="Keep your whole face inside the oval" />
-        <style>{`.sr-breathe{animation:sr-breathe 2.4s ease-in-out infinite}@keyframes sr-breathe{0%,100%{opacity:.25}50%{opacity:.9}}@media (prefers-reduced-motion:reduce){.sr-breathe{animation:none}}`}</style>
-      </svg>
-    );
-  }
-
-  // Document: one big card frame with corner brackets
-  const cardW = Math.min(w * 0.88, 560, (usableH * 0.8) * CARD_RATIO);
-  const cardH = cardW / CARD_RATIO;
-  const x = (w - cardW) / 2;
-  const y = top + (usableH - cardH) / 2 - 12;
-  const L = Math.min(34, cardW * 0.12);
-  const r = 14;
+function GuideOverlay({ w, h }: { w: number; h: number }) {
+  // Corner brackets only. The instruction stays outside this frame.
+  const inset = Math.max(10, Math.min(w, h) * 0.06);
+  const x = inset;
+  const y = inset;
+  const cardW = w - inset * 2;
+  const cardH = h - inset * 2;
+  const L = Math.min(28, cardW * 0.14);
+  const r = 12;
   const corners = [
     `M${x} ${y + L} V${y + r} Q${x} ${y} ${x + r} ${y} H${x + L}`,
     `M${x + cardW - L} ${y} H${x + cardW - r} Q${x + cardW} ${y} ${x + cardW} ${y + r} V${y + L}`,
@@ -552,31 +551,10 @@ function GuideOverlay({ w, h, guide }: { w: number; h: number; guide: Guide }) {
   ];
 
   return (
-    <svg className="absolute inset-0 z-10 pointer-events-none" width={w} height={h} aria-hidden="true">
-      <defs>
-        <mask id="sr-card-mask">
-          <rect width={w} height={h} fill="white" />
-          <rect x={x} y={y} width={cardW} height={cardH} rx={r} fill="black" />
-        </mask>
-      </defs>
-      <rect width={w} height={h} fill="rgba(0,0,0,0.58)" mask="url(#sr-card-mask)" />
-      <rect x={x} y={y} width={cardW} height={cardH} rx={r} fill="none" stroke="rgba(255,255,255,0.35)" strokeWidth={1.5} />
+    <svg className="pointer-events-none absolute inset-0 z-10" width={w} height={h} aria-hidden="true">
       {corners.map((d) => (
-        <path key={d} d={d} fill="none" stroke="white" strokeWidth={5} strokeLinecap="round" strokeLinejoin="round" />
+        <path key={d} d={d} fill="none" stroke="white" strokeWidth={4} strokeLinecap="round" strokeLinejoin="round" />
       ))}
-      <Chip x={w / 2} y={y + cardH + 26} text="Fit the NID card inside the frame" />
     </svg>
-  );
-}
-
-function Chip({ x, y, text }: { x: number; y: number; text: string }) {
-  const width = text.length * 7.2 + 24;
-  return (
-    <g>
-      <rect x={x - width / 2} y={y - 13} width={width} height={26} rx={13} fill="rgba(0,0,0,0.55)" />
-      <text x={x} y={y + 4.5} textAnchor="middle" fill="white" fontSize={13} fontWeight={600} fontFamily="inherit">
-        {text}
-      </text>
-    </g>
   );
 }

@@ -57,7 +57,7 @@ export function InstallPrompt() {
   if (!event || hidden || !isMobile) return null;
 
   return (
-    <div className="fixed bottom-24 lg:bottom-6 left-4 right-4 lg:left-auto lg:right-6 z-[70] max-w-sm bg-deep-charcoal text-on-primary rounded-xl shadow-premium-hover p-4 flex items-center gap-3 animate-fade-in-up">
+    <div className="panda-install-prompt fixed bottom-24 lg:bottom-6 left-4 right-4 lg:left-auto lg:right-6 z-[70] max-w-sm bg-deep-charcoal text-on-primary rounded-xl shadow-premium-hover p-4 flex items-center gap-3 animate-fade-in-up">
       <div className="w-10 h-10 rounded-full bg-accent-magenta flex items-center justify-center shrink-0">
         <Icon name="install_mobile" />
       </div>
