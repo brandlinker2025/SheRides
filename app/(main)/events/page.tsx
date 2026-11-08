@@ -15,7 +15,6 @@ type EventRow = {
   location: string;
   starts_at: string;
   cover_url: string | null;
-  attending_count: number;
   featured: boolean;
   going: boolean;
 };
@@ -31,20 +30,34 @@ function dateParts(value: string) {
 
 export default function EventsPage() {
   const { user } = useAuth();
-  // Attendee counts are community statistics — admins only.
-  const isAdmin = user?.role === "admin";
   const [view, setView] = useState<"list" | "calendar">("list");
   const [kind, setKind] = useState<"All" | "Rides" | "Workshops">("All");
   const [events, setEvents] = useState<EventRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const supabase = createClient();
-    if (!supabase) return;
+    if (!supabase) {
+      setLoading(false);
+      setError("SheRides connection is unavailable.");
+      return;
+    }
+    let cancelled = false;
     const load = async () => {
-      const { data } = await supabase.from("events").select("*").order("starts_at", { ascending: true });
-      const { data: mine } = user
+      const { data, error: loadError } = await supabase
+        .from("events")
+        .select("id, title, description, kind, location, starts_at, cover_url, featured")
+        .order("starts_at", { ascending: true });
+      const { data: mine, error: rsvpError } = user
         ? await supabase.from("event_rsvps").select("event_id").eq("user_id", user.id)
-        : { data: [] };
+        : { data: [], error: null };
+      if (cancelled) return;
+      if (loadError || rsvpError) {
+        setError("Events could not be loaded.");
+        setLoading(false);
+        return;
+      }
       const going = new Set((mine ?? []).map((row) => row.event_id as string));
       setEvents(
         (data ?? []).map((row) => ({
@@ -55,30 +68,35 @@ export default function EventsPage() {
           location: (row.location as string) || "",
           starts_at: row.starts_at as string,
           cover_url: (row.cover_url as string) || null,
-          attending_count: (row.attending_count as number) ?? 0,
           featured: Boolean(row.featured),
           going: going.has(row.id as string),
         }))
       );
+      setLoading(false);
     };
     void load();
+    return () => {
+      cancelled = true;
+    };
   }, [user]);
 
   async function toggleRsvp(event: EventRow) {
     const supabase = createClient();
     if (!supabase || !user) return;
     if (event.going) {
-      await supabase.from("event_rsvps").delete().eq("event_id", event.id).eq("user_id", user.id);
-      setEvents((prev) =>
-        prev.map((e) =>
-          e.id === event.id ? { ...e, going: false, attending_count: Math.max(0, e.attending_count - 1) } : e
-        )
-      );
+      const { error: leaveError } = await supabase.from("event_rsvps").delete().eq("event_id", event.id).eq("user_id", user.id);
+      if (leaveError) {
+        setError("Could not update your RSVP.");
+        return;
+      }
+      setEvents((prev) => prev.map((e) => (e.id === event.id ? { ...e, going: false } : e)));
     } else {
-      await supabase.from("event_rsvps").insert({ event_id: event.id, user_id: user.id });
-      setEvents((prev) =>
-        prev.map((e) => (e.id === event.id ? { ...e, going: true, attending_count: e.attending_count + 1 } : e))
-      );
+      const { error: joinError } = await supabase.from("event_rsvps").insert({ event_id: event.id, user_id: user.id });
+      if (joinError) {
+        setError("Could not update your RSVP.");
+        return;
+      }
+      setEvents((prev) => prev.map((e) => (e.id === event.id ? { ...e, going: true } : e)));
     }
   }
 
@@ -117,8 +135,10 @@ export default function EventsPage() {
         </div>
       </header>
 
-      {events.length === 0 && (
-        <EmptyState variant="events" title="No events yet." body="Admins can add rides from the admin panel." />
+      {error ? <p className="mb-6 font-body-sm text-error">{error}</p> : null}
+      {loading ? <p className="font-body-md text-secondary">Loading events…</p> : null}
+      {!loading && !error && events.length === 0 && (
+        <EmptyState variant="events" title="No events yet." body="Upcoming rides and meetups will show up here." />
       )}
 
       {featured && (
@@ -134,8 +154,7 @@ export default function EventsPage() {
               </div>
               <h2 className="font-headline-md text-headline-md text-on-background mb-4">{featured.title}</h2>
               <p className="font-body-md text-body-md text-tertiary mb-6">{featured.description}</p>
-              <div className="flex items-center justify-between mt-auto">
-                {isAdmin ? <span className="font-body-sm text-tertiary">{featured.attending_count} attending</span> : <span aria-hidden="true" />}
+              <div className="flex items-center justify-end mt-auto">
                 <button
                   type="button"
                   onClick={() => void toggleRsvp(featured)}
@@ -212,8 +231,7 @@ export default function EventsPage() {
                       </div>
                       <h4 className="font-label-lg text-label-lg mb-2">{e.title}</h4>
                       <p className="font-body-sm text-body-sm text-tertiary mb-6 flex-grow">{e.description}</p>
-                      <div className="flex items-center justify-between border-t border-surface-border pt-4">
-                        {isAdmin ? <span className="font-body-sm text-tertiary">{e.attending_count} attending</span> : <span aria-hidden="true" />}
+                      <div className="flex items-center justify-end border-t border-surface-border pt-4">
                         <button
                           type="button"
                           onClick={() => void toggleRsvp(e)}

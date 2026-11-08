@@ -4,8 +4,8 @@ import { loadAdminUserDetails } from "@/lib/admin/user-details";
 import { requireAdmin } from "@/lib/supabase/require-admin";
 
 export default async function AdminUserDetailsPage() {
-  const { supabase } = await requireAdmin();
-  const { users, error } = await loadAdminUserDetails(supabase);
+  const { session } = await requireAdmin();
+  const { users, error } = await loadAdminUserDetails(session);
 
   return (
     <div>

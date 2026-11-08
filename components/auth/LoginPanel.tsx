@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, type FormEvent } from "react";
+import { isAdminProfileRole } from "@/lib/admin-access";
 import { useAuth } from "@/lib/auth-context";
 import { isEmailIdentifier, normalizeBdPhone } from "@/lib/phone";
 import { siteOrigin } from "@/lib/site";
@@ -198,7 +199,7 @@ export function LoginPanel({ admin = false }: { admin?: boolean }) {
           ? await supabase.from("profiles").select("role").eq("id", authData.user.id).maybeSingle()
           : { data: null };
 
-      if (profile?.role !== "admin") {
+      if (!isAdminProfileRole(profile?.role)) {
         if (supabase) await supabase.auth.signOut();
         setBusy(false);
         setError("This account does not have administrator access.");

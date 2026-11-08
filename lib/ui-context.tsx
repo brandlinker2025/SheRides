@@ -15,6 +15,8 @@ const MAX_DOCKS = 3;
 type UIContextValue = {
   createOpen: boolean;
   setCreateOpen: (open: boolean) => void;
+  navOpen: boolean;
+  setNavOpen: (open: boolean) => void;
   chatDocks: ChatDockItem[];
   openChatDock: (peer: ChatDockPeer) => void;
   closeChatDock: (peerId: string) => void;
@@ -25,6 +27,7 @@ const UIContext = createContext<UIContextValue | null>(null);
 
 export function UIProvider({ children }: { children: ReactNode }) {
   const [createOpen, setCreateOpen] = useState(false);
+  const [navOpen, setNavOpen] = useState(false);
   const [chatDocks, setChatDocks] = useState<ChatDockItem[]>([]);
 
   const openChatDock = useCallback((peer: ChatDockPeer) => {
@@ -48,7 +51,7 @@ export function UIProvider({ children }: { children: ReactNode }) {
 
   return (
     <UIContext.Provider
-      value={{ createOpen, setCreateOpen, chatDocks, openChatDock, closeChatDock, toggleChatDock }}
+      value={{ createOpen, setCreateOpen, navOpen, setNavOpen, chatDocks, openChatDock, closeChatDock, toggleChatDock }}
     >
       {children}
     </UIContext.Provider>

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useId } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { img } from "@/lib/images";
 import { useUI } from "@/lib/ui-context";
@@ -24,10 +25,60 @@ const items = [
 
 export function SideNav() {
   const pathname = usePathname();
-  const { setCreateOpen } = useUI();
+  const { setCreateOpen, navOpen, setNavOpen } = useUI();
   const { user } = useAuth();
+  const mobileTitleId = useId();
+
+  useEffect(() => {
+    setNavOpen(false);
+  }, [pathname, setNavOpen]);
+
+  useEffect(() => {
+    if (!navOpen) return;
+    const root = document.getElementById("mobile-nav");
+    const previouslyFocused = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const focusable = () =>
+      root
+        ? Array.from(root.querySelectorAll<HTMLElement>("a[href], button:not([disabled])")).filter(
+            (element) => !element.hasAttribute("disabled")
+          )
+        : [];
+    focusable()[0]?.focus();
+
+    function onKey(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        setNavOpen(false);
+        return;
+      }
+      if (event.key !== "Tab") return;
+      const focusableItems = focusable();
+      if (focusableItems.length === 0) return;
+      const first = focusableItems[0];
+      const last = focusableItems[focusableItems.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    }
+
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      previouslyFocused?.focus();
+    };
+  }, [navOpen, setNavOpen]);
+
+  const linkItems = items.map((item) => {
+    const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
+    return { ...item, active };
+  });
 
   return (
+    <>
     <nav aria-label="Main navigation" className="hidden lg:flex flex-col h-dvh fixed left-0 top-0 w-64 shadow-xl z-40 border-r border-white/10 pt-[96px] pb-6 overflow-hidden">
       <PandaNavBackdrop />
       <div className="relative z-10 px-gutter mb-6">
@@ -56,20 +107,13 @@ export function SideNav() {
         )}
       </div>
 
-      <div className="relative z-10 flex-1 flex flex-col gap-1.5 overflow-y-auto hide-scrollbar px-4">
-        {items.map((item) => {
-          const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`nav-pill ${active ? "nav-pill-active" : ""}`}
-            >
-              <Icon name={item.icon} filled={active} />
-              <span className="font-label-lg text-label-lg">{item.label}</span>
-            </Link>
-          );
-        })}
+      <div className="relative z-10 flex-1 flex flex-col gap-1.5 overflow-y-auto overscroll-contain hide-scrollbar px-4 min-h-0">
+        {linkItems.map((item) => (
+          <Link key={item.href} href={item.href} className={`nav-pill ${item.active ? "nav-pill-active" : ""}`}>
+            <Icon name={item.icon} filled={item.active} />
+            <span className="font-label-lg text-label-lg">{item.label}</span>
+          </Link>
+        ))}
       </div>
 
       <div className="relative z-10 mt-auto px-4">
@@ -83,5 +127,61 @@ export function SideNav() {
         </button>
       </div>
     </nav>
+    {navOpen ? (
+      <div className="lg:hidden fixed inset-0 z-[80]">
+        <button
+          type="button"
+          className="absolute inset-0 bg-black/50"
+          aria-label="Close menu"
+          onClick={() => setNavOpen(false)}
+        />
+        <nav
+          id="mobile-nav"
+          aria-labelledby={mobileTitleId}
+          className="absolute inset-y-0 left-0 flex w-[min(100%,20rem)] max-w-full flex-col overflow-hidden border-r border-white/10 shadow-xl"
+        >
+          <PandaNavBackdrop />
+          <div className="relative z-10 flex items-center justify-between gap-3 px-4 pt-[max(1rem,env(safe-area-inset-top))] pb-3">
+            <h2 id={mobileTitleId} className="font-label-lg text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">
+              Menu
+            </h2>
+            <button
+              type="button"
+              onClick={() => setNavOpen(false)}
+              className="inline-flex h-10 items-center rounded-full px-3 text-white hover:bg-white/10"
+            >
+              Close
+            </button>
+          </div>
+          <div className="relative z-10 min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
+            <div className="flex flex-col gap-1.5">
+              {linkItems.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`nav-pill ${item.active ? "nav-pill-active" : ""}`}
+                  onClick={() => setNavOpen(false)}
+                >
+                  <Icon name={item.icon} filled={item.active} />
+                  <span className="font-label-lg text-label-lg">{item.label}</span>
+                </Link>
+              ))}
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                setNavOpen(false);
+                setCreateOpen(true);
+              }}
+              className="mt-4 w-full bg-accent-magenta text-white font-label-lg text-label-lg py-3.5 rounded-full inline-flex items-center justify-center gap-2"
+            >
+              <Icon name="two_wheeler" size={20} />
+              Start a Ride
+            </button>
+          </div>
+        </nav>
+      </div>
+    ) : null}
+    </>
   );
 }

@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Icon } from "@/components/ui/Icon";
-import { useAuth } from "@/lib/auth-context";
 import { img } from "@/lib/images";
 import { createClient } from "@/lib/supabase/client";
 
@@ -13,27 +12,38 @@ type RideRow = {
   title: string;
   location: string;
   starts_at: string;
-  attending_count: number;
   cover_url: string | null;
   kind: string;
 };
 
 export default function RidesPage() {
-  const { user } = useAuth();
-  // Attendee counts are community statistics — admins only.
-  const isAdmin = user?.role === "admin";
   const [rides, setRides] = useState<RideRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const supabase = createClient();
-    if (!supabase) return;
+    if (!supabase) {
+      setLoading(false);
+      setError("SheRides connection is unavailable.");
+      return;
+    }
+    let cancelled = false;
     void supabase
       .from("events")
-      .select("*")
+      .select("id, title, location, starts_at, cover_url, kind")
       .in("kind", ["Ride", "Tour", "Meetup"])
       .gte("starts_at", new Date().toISOString())
       .order("starts_at", { ascending: true })
-      .then(({ data }) => setRides((data ?? []) as RideRow[]));
+      .then(({ data, error: loadError }) => {
+        if (cancelled) return;
+        if (loadError) setError("Rides could not be loaded.");
+        else setRides((data ?? []) as RideRow[]);
+        setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   return (
@@ -50,8 +60,11 @@ export default function RidesPage() {
           Browse all events
         </Link>
       </div>
-      {rides.length === 0 ? (
-        <EmptyState variant="rides" title="No rides yet." body="Check Events after the community calendar is seeded." />
+      {error ? <p className="mb-6 font-body-sm text-error">{error}</p> : null}
+      {loading ? (
+        <p className="font-body-md text-secondary">Loading rides…</p>
+      ) : error ? null : rides.length === 0 ? (
+        <EmptyState variant="rides" title="No rides yet." body="Upcoming group rides will show up here." />
       ) : (
         <div className="flex flex-col gap-4">
           {rides.map((ride) => {
@@ -72,7 +85,7 @@ export default function RidesPage() {
                   <div className="flex-1">
                     <h3 className="font-headline-md text-body-lg font-semibold">{ride.title}</h3>
                     <p className="font-body-sm text-tertiary flex items-center gap-1 mt-1">
-                      <Icon name="location_on" size={16} /> {ride.location}{isAdmin ? ` • ${ride.attending_count} attending` : ""}
+                      <Icon name="location_on" size={16} /> {ride.location}
                     </p>
                   </div>
                   <Link

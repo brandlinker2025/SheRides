@@ -8,24 +8,28 @@ import { useAuth } from "@/lib/auth-context";
 import { createClient } from "@/lib/supabase/client";
 import { Icon } from "../ui/Icon";
 
-type RailEvent = { id: string; title: string; location: string; starts_at: string; attending_count: number };
+type RailEvent = { id: string; title: string; location: string; starts_at: string };
 
 export function RightRail() {
   const { user } = useAuth();
-  // Attendee counts are community statistics — admins only.
-  const isAdmin = user?.role === "admin";
   const [events, setEvents] = useState<RailEvent[]>([]);
 
   useEffect(() => {
     const supabase = createClient();
     if (!supabase) return;
+    let cancelled = false;
     void supabase
       .from("events")
-      .select("id, title, location, starts_at, attending_count")
+      .select("id, title, location, starts_at")
       .gte("starts_at", new Date().toISOString())
       .order("starts_at", { ascending: true })
       .limit(3)
-      .then(({ data }) => setEvents((data ?? []) as RailEvent[]));
+      .then(({ data }) => {
+        if (!cancelled) setEvents((data ?? []) as RailEvent[]);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   return (
@@ -77,7 +81,6 @@ export function RightRail() {
                   </h4>
                   <p className="font-body-sm text-body-sm text-tertiary">
                     {event.location}
-                    {isAdmin ? ` • ${event.attending_count} attending` : ""}
                   </p>
                 </div>
               </Link>

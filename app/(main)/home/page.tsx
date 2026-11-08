@@ -28,7 +28,7 @@ export default function HomeFeedPage() {
   return (
     <div className="p-gutter flex justify-center">
       <div className="w-full max-w-[1280px] grid grid-cols-1 lg:grid-cols-12 gap-gutter">
-        <main className="col-span-1 lg:col-span-8 flex flex-col gap-component-gap">
+        <section className="col-span-1 lg:col-span-8 flex flex-col gap-component-gap">
           <div className="px-1">
             <h1 className="text-2xl font-bold text-on-surface">News Feed</h1>
             <p className="text-sm text-secondary mt-1">Latest posts from SheRides members.</p>
@@ -64,7 +64,7 @@ export default function HomeFeedPage() {
               startOpen={focusPostId === post.id}
             />
           ))}
-        </main>
+        </section>
 
         <RightRail />
       </div>

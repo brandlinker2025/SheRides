@@ -114,7 +114,7 @@ export function AdminShell({
       <main
         id="admin-main"
         ref={mainRef}
-        className="relative z-10 h-dvh overflow-y-auto overscroll-contain md:ml-64 pt-16 md:pt-0"
+        className="relative z-10 h-dvh min-w-0 overflow-y-auto overflow-x-hidden overscroll-contain md:ml-64 pt-16 md:pt-0"
       >
         <div className="p-container-margin-mobile md:p-container-margin-desktop pb-28 md:pb-container-margin-desktop">
           {children}
