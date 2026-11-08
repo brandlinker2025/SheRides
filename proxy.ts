@@ -1,7 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { ADMIN_OPEN_ACCESS } from "./lib/admin/open-access";
 import { isApprovedProfile } from "./lib/profile";
 
 const PUBLIC_PATHS = new Set([
@@ -41,17 +40,12 @@ function isAdminAppPath(pathname: string) {
   return pathname === "/admin" || pathname.startsWith("/admin/");
 }
 
+function isAdminApiPath(pathname: string) {
+  return pathname === "/api/admin" || pathname.startsWith("/api/admin/");
+}
+
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
-
-  if (ADMIN_OPEN_ACCESS) {
-    if (pathname === "/admin-login") {
-      return NextResponse.redirect(new URL("/admin", request.url));
-    }
-    if (isAdminAppPath(pathname) || pathname.startsWith("/api/admin/")) {
-      return NextResponse.next();
-    }
-  }
 
   if (isPublicPath(pathname)) {
     return NextResponse.next();
@@ -109,6 +103,11 @@ export async function proxy(request: NextRequest) {
 
   if (!isApprovedProfile(profile)) {
     return NextResponse.redirect(new URL("/pending-approval", request.url));
+  }
+
+  // Admin APIs: non-admins get a hard 403 before the route even runs.
+  if (isAdminApiPath(pathname) && profile?.role !== "admin") {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   if (isAdminAppPath(pathname)) {

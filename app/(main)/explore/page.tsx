@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { PostMedia } from "@/components/feed/PostMedia";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { trendingHashtags } from "@/lib/data";
+import { useAuth } from "@/lib/auth-context";
 import { useFeed } from "@/lib/feed-context";
 import { createClient } from "@/lib/supabase/client";
 
@@ -13,6 +14,9 @@ type EventPreview = { id: string; title: string; location: string; starts_at: st
 
 export default function ExplorePage() {
   const { posts } = useFeed();
+  const { user } = useAuth();
+  // Member counts are community statistics — admins only.
+  const isAdmin = user?.role === "admin";
   const [communities, setCommunities] = useState<CommunityPreview[]>([]);
   const [events, setEvents] = useState<EventPreview[]>([]);
 
@@ -85,7 +89,7 @@ export default function ExplorePage() {
             {c.cover && <img src={c.cover} alt="" className="w-full aspect-video object-cover" />}
             <div className="p-4">
               <h3 className="font-label-lg text-label-lg">{c.name}</h3>
-              <p className="font-body-sm text-tertiary">{c.members} members</p>
+              {isAdmin && <p className="font-body-sm text-tertiary">{c.members} members</p>}
             </div>
           </Link>
         ))}

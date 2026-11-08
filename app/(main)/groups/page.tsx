@@ -22,6 +22,8 @@ type CommunityRow = {
 
 export default function CommunitiesPage() {
   const { user } = useAuth();
+  // Member counts are community statistics — admins only.
+  const isAdmin = user?.role === "admin";
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<(typeof filters)[number]>("All Regions");
   const [communities, setCommunities] = useState<CommunityRow[]>([]);
@@ -138,7 +140,7 @@ export default function CommunitiesPage() {
                 </p>
                 <p className="font-body-sm text-body-sm text-tertiary mb-6 line-clamp-2">{c.description}</p>
                 <div className="mt-auto flex items-center justify-between border-t border-surface-border pt-4">
-                  <span className="font-body-sm text-tertiary">{c.members} members</span>
+                  {isAdmin ? <span className="font-body-sm text-tertiary">{c.members} members</span> : <span aria-hidden="true" />}
                   <button
                     type="button"
                     onClick={() => void toggleJoin(c)}

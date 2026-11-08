@@ -2,7 +2,6 @@
 
 import { useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { ADMIN_OPEN_ACCESS } from "@/lib/admin/open-access";
 import { useAuth } from "@/lib/auth-context";
 
 export function AuthGate({ children }: { children: React.ReactNode }) {
@@ -29,7 +28,6 @@ export function AdminGate({ children }: { children: React.ReactNode }) {
   const router = useRouter();
 
   useEffect(() => {
-    if (ADMIN_OPEN_ACCESS) return;
     if (loading) return;
     if (!user) {
       router.replace("/admin-login");
@@ -39,10 +37,6 @@ export function AdminGate({ children }: { children: React.ReactNode }) {
       router.replace("/home");
     }
   }, [loading, user, router]);
-
-  if (ADMIN_OPEN_ACCESS) {
-    return <>{children}</>;
-  }
 
   if (loading || !user) {
     return (

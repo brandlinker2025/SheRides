@@ -28,7 +28,7 @@ export function SideNav() {
   const { user } = useAuth();
 
   return (
-    <nav className="hidden lg:flex flex-col h-screen fixed left-0 top-0 w-64 shadow-xl z-40 border-r border-white/10 pt-[96px] pb-6 overflow-hidden">
+    <nav aria-label="Main navigation" className="hidden lg:flex flex-col h-dvh fixed left-0 top-0 w-64 shadow-xl z-40 border-r border-white/10 pt-[96px] pb-6 overflow-hidden">
       <PandaNavBackdrop />
       <div className="relative z-10 px-gutter mb-6">
         {user ? (
