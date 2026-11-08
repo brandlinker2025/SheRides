@@ -1,8 +1,9 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useState, type FormEvent, type ReactNode } from "react";
+import { Suspense, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { BackLink } from "@/components/ui/BackLink";
+import { CameraCapture } from "@/components/ui/CameraCapture";
 import { Icon } from "@/components/ui/Icon";
 import { useAuth } from "@/lib/auth-context";
 import { goErrorMessage, uploadGoDocument, type GoRole } from "@/lib/go";
@@ -23,28 +24,77 @@ function FilePick({
   hint: string;
   file: File | null;
   onPick: (file: File | null) => void;
+  /** "user" = live selfie (front camera only), "environment" = document (back camera + upload) */
   capture?: "user" | "environment";
   required?: boolean;
 }) {
+  const [cameraOpen, setCameraOpen] = useState(false);
+  const uploadRef = useRef<HTMLInputElement>(null);
+  const selfie = capture === "user";
+  const acceptsPdf = !selfie;
+
   return (
-    <label className="flex items-center gap-4 rounded-xl border border-dashed border-surface-border bg-soft-off-white p-4 cursor-pointer hover:border-accent-magenta transition-colors">
-      <span className={`w-11 h-11 rounded-full flex items-center justify-center shrink-0 ${file ? "bg-green-600 text-white" : "bg-accent-magenta/10 text-accent-magenta"}`}>
-        <Icon name={file ? "check" : capture === "user" ? "photo_camera_front" : "upload_file"} />
-      </span>
-      <span className="min-w-0 flex-1">
-        <span className="block font-label-lg">
-          {label} {required ? <span className="text-accent-magenta">*</span> : <span className="text-tertiary font-body-sm">(optional)</span>}
+    <div className="rounded-xl border border-dashed border-surface-border bg-soft-off-white p-4 flex flex-col gap-3">
+      <div className="flex items-center gap-4">
+        <span className={`w-11 h-11 rounded-full flex items-center justify-center shrink-0 ${file ? "bg-green-600 text-white" : "bg-accent-magenta/10 text-accent-magenta"}`}>
+          <Icon name={file ? "check" : selfie ? "photo_camera_front" : "badge"} />
         </span>
-        <span className="block font-body-sm text-secondary truncate">{file ? file.name : hint}</span>
-      </span>
+        <span className="min-w-0 flex-1">
+          <span className="block font-label-lg">
+            {label} {required ? <span className="text-accent-magenta">*</span> : <span className="text-tertiary font-body-sm">(optional)</span>}
+          </span>
+          <span className="block font-body-sm text-secondary truncate">{file ? `✓ ${file.name}` : hint}</span>
+        </span>
+      </div>
+
+      <div className="flex gap-2">
+        <button
+          type="button"
+          onClick={() => setCameraOpen(true)}
+          className="flex-1 h-12 rounded-full bg-accent-magenta text-white font-label-lg inline-flex items-center justify-center gap-2"
+        >
+          <Icon name={selfie ? "photo_camera_front" : "photo_camera"} size={20} />
+          {file ? "Retake" : selfie ? "Take selfie" : "Take photo"}
+        </button>
+        {!selfie && (
+          <button
+            type="button"
+            onClick={() => uploadRef.current?.click()}
+            className="flex-1 h-12 rounded-full border border-surface-border bg-surface font-label-lg inline-flex items-center justify-center gap-2"
+          >
+            <Icon name="upload_file" size={20} />
+            Upload
+          </button>
+        )}
+      </div>
+
       <input
+        ref={uploadRef}
         type="file"
         className="sr-only"
-        accept={capture ? "image/*" : "image/jpeg,image/png,image/webp,application/pdf"}
-        capture={capture}
-        onChange={(event) => onPick(event.target.files?.[0] ?? null)}
+        tabIndex={-1}
+        aria-hidden="true"
+        accept={acceptsPdf ? "image/jpeg,image/png,image/webp,application/pdf" : "image/jpeg,image/png,image/webp"}
+        onChange={(event) => {
+          onPick(event.target.files?.[0] ?? null);
+          event.currentTarget.value = "";
+        }}
       />
-    </label>
+
+      <CameraCapture
+        open={cameraOpen}
+        facing={selfie ? "user" : "environment"}
+        guide={selfie ? "face" : "card"}
+        title={label}
+        allowSwitch={!selfie}
+        onCapture={onPick}
+        onClose={() => setCameraOpen(false)}
+        onFallbackUpload={() => {
+          setCameraOpen(false);
+          uploadRef.current?.click();
+        }}
+      />
+    </div>
   );
 }
 
@@ -154,11 +204,11 @@ function ApplyForm() {
         <Section title="1. Your identity">
           <input value={fullName} onChange={(e) => setFullName(e.target.value)} maxLength={80} placeholder="Full name (as on NID)" className={field} />
           <input value={nid} onChange={(e) => setNid(e.target.value.replace(/\D/g, "").slice(0, 17))} inputMode="numeric" placeholder="NID number" className={field} />
-          <FilePick label="NID front" hint="Clear photo, all corners visible" file={nidFront} onPick={setNidFront} />
-          <FilePick label="NID back" hint="Back side of the card" file={nidBack} onPick={setNidBack} required={false} />
+          <FilePick label="NID front" hint="Clear photo, all corners visible" file={nidFront} onPick={setNidFront} capture="environment" />
+          <FilePick label="NID back" hint="Back side of the card" file={nidBack} onPick={setNidBack} capture="environment" required={false} />
           <FilePick
             label="Live selfie holding your NID"
-            hint="Opens the front camera. Face and card both visible."
+            hint="Front camera opens. Hold your NID next to your face."
             file={selfie}
             onPick={setSelfie}
             capture="user"

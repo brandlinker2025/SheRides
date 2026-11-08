@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { CameraCapture } from "@/components/ui/CameraCapture";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { PandaStandaloneFrame } from "@/components/brand/PandaStandaloneFrame";
@@ -17,6 +18,8 @@ export default function VerificationPage() {
   const [license, setLicense] = useState("");
   const [chassis, setChassis] = useState("");
   const [file, setFile] = useState<File | null>(null);
+  const [cameraOpen, setCameraOpen] = useState(false);
+  const uploadRef = useRef<HTMLInputElement>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -129,11 +132,43 @@ export default function VerificationPage() {
           <input required inputMode="numeric" pattern="[0-9]{10,17}" maxLength={17} value={nid} onChange={(e) => setNid(e.target.value.replace(/\D/g, ""))} placeholder="NID number (10–17 digits)" className="w-full bg-soft-off-white border border-surface-border rounded-lg px-4 py-3" />
           <input maxLength={50} value={license} onChange={(e) => setLicense(e.target.value)} placeholder="Driving licence number (or use chassis below)" className="w-full bg-soft-off-white border border-surface-border rounded-lg px-4 py-3" />
           <input maxLength={50} value={chassis} onChange={(e) => setChassis(e.target.value)} placeholder="Bike chassis number (or use licence above)" className="w-full bg-soft-off-white border border-surface-border rounded-lg px-4 py-3" />
-          <label className="block rounded-lg border border-dashed border-surface-border bg-soft-off-white p-4">
-            <span className="font-label-lg block mb-1">Verification document</span>
-            <span className="font-body-sm text-secondary block mb-3">Driving licence, registration paper, or NID. JPEG/PNG/WebP/PDF, max 10 MB.</span>
-            <input type="file" required accept="image/jpeg,image/png,image/webp,application/pdf" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
-          </label>
+          <div className="rounded-lg border border-dashed border-surface-border bg-soft-off-white p-4 flex flex-col gap-3">
+            <span className="font-label-lg block">Verification document</span>
+            <span className="font-body-sm text-secondary block">Driving licence, registration paper, or NID. JPEG/PNG/WebP/PDF, max 10 MB.</span>
+            {file && <span className="font-body-sm text-green-700 truncate">✓ {file.name}</span>}
+            <div className="flex gap-2">
+              <button type="button" onClick={() => setCameraOpen(true)} className="flex-1 h-12 rounded-full bg-accent-magenta text-white font-label-lg">
+                {file ? "Retake photo" : "Take photo"}
+              </button>
+              <button type="button" onClick={() => uploadRef.current?.click()} className="flex-1 h-12 rounded-full border border-surface-border bg-surface font-label-lg">
+                Upload file
+              </button>
+            </div>
+            <input
+              ref={uploadRef}
+              type="file"
+              className="sr-only"
+              tabIndex={-1}
+              aria-hidden="true"
+              accept="image/jpeg,image/png,image/webp,application/pdf"
+              onChange={(e) => {
+                setFile(e.target.files?.[0] ?? null);
+                e.currentTarget.value = "";
+              }}
+            />
+          </div>
+          <CameraCapture
+            open={cameraOpen}
+            facing="environment"
+            guide="card"
+            title="Verification document"
+            onCapture={setFile}
+            onClose={() => setCameraOpen(false)}
+            onFallbackUpload={() => {
+              setCameraOpen(false);
+              uploadRef.current?.click();
+            }}
+          />
           {error && <p className="text-error font-body-sm" role="alert">{error}</p>}
           <button type="submit" disabled={busy} className="h-[56px] bg-accent-magenta text-white font-label-lg rounded-full shadow-magenta disabled:opacity-60">
             {busy ? "Submitting securely..." : "Submit for Admin Approval"}
