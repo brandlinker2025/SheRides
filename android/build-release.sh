@@ -37,6 +37,7 @@ cp "$ROOT/public/icons/icon-192.png" "$APP/res/mipmap-xxxhdpi/ic_launcher.png"
 
 javac --release 17 -classpath "$PLATFORM" -d "$WORK/classes" \
   "$APP/java/online/sherides/app/MainActivity.java" \
+  "$APP/java/online/sherides/app/CaptureProvider.java" \
   "$WORK/gen/online/sherides/app/R.java"
 "$BT/d8" --min-api 24 --output "$WORK" "$WORK/classes/online/sherides/app/"*.class
 mkdir -p "$WORK/aligned"
