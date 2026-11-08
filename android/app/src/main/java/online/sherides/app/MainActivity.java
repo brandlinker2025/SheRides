@@ -2,6 +2,7 @@ package online.sherides.app;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.ActivityNotFoundException;
 import android.content.ClipData;
 import android.content.Intent;
@@ -14,6 +15,8 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.provider.Settings;
+import android.webkit.JavascriptInterface;
 import android.webkit.GeolocationPermissions;
 import android.webkit.PermissionRequest;
 import android.webkit.ValueCallback;
@@ -78,6 +81,10 @@ public class MainActivity extends Activity {
         settings.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
         settings.setAllowFileAccess(false);
         settings.setAllowContentAccess(true); // needed to read picked photos (content:// URIs)
+
+        // Lets the website's "Open settings" button jump straight to this app's
+        // permission page. Only sherides.online pages load inside this WebView.
+        webView.addJavascriptInterface(new AppBridge(), "SheRidesApp");
 
         webView.setWebViewClient(new WebViewClient() {
             @Override
@@ -206,6 +213,7 @@ public class MainActivity extends Activity {
             }
         } else if (requestCode == REQ_MEDIA && pendingMediaRequest != null) {
             grantAllowed(pendingMediaRequest);
+            offerSettingsIfBlocked(permissions);
             pendingMediaRequest = null;
         }
     }
@@ -408,6 +416,50 @@ public class MainActivity extends Activity {
         if (f != null && f.exists()) {
             //noinspection ResultOfMethodCallIgnored
             f.delete();
+        }
+    }
+
+    /** Website button → this app's page in phone Settings (Permissions → Camera). */
+    final class AppBridge {
+        @JavascriptInterface
+        public void openAppSettings() {
+            runOnUiThread(MainActivity.this::openAppSettingsPage);
+        }
+    }
+
+    private void openAppSettingsPage() {
+        try {
+            Intent i = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                    Uri.fromParts("package", getPackageName(), null));
+            i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(i);
+        } catch (ActivityNotFoundException ignored) {
+            // Very old / unusual phones: nothing to open.
+        }
+    }
+
+    /**
+     * If the user ticked "Don't ask again" (or the phone blocks the popup),
+     * Android will never show the Allow dialog again. Offer one tap to Settings.
+     */
+    private void offerSettingsIfBlocked(String[] permissions) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M || permissions == null) {
+            return;
+        }
+        for (String p : permissions) {
+            if (!hasPermission(p) && !shouldShowRequestPermissionRationale(p)) {
+                if (isFinishing()) {
+                    return;
+                }
+                new AlertDialog.Builder(this)
+                        .setTitle("Camera is turned off")
+                        .setMessage("SheRides needs the camera for your selfie and NID photo. "
+                                + "Open Settings → Permissions → Camera → Allow, then come back.")
+                        .setPositiveButton("Open settings", (d, w) -> openAppSettingsPage())
+                        .setNegativeButton("Not now", null)
+                        .show();
+                return;
+            }
         }
     }
 
