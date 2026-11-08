@@ -5,8 +5,8 @@
  * phone, iPhone, desktop browser and inside the SheRides Android app — it does
  * not depend on the phone's camera app or the file chooser.
  *
- *   guide="face" → live selfie: face oval + NID card frame, front camera,
- *                  3-second self-timer so both hands can hold the card
+ *   guide="face" → step 1, live selfie: one large face oval (max 280×360),
+ *                  front camera, optional 3-second self-timer
  *   guide="card" → document: card frame with corner brackets, back camera
  *
  * Returns a JPEG File (max 2560 px) via onCapture. Saved un-mirrored so the
@@ -50,7 +50,7 @@ export function CameraCapture({
   const [error, setError] = useState<{ message: string; noCamera: boolean } | null>(null);
   const [shot, setShot] = useState<{ url: string; file: File } | null>(null);
   const [attempt, setAttempt] = useState(0);
-  const [timerOn, setTimerOn] = useState(guide === "face");
+  const [timerOn, setTimerOn] = useState(false);
   const [countdown, setCountdown] = useState<number | null>(null);
   const [flash, setFlash] = useState(false);
 
@@ -67,7 +67,7 @@ export function CameraCapture({
       setShot(null);
       setError(null);
       setCountdown(null);
-      setTimerOn(guide === "face");
+      setTimerOn(false);
     }
   }, [open, facing, guide]);
 
@@ -269,7 +269,7 @@ export function CameraCapture({
             <p className="font-label-lg truncate">{shot ? "Check your photo" : title}</p>
             {!shot && !error && (
               <p className="text-[12px] text-white/75 truncate">
-                {isFace ? "Face in the oval · NID card in the box" : "Whole card inside the frame"}
+                {isFace ? "Look straight at the camera" : "Whole card inside the frame · 1.58 : 1"}
               </p>
             )}
           </div>
@@ -296,7 +296,7 @@ export function CameraCapture({
         {shot ? (
           <div className="flex flex-col items-center gap-3">
             <p className="font-body-sm text-white/80 text-center">
-              {isFace ? "Is your face clear and is the NID readable?" : "Can you read every line on the card? No glare?"}
+              {isFace ? "Is your whole face clear and in focus?" : "Can you read every line on the card? No glare?"}
             </p>
             <div className="flex w-full max-w-sm gap-3">
               <button type="button" onClick={() => setShot(null)} className="flex-1 h-14 rounded-full bg-white/10 border border-white/25 font-label-lg inline-flex items-center justify-center gap-2">
@@ -319,7 +319,7 @@ export function CameraCapture({
             <div className="flex flex-col items-center gap-4">
               <ul className="flex flex-wrap justify-center gap-x-4 gap-y-1 text-[12px] text-white/75">
                 {(isFace
-                  ? ["Bright light on your face", "No mask or sunglasses", "Hold NID beside your chin"]
+                  ? ["Bright light on your face", "No mask, cap or sunglasses", "Hold the phone at eye level"]
                   : ["Card flat on a dark surface", "All 4 corners visible", "No glare or blur"]
                 ).map((tip) => (
                   <li key={tip} className="inline-flex items-center gap-1">
@@ -362,25 +362,14 @@ function GuideOverlay({ w, h, guide }: { w: number; h: number; guide: Guide }) {
   const usableH = h - top - 16;
 
   if (guide === "face") {
-    // Face oval in the upper part, NID card frame underneath (like bank eKYC screens)
-    let rx = Math.min(w * 0.3, usableH * 0.2);
-    let ry = rx * 1.32;
-    let cardW = Math.min(w * 0.62, rx * 2.6);
-    let cardH = cardW / CARD_RATIO;
-    const gap = 18;
-    const total = ry * 2 + gap + cardH;
-    if (total > usableH * 0.94) {
-      const k = (usableH * 0.94) / total;
-      rx *= k;
-      ry *= k;
-      cardW *= k;
-      cardH *= k;
-    }
-    const startY = top + (usableH - (ry * 2 + gap + cardH)) / 2;
+    // Step 1 — face only. Large, human-proportioned oval (max 280 × 360 px),
+    // centred, nothing else competing for space.
+    const maxW = Math.min(280, w * 0.72);
+    const maxH = Math.min(360, usableH * 0.78);
+    const rx = Math.min(maxW / 2, (maxH / 2) / 1.29);
+    const ry = rx * 1.29;
     const cx = w / 2;
-    const cy = startY + ry;
-    const cardX = cx - cardW / 2;
-    const cardY = cy + ry + gap;
+    const cy = top + usableH / 2 - 8;
 
     return (
       <svg className="absolute inset-0 z-10 pointer-events-none" width={w} height={h} aria-hidden="true">
@@ -388,15 +377,12 @@ function GuideOverlay({ w, h, guide }: { w: number; h: number; guide: Guide }) {
           <mask id="sr-face-mask">
             <rect width={w} height={h} fill="white" />
             <ellipse cx={cx} cy={cy} rx={rx} ry={ry} fill="black" />
-            <rect x={cardX} y={cardY} width={cardW} height={cardH} rx={12} fill="black" />
           </mask>
         </defs>
-        <rect width={w} height={h} fill="rgba(0,0,0,0.58)" mask="url(#sr-face-mask)" />
-        <ellipse cx={cx} cy={cy} rx={rx} ry={ry} fill="none" stroke="white" strokeWidth={3} />
+        <rect width={w} height={h} fill="rgba(0,0,0,0.6)" mask="url(#sr-face-mask)" />
         <ellipse cx={cx} cy={cy} rx={rx + 5} ry={ry + 5} fill="none" stroke="rgba(167,139,250,0.55)" strokeWidth={6} className="sr-breathe" />
-        <rect x={cardX} y={cardY} width={cardW} height={cardH} rx={12} fill="none" stroke="white" strokeWidth={2.5} strokeDasharray="10 8" />
-        <Chip x={cx} y={cy - ry - 14} text="Your face" />
-        <Chip x={cx} y={cardY + cardH + 22} text="Your NID card" />
+        <ellipse cx={cx} cy={cy} rx={rx} ry={ry} fill="none" stroke="white" strokeWidth={3} />
+        <Chip x={cx} y={cy + ry + 30} text="Keep your whole face inside the oval" />
         <style>{`.sr-breathe{animation:sr-breathe 2.4s ease-in-out infinite}@keyframes sr-breathe{0%,100%{opacity:.25}50%{opacity:.9}}@media (prefers-reduced-motion:reduce){.sr-breathe{animation:none}}`}</style>
       </svg>
     );
