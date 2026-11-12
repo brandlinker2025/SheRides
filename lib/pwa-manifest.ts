@@ -19,17 +19,18 @@ const shared = {
   scope: "/",
   icons,
   prefer_related_applications: false,
-  categories: ["social", "lifestyle"],
+  categories: ["travel", "navigation"],
 };
 
-export function communityManifest(): MetadataRoute.Manifest {
+export function riderAppManifest(): MetadataRoute.Manifest {
   return {
     ...shared,
+    // Keep the original id so phones that already installed SheRides update in place.
     id: "/home",
     name: "SheRides",
     short_name: "SheRides",
-    description: "Bangladesh Women Riders Community",
-    start_url: "/home",
+    description: "Women-only ride sharing in Bangladesh",
+    start_url: "/go",
   };
 }
 

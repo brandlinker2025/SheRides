@@ -33,7 +33,7 @@ export default function RiderProfilePage() {
   if (missing) {
     return (
       <div className="p-gutter">
-        <BackLink href="/home" label="Home" className="mb-4" />
+        <BackLink href="/go" label="Book a ride" className="mb-4" />
         <EmptyState title="Rider not found." />
       </div>
     );
@@ -44,7 +44,7 @@ export default function RiderProfilePage() {
   return (
     <div>
       <div className="px-container-margin-mobile md:px-container-margin-desktop pt-4">
-        <BackLink href="/home" label="Home" />
+        <BackLink href="/go" label="Book a ride" />
       </div>
       <ProfileView rider={rider} isSelf={user?.id === rider.id} />
     </div>

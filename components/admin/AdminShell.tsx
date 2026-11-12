@@ -11,13 +11,11 @@ import { useScrollTopOnNavigate } from "@/hooks/useScrollTopOnNavigate";
 
 const nav = [
   { href: "/admin", label: "Dashboard", icon: "dashboard", exact: true },
-  { href: "/admin/emergency-alerts", label: "Emergency Alerts", icon: "sos" },
-  { href: "/admin/users", label: "Users", icon: "group" },
-  { href: "/admin/user-details", label: "User Details", icon: "badge" },
-  { href: "/admin/posts", label: "Posts", icon: "article" },
-  { href: "/admin/events", label: "Events", icon: "event" },
-  { href: "/admin/verifications", label: "Verifications", icon: "verified_user" },
-  { href: "/admin/go", label: "Ride Booking", icon: "two_wheeler" },
+  { href: "/admin/go", label: "Riders", icon: "sports_motorsports" },
+  { href: "/admin/emergency-alerts", label: "SOS Alerts", icon: "sos" },
+  { href: "/admin/verifications", label: "New Joins", icon: "verified_user" },
+  { href: "/admin/users", label: "Accounts", icon: "group" },
+  { href: "/admin/user-details", label: "Contacts", icon: "badge" },
 ];
 
 export function AdminShell({
@@ -36,14 +34,14 @@ export function AdminShell({
     <div className="panda-app-bg h-dvh overflow-hidden text-on-surface">
       <header className="panda-topnav fixed top-0 w-full z-50 flex justify-between items-center px-gutter py-base md:hidden">
         <BrandLogo suffix="Admin" className="text-[28px]" />
-        <Link href="/home" className="text-on-primary/80 font-label-lg text-label-lg">
+        <Link href="/go" className="text-on-primary/80 font-label-lg text-label-lg">
           App
         </Link>
       </header>
       <nav aria-label="Admin navigation" className="hidden md:flex flex-col h-dvh fixed left-0 top-0 pt-8 pb-6 w-64 shadow-xl z-50 overflow-hidden">
         <PandaNavBackdrop />
         <div className="relative z-10 px-6 mb-6">
-          <Link href="/home" aria-label="SheRides community home">
+          <Link href="/go" aria-label="SheRides ride booking">
             <BrandLogo className="text-[46px] drop-shadow-[0_1px_3px_rgba(0,0,0,0.85)]" />
           </Link>
           <div className="text-white font-label-caps text-label-caps mt-2 drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">Admin Panel</div>
@@ -71,8 +69,8 @@ export function AdminShell({
           })}
         </div>
         <div className="relative z-10 px-4 pt-3 mt-2 border-t border-white/10">
-          <Link href="/home" className="nav-pill font-label-lg">
-            <Icon name="arrow_back" /> Community
+          <Link href="/go" className="nav-pill font-label-lg">
+            <Icon name="arrow_back" /> Ride app
           </Link>
         </div>
       </nav>

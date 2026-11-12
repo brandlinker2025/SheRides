@@ -13,35 +13,6 @@ export type AdminUserRow = {
   date_of_birth: string | null;
 };
 
-export type AdminPostRow = {
-  id: string;
-  content: string;
-  image_url: string | null;
-  location: string | null;
-  created_at: string;
-  likes_count: number;
-  author: {
-    id: string;
-    full_name: string;
-    username: string | null;
-    avatar_url: string | null;
-    verified: boolean;
-  } | null;
-};
-
-export type AdminEventRow = {
-  id: string;
-  title: string;
-  description: string | null;
-  kind: "Ride" | "Workshop" | "Meetup" | "Tour";
-  location: string | null;
-  starts_at: string;
-  ends_at: string | null;
-  cover_url: string | null;
-  attending_count: number;
-  featured: boolean;
-};
-
 export type AdminVerificationRow = {
   id: string;
   user_id: string;
@@ -72,8 +43,6 @@ export async function loadAdminStats(supabase: SupabaseClient) {
     users?: number | string | null;
     verified?: number | string | null;
     pending_approval?: number | string | null;
-    posts?: number | string | null;
-    events?: number | string | null;
     signups_today?: number | string | null;
   } | null;
   const setupNeeded = missingTable(error);
@@ -82,8 +51,6 @@ export async function loadAdminStats(supabase: SupabaseClient) {
     users: Number(row?.users ?? 0),
     verified: Number(row?.verified ?? 0),
     pendingApproval: Number(row?.pending_approval ?? 0),
-    posts: Number(row?.posts ?? 0),
-    events: Number(row?.events ?? 0),
     signupsToday: Number(row?.signups_today ?? 0),
     setupNeeded,
     error: setupNeeded
@@ -150,28 +117,4 @@ export async function loadAdminVerifications(supabase: SupabaseClient) {
   );
 
   return { verifications, error: null };
-}
-
-export async function loadAdminPosts(supabase: SupabaseClient) {
-  const { data, error } = await supabase
-    .from("posts")
-    .select(
-      "id, content, image_url, location, created_at, likes_count, author:profiles!author_id(id, full_name, username, avatar_url, verified)"
-    )
-    .order("created_at", { ascending: false });
-
-  const posts = (data ?? []).map((row) => {
-    const author = Array.isArray(row.author) ? row.author[0] : row.author;
-    return { ...row, author: author ?? null } as AdminPostRow;
-  });
-
-  return { posts, error: error?.message ?? null };
-}
-
-export async function loadAdminEvents(supabase: SupabaseClient) {
-  const { data, error } = await supabase
-    .from("events")
-    .select("id, title, description, kind, location, starts_at, ends_at, cover_url, attending_count, featured")
-    .order("starts_at", { ascending: false });
-  return { events: (data ?? []) as AdminEventRow[], error: error?.message ?? null };
 }

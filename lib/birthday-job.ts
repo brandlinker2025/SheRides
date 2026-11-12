@@ -67,7 +67,7 @@ export async function runBirthdayWishes(
         p_user_id: candidate.userId,
         p_year: today.year,
         p_body: birthdayWishText(candidate.fullName),
-        p_href: "/home",
+        p_href: "/go",
       });
       if (deliverError) {
         failed += 1;

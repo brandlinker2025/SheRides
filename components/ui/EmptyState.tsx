@@ -1,14 +1,8 @@
 import { Icon } from "./Icon";
 
 const VARIANT_ICON = {
-  feed: "two_wheeler",
-  messages: "chat_bubble",
   notifications: "notifications",
-  saved: "bookmark",
-  groups: "diversity_3",
-  events: "event",
   rides: "route",
-  search: "search",
   generic: "two_wheeler",
 } as const;
 

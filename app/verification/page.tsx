@@ -68,12 +68,12 @@ export default function VerificationPage() {
 
     if (previous?.status === "pending") {
       setBusy(false);
-      router.replace("/home");
+      router.replace("/go");
       return;
     }
     if (previous?.status === "approved") {
       setBusy(false);
-      router.replace("/home");
+      router.replace("/go");
       return;
     }
 
@@ -114,7 +114,7 @@ export default function VerificationPage() {
     }
 
     setBusy(false);
-    router.replace("/home");
+    router.replace("/go");
     router.refresh();
   }
 

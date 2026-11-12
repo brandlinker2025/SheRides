@@ -37,27 +37,6 @@ export function isSeedOrTesterAccount(account: DiscoveryAccount | null | undefin
   return SEED_FLAG_KEYS.some((key) => isTruthyFlag(account[key]));
 }
 
-/** True when a profile may appear in Who's on SheRides, follow suggestions, or people search. */
-export function isDiscoverableMember(account: DiscoveryAccount | null | undefined, currentUserId?: string | null): boolean {
-  if (!account) return false;
-  if (currentUserId && account.id != null && String(account.id) === String(currentUserId)) return false;
-  return !isSeedOrTesterAccount(account);
-}
-
-export function toDiscoverableRiders(
-  rows: Record<string, unknown>[],
-  currentUserId?: string | null,
-  limit?: number
-): Rider[] {
-  const riders: Rider[] = [];
-  for (const row of rows) {
-    if (!isDiscoverableMember(row, currentUserId)) continue;
-    riders.push(riderFromProfile(String(row.id), row));
-    if (limit != null && riders.length >= limit) break;
-  }
-  return riders;
-}
-
 export function initialsFromName(name?: string | null) {
   const parts = (name || "Rider").trim().split(/\s+/).filter(Boolean);
   return ((parts[0]?.[0] ?? "R") + (parts[1]?.[0] ?? "")).toUpperCase();
@@ -88,10 +67,6 @@ export function riderFromProfile(
     cover: (data?.cover_url as string) || "",
     verified: Boolean(data?.verified),
     role: data?.role === "admin" ? "admin" : "rider",
-    followers: (data?.followers_count as number) ?? 0,
-    following: (data?.following_count as number) ?? 0,
-    postsCount: (data?.posts_count as number) ?? 0,
-    ridesCount: (data?.rides_count as number) ?? 0,
     hasBirthday: Boolean(data?.hasBirthday ?? data?.has_birthday),
   };
 }

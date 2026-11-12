@@ -22,7 +22,7 @@ export default async function PendingApprovalPage() {
     .maybeSingle();
 
   if (isApprovedProfile(profile)) {
-    redirect("/home");
+    redirect("/go");
   }
 
   return (
@@ -34,7 +34,7 @@ export default async function PendingApprovalPage() {
         <p className="font-label-lg text-accent-magenta mb-2">MEMBERSHIP REVIEW</p>
         <h1 className="font-headline-xl text-headline-xl mb-3">Waiting for admin approval</h1>
         <p className="font-body-md text-secondary mb-6">
-          Your account is in. A SheRides administrator still needs to approve you before you can use the community.
+          Your account is in. A SheRides administrator still needs to approve you before you can book or give rides.
         </p>
         <div className="rounded-lg bg-soft-off-white border border-surface-border p-4 mb-6">
           <p className="font-body-sm text-secondary">

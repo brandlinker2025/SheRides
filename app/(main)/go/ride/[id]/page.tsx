@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { Avatar } from "@/components/ui/Avatar";
@@ -168,7 +167,6 @@ export default function GoRidePage() {
     ride.rider_lat != null && ride.rider_lng != null && ride.pickup_lat != null && ride.pickup_lng != null
       ? roadKm({ lat: ride.rider_lat, lng: ride.rider_lng }, { lat: ride.pickup_lat, lng: ride.pickup_lng })
       : null;
-  const otherId = isPassenger ? ride.rider_id : ride.passenger_id;
   const active = ride.status === "accepted" || ride.status === "in_progress";
   const alreadyRated = isPassenger ? ride.rider_rating != null : ride.passenger_rating != null;
 
@@ -267,18 +265,13 @@ export default function GoRidePage() {
       </div>
 
       {active && (
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-2 gap-3">
           {isPassenger && (
             <button type="button" onClick={() => void shareTrip()} className="card-surface p-3 flex flex-col items-center gap-1 font-label-lg text-sm">
               <Icon name="share_location" className="text-accent-magenta" /> Share trip
             </button>
           )}
-          {otherId && (
-            <Link href={`/messages?to=${otherId}`} className="card-surface p-3 flex flex-col items-center gap-1 font-label-lg text-sm">
-              <Icon name="chat" className="text-accent-magenta" /> Message
-            </Link>
-          )}
-          <button type="button" onClick={() => void sos()} className="rounded-[20px] p-3 flex flex-col items-center gap-1 font-label-lg text-sm bg-red-600 text-white shadow-lg">
+          <button type="button" onClick={() => void sos()} className={`rounded-[20px] p-3 flex flex-col items-center gap-1 font-label-lg text-sm bg-red-600 text-white shadow-lg ${isPassenger ? "" : "col-span-2"}`}>
             <Icon name="emergency" filled /> SOS
           </button>
         </div>

@@ -1,5 +1,5 @@
-import { communityManifest } from "@/lib/pwa-manifest";
+import { riderAppManifest } from "@/lib/pwa-manifest";
 
 export default function manifest() {
-  return communityManifest();
+  return riderAppManifest();
 }

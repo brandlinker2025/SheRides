@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { bangladeshCities } from "@/lib/data";
+import { bangladeshCities } from "@/lib/cities";
 import { bikeBrandNames } from "@/lib/bikes";
 import { dobInputBounds } from "@/lib/birthday";
 import { createClient } from "@/lib/supabase/client";

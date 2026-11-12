@@ -90,7 +90,7 @@ function CallbackInner() {
     setBusy(false);
     if (error) return setMessage(error.message);
     setStage("done");
-    window.setTimeout(() => router.replace("/home"), 1500);
+    window.setTimeout(() => router.replace("/go"), 1500);
   }
 
   const inputClass =
@@ -132,7 +132,7 @@ function CallbackInner() {
               Your email is now linked. If you ever forget your password, type this email on the login page and tap
               <strong> Forgot password?</strong> — the reset link is free. You can still log in with your mobile number.
             </p>
-            <Link href="/home" className="h-12 rounded-xl bg-[#6c5ce7] font-semibold grid place-items-center hover:bg-[#5a4bd4]">
+            <Link href="/go" className="h-12 rounded-xl bg-[#6c5ce7] font-semibold grid place-items-center hover:bg-[#5a4bd4]">
               Go to SheRides
             </Link>
           </div>

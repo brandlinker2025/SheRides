@@ -54,16 +54,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const { data } = await supabase.from("profiles").select("*").eq("id", id).maybeSingle();
       if (!data) await supabase.from("profiles").upsert({ id, full_name: fullName ?? "", username: fullName?.toLowerCase().replace(/\s+/g, "") || id.slice(0, 8) });
       const latest = await supabase.from("profiles").select("*").eq("id", id).maybeSingle();
-      const [{ count }, followers, following, birthday] = await Promise.all([
-        supabase.from("posts").select("*", { count: "exact", head: true }).eq("author_id", id),
-        supabase.from("follows").select("*", { count: "exact", head: true }).eq("following_id", id),
-        supabase.from("follows").select("*", { count: "exact", head: true }).eq("follower_id", id),
-        supabase.from("member_birthdays").select("user_id").eq("user_id", id).maybeSingle(),
-      ]);
+      const birthday = await supabase.from("member_birthdays").select("user_id").eq("user_id", id).maybeSingle();
       const rider = riderFromProfile(id, { ...(latest.data ?? {}), hasBirthday: birthday.error ? true : Boolean(birthday.data) }, fullName);
-      rider.postsCount = count ?? 0;
-      if (!followers.error) rider.followers = followers.count ?? rider.followers;
-      if (!following.error) rider.following = following.count ?? rider.following;
       setUser(rider);
     } catch { setUser((prev) => prev ?? riderFromProfile(id, null, fullName)); }
   }, []);
