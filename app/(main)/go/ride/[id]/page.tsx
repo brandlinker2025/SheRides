@@ -19,6 +19,7 @@ import {
   type GoRide,
 } from "@/lib/go";
 import { createClient } from "@/lib/supabase/client";
+import { RideChat } from "@/components/go/RideChat";
 import { useDriverLocationSender } from "@/hooks/useDriverLocationSender";
 import { useRideTracking } from "@/hooks/useRideTracking";
 
@@ -263,6 +264,16 @@ export default function GoRidePage() {
           </p>
         )}
       </div>
+
+      {user && ride.rider_id && (isPassenger || isRider) && (
+        <RideChat
+          rideId={ride.id}
+          myId={user.id}
+          role={isRider ? "rider" : "passenger"}
+          otherName={(isRider ? passenger?.full_name : rider?.full_name)?.split(" ")[0] ?? (isRider ? "passenger" : "rider")}
+          canSend={ride.status === "accepted" || ride.status === "in_progress"}
+        />
+      )}
 
       {active && (
         <div className="grid grid-cols-2 gap-3">
