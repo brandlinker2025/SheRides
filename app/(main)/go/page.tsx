@@ -146,14 +146,15 @@ function GoHub() {
   ];
 
   return (
-    <div className="w-full max-w-3xl mx-auto px-container-margin-mobile lg:px-0 py-10 flex flex-col gap-6">
-      <header className="rounded-[24px] p-6 sm:p-8 text-white bg-gradient-to-br from-[#14163a] via-[#4c45c4] to-[#16708a] shadow-xl relative overflow-hidden">
-        <Icon name="two_wheeler" className="absolute -right-4 -bottom-6 text-[160px] opacity-10" />
-        <p className="font-label-caps text-label-caps opacity-80">RIDE BOOKING · WOMEN ONLY · VERIFIED</p>
-        <h1 className="font-display-lg text-[36px] sm:text-[44px] leading-tight font-bold mt-1">SheRides</h1>
-        <p className="font-body-md opacity-90 max-w-md mt-1">
-          Rides by women, for women. Every rider and passenger is checked by an admin. Ride now, pre-book, or hire for hours.
-        </p>
+    <div className="w-full max-w-3xl mx-auto px-container-margin-mobile lg:px-0 py-5 sm:py-8 flex flex-col gap-5">
+      <header className="flex items-center gap-3">
+        <span className="w-11 h-11 rounded-2xl bg-gradient-to-br from-[#8b7cf8] to-[#14b8c4] text-white flex items-center justify-center shrink-0">
+          <Icon name="two_wheeler" filled />
+        </span>
+        <div className="min-w-0">
+          <h1 className="font-headline-md text-[24px] leading-tight font-bold">Where to?</h1>
+          <p className="font-body-sm text-secondary">Women riders only · every rider checked by an admin</p>
+        </div>
       </header>
 
       {submitted && (

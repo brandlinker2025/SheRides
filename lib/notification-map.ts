@@ -38,7 +38,7 @@ export function mapInboxNotification(
     body: row.body || "",
     time: formatRelativeTime(row.created_at),
     unread: !read,
-    href: row.href || "/home",
+    href: row.href || "/go",
     kind: row.kind || "notice",
   };
 }

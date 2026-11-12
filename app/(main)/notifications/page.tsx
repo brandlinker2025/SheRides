@@ -10,7 +10,7 @@ export default function NotificationsPage() {
 
   return (
     <div className="max-w-2xl mx-auto px-container-margin-mobile py-section-gap">
-      <BackLink href="/home" label="Home" className="mb-4" />
+      <BackLink href="/go" label="Book a ride" className="mb-4" />
       <div className="flex items-center justify-between mb-6">
         <h1 className="font-headline-xl text-headline-xl">Notifications</h1>
         {unread > 0 ? (
@@ -29,7 +29,7 @@ export default function NotificationsPage() {
         <EmptyState
           variant="notifications"
           title="No notifications yet."
-          body="Messages, comments, reactions, and new followers will show up here."
+          body="Ride requests, approvals and safety alerts will show up here."
         />
       ) : null}
       {!loading && !error && items.length > 0 ? (

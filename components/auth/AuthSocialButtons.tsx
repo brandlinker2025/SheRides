@@ -38,7 +38,7 @@ export function AuthSocialButtons({ onError, redirectTo }: AuthSocialButtonsProp
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider,
       options: {
-        redirectTo: redirectTo ?? `${siteOrigin()}/home`,
+        redirectTo: redirectTo ?? `${siteOrigin()}/go`,
         skipBrowserRedirect: true,
       },
     });

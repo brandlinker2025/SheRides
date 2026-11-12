@@ -26,10 +26,10 @@ export default async function AdminGoPage() {
     supabase
       .from("go_rides")
       .select(
-        "id, kind, status, pickup_text, drop_text, fare, scheduled_at, created_at, rider_rating, rider_feedback, passenger_rating, passenger_feedback, passenger:profiles!go_rides_passenger_id_fkey(full_name), rider:profiles!go_rides_rider_id_fkey(full_name)"
+        "id, rider_id, kind, status, pickup_text, drop_text, fare, completed_at, scheduled_at, created_at, rider_rating, rider_feedback, passenger_rating, passenger_feedback, passenger:profiles!go_rides_passenger_id_fkey(full_name), rider:profiles!go_rides_rider_id_fkey(full_name)"
       )
       .order("created_at", { ascending: false })
-      .limit(60),
+      .limit(300),
   ]);
 
   const applications: AdminGoApplication[] = await Promise.all(
@@ -46,6 +46,7 @@ export default async function AdminGoPage() {
         | null;
       return {
         id: row.id as string,
+        user_id: row.user_id as string,
         role: row.role as "passenger" | "rider",
         status: row.status as AdminGoApplication["status"],
         full_name: row.full_name as string,
@@ -73,9 +74,9 @@ export default async function AdminGoPage() {
   return (
     <div>
       <BackLink href="/admin" label="Dashboard" className="mb-3" />
-      <h1 className="font-headline-xl text-headline-xl mb-2">Ride Booking</h1>
+      <h1 className="font-headline-xl text-headline-xl mb-2">Riders</h1>
       <p className="font-body-lg text-secondary mb-8">
-        Check every face, name and NID by hand. Approve only when the selfie clearly matches the NID and the person is a woman.
+        Every registered rider: NID and selfie check, licence, bike, approval status and ride history. Approve only when the selfie clearly matches the NID and the person is a woman.
       </p>
       {setupMissing ? (
         <p className="card-surface p-6 font-body-sm text-error">

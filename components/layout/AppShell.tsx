@@ -1,28 +1,25 @@
 "use client";
 
 import Image from "next/image";
-import { useFeed } from "@/lib/feed-context";
+import { Suspense } from "react";
 import { PANDA_HERO_SRC } from "@/lib/brand-art";
 import { useScrollTopOnNavigate } from "@/hooks/useScrollTopOnNavigate";
 import { AuthGate } from "../auth/AuthGate";
-import { CreatePostModal } from "../feed/CreatePostModal";
-import { ChatDock } from "../messages/ChatDock";
 import { BottomNav } from "./BottomNav";
-import { PresenceHeartbeat } from "./PresenceHeartbeat";
 import { SideNav } from "./SideNav";
 import { TopNav } from "./TopNav";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
-  const { addPost } = useFeed();
   const mainRef = useScrollTopOnNavigate<HTMLElement>();
 
   return (
     <AuthGate>
-      <PresenceHeartbeat />
       <div className="panda-app-bg text-on-surface font-body-md antialiased h-dvh overflow-hidden">
         <TopNav />
         <div className="flex pt-[72px] h-dvh">
-          <SideNav />
+          <Suspense fallback={null}>
+            <SideNav />
+          </Suspense>
           {/* Background art stays put while only the content scrolls */}
           <div className="pointer-events-none fixed inset-0 top-[72px] lg:left-64 overflow-hidden" aria-hidden="true">
             <Image
@@ -44,8 +41,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </main>
         </div>
         <BottomNav />
-        <ChatDock />
-        <CreatePostModal onPost={addPost} />
       </div>
     </AuthGate>
   );

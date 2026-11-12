@@ -28,8 +28,8 @@ const TARGETS: {
     id: "sherides",
     href: "/download",
     name: "SheRides",
-    eyebrow: "Community",
-    description: "Rides, feed, and messages. Opens at your community home.",
+    eyebrow: "Ride sharing",
+    description: "Book, track and manage women-only rides. Opens at ride booking.",
     openHref: "/",
     openLabel: "Open in browser",
   },
@@ -324,7 +324,7 @@ export function DownloadInstall({ target }: { target: Target }) {
       {(standalone || justInstalled) && (
         <p className="mb-6 rounded-lg bg-primary-fixed px-4 py-3 font-body-sm" role="status">
           {selected.name} is ready on this device.{" "}
-          <Link href={target === "admin" ? "/admin" : "/home"} className="font-label-lg text-accent-magenta hover:underline">
+          <Link href={target === "admin" ? "/admin" : "/go"} className="font-label-lg text-accent-magenta hover:underline">
             Open it
           </Link>
           .

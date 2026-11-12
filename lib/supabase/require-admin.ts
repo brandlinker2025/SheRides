@@ -7,7 +7,7 @@ import { createServerSupabase } from "./server";
  * route calls this. There is no bypass flag: a real signed-in admin session is
  * always required.
  *   - not signed in      → /admin-login
- *   - signed in, not admin → /home
+ *   - signed in, not admin → /go
  */
 export async function requireAdmin() {
   const sessionClient = await createServerSupabase();
@@ -31,7 +31,7 @@ export async function requireAdmin() {
     .maybeSingle();
 
   if (profile?.role !== "admin") {
-    redirect("/home");
+    redirect("/go");
   }
 
   return { user, profile, supabase: dataClient };

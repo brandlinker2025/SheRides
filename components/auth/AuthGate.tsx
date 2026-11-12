@@ -18,7 +18,7 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
 
   // The signed-in layout already verified the session on the server. Never replace
   // the app with the client spinner — a slow or hung getUser() was trapping
-  // /messages?c= on "Checking sign in..." while /home in the same session worked.
+  // signed-in pages on "Checking sign in...".
   if (!loading && !user) return null;
   return <>{children}</>;
 }
@@ -34,7 +34,7 @@ export function AdminGate({ children }: { children: React.ReactNode }) {
       return;
     }
     if (user.role !== "admin") {
-      router.replace("/home");
+      router.replace("/go");
     }
   }, [loading, user, router]);
 

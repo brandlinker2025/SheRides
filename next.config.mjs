@@ -39,6 +39,19 @@ const nextConfig = {
       { protocol: "https", hostname: "irjybaasydqcfuldczeu.supabase.co" },
     ],
   },
+  async redirects() {
+    // Social pages were removed. Old links, bookmarks and stored notifications land on ride booking.
+    // /rider-benefits?alert=<id> is the href inside existing SOS notifications: it must keep reaching the alert detail.
+    return [
+      { source: "/rider-benefits", destination: "/safety", permanent: false },
+      ...["home", "explore", "messages", "groups", "events", "rides", "saved"].map((segment) => ({
+        source: `/${segment}/:path*`,
+        destination: "/go",
+        permanent: false,
+      })),
+      ...["posts", "events"].map((segment) => ({ source: `/admin/${segment}`, destination: "/admin", permanent: false })),
+    ];
+  },
   async rewrites() {
     return [
       { source: "/apple-touch-icon", destination: "/apple-touch-icon.png" },
@@ -69,7 +82,7 @@ const nextConfig = {
         ],
       },
       {
-        source: "/:path(home|explore|groups|events|rides|messages|notifications|saved|safety|profile|admin|verification|verify-phone|pending-approval)/:sub*",
+        source: "/:path(go|notifications|safety|profile|admin|verification|verify-phone|pending-approval)/:sub*",
         headers: [{ key: "Cache-Control", value: "no-store, must-revalidate" }],
       },
     ];

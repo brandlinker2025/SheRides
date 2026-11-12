@@ -9,6 +9,7 @@ import { KIND_LABEL, RIDE_STATUS_LABEL, formatTaka, formatWhen, type GoRideKind,
 
 export type AdminGoApplication = {
   id: string;
+  user_id: string;
   role: "passenger" | "rider";
   status: "pending" | "approved" | "rejected" | "suspended";
   full_name: string;
@@ -26,6 +27,8 @@ export type AdminGoApplication = {
 
 export type AdminGoRide = {
   id: string;
+  rider_id: string | null;
+  completed_at: string | null;
   kind: GoRideKind;
   status: GoRideStatus;
   pickup_text: string;
@@ -42,6 +45,7 @@ export type AdminGoRide = {
 };
 
 type Filter = "pending" | "approved" | "rejected" | "suspended" | "rides";
+type Role = "rider" | "passenger";
 
 const CHIP: Record<string, string> = {
   pending: "bg-amber-500/15 text-amber-700",
@@ -54,7 +58,49 @@ function maskNid(value: string) {
   return value.length <= 4 ? value : `${"•".repeat(value.length - 4)}${value.slice(-4)}`;
 }
 
-function ApplicationCard({ app }: { app: AdminGoApplication }) {
+/** Ride history for one rider, built from the rides the admin page already loaded. */
+function RiderHistory({ rides }: { rides: AdminGoRide[] }) {
+  const [open, setOpen] = useState(false);
+  const done = rides.filter((r) => r.status === "completed");
+  const cancelled = rides.filter((r) => r.status === "cancelled").length;
+  const rated = done.filter((r) => r.rider_rating != null);
+  const average = rated.length ? rated.reduce((sum, r) => sum + (r.rider_rating ?? 0), 0) / rated.length : null;
+  const earned = done.reduce((sum, r) => sum + r.fare, 0);
+
+  return (
+    <div className="rounded-xl border border-surface-border p-3">
+      <button type="button" onClick={() => setOpen((v) => !v)} aria-expanded={open} className="w-full flex items-center gap-3 text-left">
+        <Icon name="history" className="text-accent-magenta" />
+        <span className="flex-1 font-body-sm">
+          <span className="font-label-lg">{done.length} completed</span> · {cancelled} cancelled · {formatTaka(earned)}
+          {average != null ? ` · ★${average.toFixed(1)}` : ""}
+        </span>
+        <Icon name={open ? "expand_less" : "expand_more"} />
+      </button>
+      {open &&
+        (rides.length ? (
+          <ul className="mt-3 flex flex-col gap-2">
+            {rides.slice(0, 15).map((ride) => (
+              <li key={ride.id} className="font-body-sm border-t border-surface-border pt-2">
+                <p className="flex justify-between gap-3">
+                  <span className="truncate">{ride.pickup_text}{ride.drop_text ? ` → ${ride.drop_text}` : ""}</span>
+                  <span className="shrink-0 font-label-lg">{formatTaka(ride.fare)}</span>
+                </p>
+                <p className="text-tertiary">
+                  {new Date(ride.created_at).toLocaleDateString("en-BD", { timeZone: "Asia/Dhaka" })} · {RIDE_STATUS_LABEL[ride.status]} · {ride.passenger?.full_name ?? "Passenger"}
+                  {ride.rider_rating ? ` · ★${ride.rider_rating}` : ""}
+                </p>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="mt-3 font-body-sm text-tertiary">No rides in the latest 300 platform rides.</p>
+        ))}
+    </div>
+  );
+}
+
+function ApplicationCard({ app, rides }: { app: AdminGoApplication; rides: AdminGoRide[] }) {
   const router = useRouter();
   const [notes, setNotes] = useState(app.admin_notes ?? "");
   const [busy, setBusy] = useState(false);
@@ -142,6 +188,8 @@ function ApplicationCard({ app }: { app: AdminGoApplication }) {
           ))}
       </div>
 
+      {app.role === "rider" && app.status !== "pending" && <RiderHistory rides={rides} />}
+
       <input value={notes} onChange={(e) => setNotes(e.target.value)} maxLength={500} placeholder="Note to applicant (required to reject/suspend)" className="w-full bg-soft-off-white border border-surface-border rounded-lg px-4 py-3 font-body-sm" />
       {error && <p className="font-body-sm text-error">{error}</p>}
       <div className="flex flex-wrap gap-2 justify-end">
@@ -167,23 +215,40 @@ function ApplicationCard({ app }: { app: AdminGoApplication }) {
 
 export function GoAdminBoard({ applications, rides }: { applications: AdminGoApplication[]; rides: AdminGoRide[] }) {
   const router = useRouter();
+  const [role, setRole] = useState<Role>("rider");
   const [filter, setFilter] = useState<Filter>("pending");
+  const [query, setQuery] = useState("");
+  const riders = applications.filter((a) => a.role === "rider");
+  const passengers = applications.filter((a) => a.role === "passenger");
+  const scoped = role === "rider" ? riders : passengers;
   const counts = {
-    pending: applications.filter((a) => a.status === "pending").length,
-    approved: applications.filter((a) => a.status === "approved").length,
-    rejected: applications.filter((a) => a.status === "rejected").length,
-    suspended: applications.filter((a) => a.status === "suspended").length,
+    pending: scoped.filter((a) => a.status === "pending").length,
+    approved: scoped.filter((a) => a.status === "approved").length,
+    rejected: scoped.filter((a) => a.status === "rejected").length,
+    suspended: scoped.filter((a) => a.status === "suspended").length,
   };
   const liveRides = rides.filter((r) => r.status === "requested" || r.status === "accepted" || r.status === "in_progress").length;
-  const shown = applications.filter((a) => a.status === filter);
+  const q = query.trim().toLowerCase();
+  const shown = scoped.filter(
+    (a) =>
+      a.status === filter &&
+      (!q || [a.full_name, a.profile?.full_name, a.bike_plate, a.bike_model, a.license_number].some((v) => v?.toLowerCase().includes(q)))
+  );
+  const ridesByRider = new Map<string, AdminGoRide[]>();
+  for (const ride of rides) {
+    if (!ride.rider_id) continue;
+    const list = ridesByRider.get(ride.rider_id) ?? [];
+    list.push(ride);
+    ridesByRider.set(ride.rider_id, list);
+  }
 
   return (
     <div className="flex flex-col gap-6">
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
-          { label: "Waiting review", value: counts.pending, icon: "hourglass_top" },
-          { label: "Approved riders", value: applications.filter((a) => a.role === "rider" && a.status === "approved").length, icon: "sports_motorsports" },
-          { label: "Approved passengers", value: applications.filter((a) => a.role === "passenger" && a.status === "approved").length, icon: "hail" },
+          { label: "Riders waiting", value: riders.filter((a) => a.status === "pending").length, icon: "hourglass_top" },
+          { label: "Approved riders", value: riders.filter((a) => a.status === "approved").length, icon: "sports_motorsports" },
+          { label: "Suspended riders", value: riders.filter((a) => a.status === "suspended").length, icon: "block" },
           { label: "Live rides", value: liveRides, icon: "two_wheeler" },
         ].map((s) => (
           <div key={s.label} className="card-surface p-4">
@@ -192,6 +257,35 @@ export function GoAdminBoard({ applications, rides }: { applications: AdminGoApp
             <p className="font-label-caps text-[10px] text-tertiary">{s.label.toUpperCase()}</p>
           </div>
         ))}
+      </div>
+
+      <div className="flex flex-col sm:flex-row gap-3">
+        <div role="tablist" aria-label="Who to review" className="inline-flex rounded-full border border-surface-border bg-surface-container-lowest p-1 self-start">
+          {(["rider", "passenger"] as Role[]).map((r) => {
+            const waiting = (r === "rider" ? riders : passengers).filter((a) => a.status === "pending").length;
+            return (
+              <button
+                key={r}
+                type="button"
+                role="tab"
+                aria-selected={role === r}
+                onClick={() => setRole(r)}
+                className={`h-10 px-5 rounded-full font-label-lg text-sm ${role === r ? "bg-accent-magenta text-white" : "text-secondary"}`}
+              >
+                {r === "rider" ? "Riders" : "Passenger ID checks"}
+                {waiting > 0 ? ` (${waiting})` : ""}
+              </button>
+            );
+          })}
+        </div>
+        <input
+          type="search"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Search name, bike plate, licence"
+          aria-label="Search riders"
+          className="flex-1 h-12 bg-surface-container-lowest border border-surface-border rounded-full px-5 font-body-sm"
+        />
       </div>
 
       <nav className="flex gap-2 overflow-x-auto hide-scrollbar">
@@ -204,7 +298,7 @@ export function GoAdminBoard({ applications, rides }: { applications: AdminGoApp
               filter === f ? "bg-accent-magenta text-white border-accent-magenta" : "border-surface-border bg-surface-container-lowest"
             }`}
           >
-            {f === "rides" ? `Rides (${rides.length})` : `${f} (${counts[f]})`}
+            {f === "rides" ? `All rides (${rides.length})` : `${f} (${counts[f]})`}
           </button>
         ))}
       </nav>
@@ -213,7 +307,7 @@ export function GoAdminBoard({ applications, rides }: { applications: AdminGoApp
         shown.length ? (
           <div className="grid gap-4 xl:grid-cols-2">
             {shown.map((app) => (
-              <ApplicationCard key={app.id} app={app} />
+              <ApplicationCard key={app.id} app={app} rides={ridesByRider.get(app.user_id) ?? []} />
             ))}
           </div>
         ) : (

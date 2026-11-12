@@ -27,8 +27,8 @@ function translateAuthError(message: string, member: boolean): string {
 }
 
 function safeUserNextPath(value: string | null) {
-  if (!value?.startsWith("/") || value.startsWith("//")) return "/home";
-  if (value === "/admin-login" || value.startsWith("/admin")) return "/home";
+  if (!value?.startsWith("/") || value.startsWith("//")) return "/go";
+  if (value === "/admin-login" || value.startsWith("/admin")) return "/go";
   return value;
 }
 
@@ -441,7 +441,7 @@ export function LoginPanel({ admin = false }: { admin?: boolean }) {
           </form>
         {admin ? (
           <p className="mt-6 text-sm text-white/70">
-            Community member?{" "}
+            Rider or passenger?{" "}
             <Link href="/login" className="font-label-lg text-[#6c5ce7]">
               User Sign In
             </Link>
@@ -450,7 +450,7 @@ export function LoginPanel({ admin = false }: { admin?: boolean }) {
           <p className="mt-6 text-sm text-white/70">
             New to SheRides?{" "}
             <Link href={joinHref} className="font-label-lg text-[#6c5ce7]">
-              Sign Up / Join Community
+              Sign Up
             </Link>
           </p>
         )}

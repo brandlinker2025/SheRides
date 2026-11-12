@@ -27,7 +27,7 @@ export async function POST(request: Request) {
     revalidatePath("/admin");
     revalidatePath("/admin/users");
     revalidatePath("/admin/verifications");
-    revalidatePath("/home");
+    revalidatePath("/go");
     revalidatePath("/pending-approval");
     return NextResponse.json({ ok: true });
   } catch (err) {

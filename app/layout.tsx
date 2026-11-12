@@ -31,8 +31,8 @@ const ogImage = `${siteUrl}/sherides-panda-og.jpg`;
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
-  title: "SheRides - Bangladesh Women Riders Community",
-  description: "Bangladesh women riders community. Ride. Connect. Belong.",
+  title: "SheRides - Women-only ride sharing in Bangladesh",
+  description: "Safe rides by women, for women. Book now, pre-book, or hire by the hour.",
   keywords: ["female biker bangladesh", "women motorcycle", "sherides"],
   applicationName: "SheRides",
   manifest: "/manifest.webmanifest",
@@ -43,18 +43,18 @@ export const metadata: Metadata = {
     canonical: "/",
   },
   openGraph: {
-    title: "SheRides - Bangladesh Women Riders Community",
-    description: "Bangladesh women riders community. Ride. Connect. Belong.",
+    title: "SheRides - Women-only ride sharing in Bangladesh",
+    description: "Safe rides by women, for women. Book now, pre-book, or hire by the hour.",
     url: siteUrl,
     siteName: "SheRides",
-    images: [{ url: ogImage, width: 1536, height: 806, alt: "SheRides panda — Bangladesh Women Riders Community" }],
+    images: [{ url: ogImage, width: 1536, height: 806, alt: "SheRides — women-only ride sharing in Bangladesh" }],
     locale: "en_US",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "SheRides - Bangladesh Women Riders Community",
-    description: "Bangladesh women riders community. Ride. Connect. Belong.",
+    title: "SheRides - Women-only ride sharing in Bangladesh",
+    description: "Safe rides by women, for women. Book now, pre-book, or hire by the hour.",
     images: [ogImage],
   },
   appleWebApp: {

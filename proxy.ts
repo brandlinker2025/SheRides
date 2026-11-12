@@ -90,7 +90,7 @@ export async function proxy(request: NextRequest) {
 
   if (pathname === "/pending-approval" || pathname === "/verify-phone") {
     if (isApprovedProfile(profile)) {
-      return NextResponse.redirect(new URL("/home", request.url));
+      return NextResponse.redirect(new URL("/go", request.url));
     }
     if (pathname === "/verify-phone") {
       return NextResponse.redirect(new URL("/pending-approval", request.url));
@@ -113,7 +113,7 @@ export async function proxy(request: NextRequest) {
 
   if (isAdminAppPath(pathname)) {
     if (profile?.role !== "admin") {
-      return NextResponse.redirect(new URL("/home", request.url));
+      return NextResponse.redirect(new URL("/go", request.url));
     }
     return response;
   }

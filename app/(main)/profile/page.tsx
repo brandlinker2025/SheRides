@@ -11,7 +11,7 @@ export default function MyProfilePage() {
   return (
     <div>
       <div className="px-container-margin-mobile md:px-container-margin-desktop pt-4">
-        <BackLink href="/home" label="Home" />
+        <BackLink href="/go" label="Book a ride" />
       </div>
       <ProfileView rider={user} isSelf />
     </div>

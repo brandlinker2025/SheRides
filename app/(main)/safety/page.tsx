@@ -5,6 +5,7 @@ import { BackLink } from "@/components/ui/BackLink";
 import { Icon } from "@/components/ui/Icon";
 import { locationErrorMessage, requestRiderLocation } from "@/lib/geolocation";
 import { createClient } from "@/lib/supabase/client";
+import { EmergencyRecipientDetail } from "@/components/safety/EmergencyRecipientDetail";
 
 export default function SafetyPage() {
   const [toast, setToast] = useState<string | null>(null);
@@ -105,17 +106,18 @@ export default function SafetyPage() {
     { icon: "share_location", title: "Share My Ride", body: "Broadcast your live route and estimated arrival time to trusted friends or family." },
     { icon: "contacts", title: "Emergency Contacts", body: "Manage the priority list of people to notify in case of an incident during your ride." },
     { icon: "car_repair", title: "Roadside Help", body: "Request immediate mechanical assistance or a tow from verified partners nearby." },
-    { icon: "flag", title: "Report User", body: "Anonymously report inappropriate behavior to maintain our premium community standards.", danger: true },
+    { icon: "flag", title: "Report User", body: "Anonymously report inappropriate behavior so the admin team can act on it.", danger: true },
     { icon: "block", title: "Block User", body: "Prevent specific members from viewing your profile, routes, or contacting you.", danger: true },
   ];
 
   return (
     <div className="w-full max-w-[1280px] mx-auto px-container-margin-mobile lg:px-container-margin-desktop py-12">
+      <EmergencyRecipientDetail />
       <div className="mb-12">
-        <BackLink href="/home" label="Home" className="mb-4" />
+        <BackLink href="/go" label="Book a ride" className="mb-4" />
         <h1 className="font-headline-xl text-headline-xl text-on-background mb-2">Safety Center</h1>
         <p className="font-body-lg text-secondary max-w-2xl">
-          Your well-being is our priority. Access immediate assistance, manage your ride visibility, and control your community experience with these essential tools.
+          Your well-being is our priority. Access immediate assistance, share your trip, and report anything that feels unsafe.
         </p>
       </div>
 
