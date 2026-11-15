@@ -4,17 +4,9 @@ export default function EntryPage() {
   return (
     <main className="flex min-h-dvh flex-col items-center justify-center bg-black px-6 text-white">
       <div className="w-full max-w-md text-center">
-        {/* Logo banner style matching the image */}
-        <div className="mb-10 flex flex-col items-center">
-          <div className="mb-2 flex items-center gap-2">
-            <span className="text-5xl">🛵</span>
-            <span className="text-5xl font-black tracking-tight text-[#6b21d4] sm:text-6xl" style={{ fontFamily: "system-ui, -apple-system, sans-serif" }}>
-              SheRides
-            </span>
-          </div>
-          <div className="rounded bg-[#1e3a8a] px-6 py-1.5 text-xs font-bold uppercase tracking-[0.2em] text-white">
-            RIDE · CONNECT · EMPOWER
-          </div>
+        {/* Brand logo */}
+        <div className="mb-10 flex justify-center">
+          <img src="/sherides-logo.svg" alt="SheRides" className="h-28 w-auto" />
         </div>
 
         <h1 className="mb-2 text-2xl font-bold text-white/90">
