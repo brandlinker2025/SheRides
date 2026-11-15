@@ -4,13 +4,17 @@ export default function EntryPage() {
   return (
     <main className="flex min-h-dvh flex-col items-center justify-center bg-black px-6 text-white">
       <div className="w-full max-w-md text-center">
-        {/* Logo-style header matching the provided illustration */}
-        <div className="mb-6 flex flex-col items-center">
-          <div className="mb-3 text-6xl">🛵</div>
-          <div className="text-5xl font-black tracking-tight text-[#6b21d4] sm:text-6xl" style={{ fontFamily: "system-ui, sans-serif" }}>
-            SheRides
+        {/* Logo matching the provided image */}
+        <div className="mb-8 flex flex-col items-center">
+          <div className="mb-3 flex items-center justify-center gap-2">
+            <span className="text-4xl">🛵</span>
+            <span className="text-5xl font-black tracking-tight text-[#6b21d4] sm:text-6xl">
+              SheRides
+            </span>
           </div>
-          <p className="mt-2 text-sm font-medium text-[#ffb95f]">For women, by women · মহিলাদের জন্য মহিলা</p>
+          <div className="rounded bg-[#1e3a8a] px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-white">
+            RIDE · CONNECT · EMPOWER
+          </div>
         </div>
 
         <h1 className="mb-2 text-2xl font-bold leading-tight text-white/90">
