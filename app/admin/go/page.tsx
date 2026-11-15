@@ -79,9 +79,9 @@ export default async function AdminGoPage() {
   return (
     <div>
       <BackLink href="/admin" label="Dashboard" className="mb-3" />
-      <h1 className="font-headline-xl text-headline-xl mb-2">Trust & Safety Ops Center</h1>
+      <h1 className="font-headline-xl text-headline-xl mb-2">Approvals</h1>
       <p className="font-body-lg text-secondary mb-8">
-        Compare each live selfie with the NID photo, then approve, reject, or suspend. Approve a rider only when the face matches and the applicant is a woman.
+        Passengers waiting to book, captains waiting to ride, and partner leads. Approve or reject each one here. Reject needs a reason, and the member is notified in the app.
       </p>
       {setupMissing ? (
         <p className="card-surface p-6 font-body-sm text-error">

@@ -6,7 +6,7 @@ import { Icon } from "../ui/Icon";
 import { Avatar } from "../ui/Avatar";
 import { LanguageToggle } from "../ui/LanguageToggle";
 import { ThemeToggle } from "../ui/ThemeToggle";
-import { BrandLogo } from "../ui/BrandLogo";
+import { Logo } from "../ui/Logo";
 import { NotificationsBell } from "./NotificationsBell";
 
 export function TopNav() {
@@ -16,7 +16,7 @@ export function TopNav() {
     <header className="panda-topnav fixed top-0 w-full z-50 flex justify-between items-center px-gutter py-base shadow-nav">
       <div className="flex items-center gap-gutter">
         <Link href="/go" aria-label="SheRides home">
-          <BrandLogo className="text-[28px] sm:text-[40px]" />
+          <Logo variant="mark" height={56} priority />
         </Link>
       </div>
       <div className="flex items-center gap-1 sm:gap-4 shrink-0">

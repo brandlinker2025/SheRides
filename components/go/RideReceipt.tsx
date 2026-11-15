@@ -1,5 +1,6 @@
 "use client";
 
+import { Logo } from "@/components/ui/Logo";
 import { KIND_LABEL, formatTaka, formatWhen, serviceLabel, type GoRide } from "@/lib/go";
 import { useLocale } from "@/lib/locale";
 
@@ -18,7 +19,10 @@ export function RideReceipt({
   return (
     <section className="card-surface p-5" aria-label={t("receipt.title")}>
       <div className="flex items-center justify-between gap-3">
-        <h2 className="text-lg font-bold">{t("receipt.title")}</h2>
+        <div className="flex items-center gap-3">
+          <Logo variant="badge" height={40} tone="auto" />
+          <h2 className="text-lg font-bold">{t("receipt.title")}</h2>
+        </div>
         <button type="button" onClick={() => window.print()} className="btn btn-ghost h-9 min-h-9 px-3 text-xs">
           {t("receipt.print")}
         </button>

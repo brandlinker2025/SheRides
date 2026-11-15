@@ -163,14 +163,31 @@ export function RiderMode() {
       )}
 
       <section>
-        <h3 className="font-headline-md text-[18px] font-bold mb-3">Open requests</h3>
+        <h3 className="font-headline-md text-[18px] font-bold mb-3">Pre-booked ahead</h3>
+        {open.filter((ride) => ride.kind === "scheduled").length === 0 ? (
+          <p className="card-surface mb-4 p-4 text-sm text-secondary">No scheduled rides waiting.</p>
+        ) : (
+          <div className="mb-6 flex flex-col gap-3">
+            {open.filter((ride) => ride.kind === "scheduled").map((ride) => (
+              <article key={ride.id} className="card-surface flex flex-col gap-2 border border-[#FFB804]/30 p-4">
+                <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#FFB804]">{formatWhen(ride.scheduled_at)}</p>
+                <p className="font-label-lg">{ride.passenger?.full_name ?? "Passenger"} · {formatTaka(ride.fare)}</p>
+                <p className="text-sm text-white/70">{ride.pickup_text}{ride.drop_text ? ` → ${ride.drop_text}` : ""}</p>
+                <button type="button" disabled={busyId === ride.id} onClick={() => void accept(ride)} className="btn btn-primary h-11 min-h-11 text-sm">
+                  {busyId === ride.id ? "Accepting…" : "Accept pre-book"}
+                </button>
+              </article>
+            ))}
+          </div>
+        )}
+        <h3 className="font-headline-md text-[18px] font-bold mb-3">Open requests now</h3>
         {boardError ? (
           <p className="card-surface p-6 font-body-sm text-error text-center" role="alert">{boardError}</p>
-        ) : open.length === 0 ? (
+        ) : open.filter((ride) => ride.kind !== "scheduled").length === 0 ? (
           <p className="card-surface p-6 font-body-sm text-secondary text-center">No open requests right now.</p>
         ) : (
           <div className="flex flex-col gap-3">
-            {open.map((ride) => {
+            {open.filter((ride) => ride.kind !== "scheduled").map((ride) => {
               const away = me && ride.pickup_lat != null && ride.pickup_lng != null ? roadKm(me, { lat: ride.pickup_lat, lng: ride.pickup_lng }) : null;
               return (
                 <article key={ride.id} className="card-surface p-5 flex flex-col gap-3">

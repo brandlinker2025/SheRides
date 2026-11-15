@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "./auth-context";
+import { visibleInboxItems, visibleNotificationRows } from "./inbox-filter";
 import { mapInboxNotification, type InboxNotification, type NotificationRow } from "./notification-map";
 import { armNotificationSoundUnlock, noteInboxSnapshot, syncInboxToneUser } from "./notification-sound";
 import { createClient } from "./supabase/client";
@@ -35,7 +36,7 @@ export async function fetchInboxNotifications(supabase: Client, userId: string, 
   const rpc = await supabase.rpc("list_inbox_notifications", { p_limit: limit });
   if (!rpc.error) {
     return {
-      items: ((rpc.data ?? []) as NotificationRow[]).map((row) => mapInboxNotification(row)),
+      items: visibleInboxItems(((rpc.data ?? []) as NotificationRow[]).map((row) => mapInboxNotification(row))),
       error: null as string | null,
     };
   }
@@ -49,7 +50,7 @@ export async function fetchInboxNotifications(supabase: Client, userId: string, 
     .limit(limit);
   if (error) return { items: [] as InboxNotification[], error: error.message };
   return {
-    items: await hydrateNotifications(supabase, (data ?? []) as NotificationRow[]),
+    items: visibleInboxItems(await hydrateNotifications(supabase, visibleNotificationRows((data ?? []) as NotificationRow[]))),
     error: null as string | null,
   };
 }

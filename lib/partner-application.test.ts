@@ -6,7 +6,7 @@ const valid = {
   fullName: "ফাতেমা আক্তার",
   phone: "01712345678",
   area: "ধানমন্ডি, ঢাকা",
-  vehicleType: "car",
+  vehicleType: "bike_scooter",
   commitment: "part_time",
   note: "সন্ধ্যায় সময় দিতে পারি",
 };
@@ -17,7 +17,14 @@ test("a complete lead is accepted and the phone is stored in 880 form", () => {
   if (!result.ok) return;
   assert.equal(result.value.phone, "8801712345678");
   assert.equal(result.value.note, "সন্ধ্যায় সময় দিতে পারি");
-  assert.equal(result.value.vehicleType, "car");
+  assert.equal(result.value.vehicleType, "bike_scooter");
+});
+
+test("car leads are refused while ENABLE_CAR is off and still described in the type list", () => {
+  const result = validatePartnerApplication({ ...valid, vehicleType: "car" });
+  assert.equal(result.ok, false);
+  if (result.ok) return;
+  assert.equal(result.field, "vehicle");
 });
 
 test("empty note is stored as null and +880 phones are accepted", () => {

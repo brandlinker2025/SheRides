@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { isApprovedProfile } from "@/lib/profile";
 import { PandaStandaloneFrame } from "@/components/brand/PandaStandaloneFrame";
-import { BrandLogo } from "@/components/ui/BrandLogo";
+import { Logo } from "@/components/ui/Logo";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -36,7 +36,7 @@ export default async function PendingApprovalPage() {
     <PandaStandaloneFrame>
       <section className="w-full bg-surface-container-lowest rounded-xl shadow-premium p-8">
         <Link href="/" className="inline-block mb-6" aria-label="SheRides home">
-          <BrandLogo className="text-[42px]" />
+          <Logo variant="lockup" height={140} priority />
         </Link>
         <p className="font-label-lg text-accent-magenta mb-2">MEMBERSHIP REVIEW</p>
         <h1 className="font-headline-xl text-headline-xl mb-3">Waiting for admin approval</h1>

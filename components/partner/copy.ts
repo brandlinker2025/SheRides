@@ -1,4 +1,5 @@
 import type { Commitment, VehicleType } from "@/lib/partner-application";
+import { ENABLE_CAR } from "@/lib/features";
 
 export type PartnerLang = "bn" | "en";
 
@@ -439,3 +440,42 @@ export const partnerCopy: Record<PartnerLang, PartnerCopy> = {
     },
   },
 };
+
+/** Copy shown in the UI. Car phrases stay in `partnerCopy` so the flag can turn them back on. */
+export function shownPartnerCopy(lang: PartnerLang): PartnerCopy {
+  const copy = partnerCopy[lang];
+  if (ENABLE_CAR) return copy;
+  if (lang === "bn") {
+    return {
+      ...copy,
+      paths: {
+        ...copy.paths,
+        title: "বাইক বা স্কুটার নিয়ে SheRides Partner হোন",
+        sub: "নারী বাইক ও স্কুটার রাইডারদের আমরা স্বাগত জানাই।",
+      },
+      types: { ...copy.types, noneTitle: "আমার বাইক বা স্কুটার নেই" },
+      earnings: {
+        ...copy.earnings,
+        body: "আপনার নিজের বাইক বা স্কুটার আছে? প্রতিদিন কয়েক ঘণ্টা সময় দিতে পারলে SheRides-এর মাধ্যমে বাড়তি আয়ের সুযোগ তৈরি করুন।",
+      },
+      finalCta: { ...copy.finalCta, title: "আপনার বাইক বা স্কুটার কি আপনার জন্য আরও আয় করতে পারে?" },
+      footer: { ...copy.footer, guide: "রাইডার গাইড" },
+    };
+  }
+  return {
+    ...copy,
+    paths: {
+      ...copy.paths,
+      title: "Become a SheRides Partner with a bike or scooter",
+      sub: "Women bike and scooter riders are welcome.",
+    },
+    types: { ...copy.types, noneTitle: "I don't have a bike or scooter" },
+    earnings: {
+      ...copy.earnings,
+      body: "Have your own bike or scooter? A few hours a day with SheRides can become extra income.",
+    },
+    finalCta: { ...copy.finalCta, title: "Could your bike or scooter earn more for you?" },
+    footer: { ...copy.footer, guide: "Rider guide" },
+    fit: { ...copy.fit, body: "We are looking for people who are punctual, responsible, and ready to treat women with respect." },
+  };
+}

@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { ENABLE_CAR } from "./features";
 
 export type GoRole = "passenger" | "rider";
 export type GoAppStatus = "pending" | "approved" | "rejected" | "suspended";
@@ -165,6 +166,12 @@ export const FLEET_COPY: Record<GoService, { title: string; badge: string; blurb
 };
 
 const SERVICES = new Set<string>(FARE_RATES.map((rate) => rate.id));
+
+/** Booking cards. Car catalog rows stay in the database and return when ENABLE_CAR is true. */
+export function bookableRates<T extends { id: string; label: string }>(rates: T[]): T[] {
+  if (ENABLE_CAR) return rates;
+  return rates.filter((rate) => rate.id !== "car" && !/\bcar\b/i.test(rate.label));
+}
 
 export function rateFor(service: GoService | string | null | undefined, rates: FareRate[] = FARE_RATES) {
   return rates.find((rate) => rate.id === service) ?? rates[0] ?? FARE_RATES[0];

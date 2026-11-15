@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import Image from "next/image";
 import Link from "next/link";
-import { BrandLogo } from "@/components/ui/BrandLogo";
+import { Logo } from "@/components/ui/Logo";
 import { Icon } from "@/components/ui/Icon";
 
 type Target = "sherides" | "admin";
@@ -227,7 +227,7 @@ export function DownloadInstall({ target }: { target: Target }) {
   return (
     <section className="w-full rounded-xl bg-surface-container-lowest p-6 shadow-premium sm:p-8">
       <Link href="/" className="mb-6 inline-block" aria-label="SheRides home">
-        <BrandLogo className="text-[42px]" />
+        <Logo variant="lockup" height={160} priority />
       </Link>
       <p className="mb-2 font-label-lg text-accent-magenta">INSTALL THE APP</p>
       <h1 className="mb-2 font-headline-xl text-headline-xl">Ride from your home screen</h1>

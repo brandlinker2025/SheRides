@@ -16,12 +16,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     <AuthGate>
       <div className="panda-app-bg text-on-surface font-body-md antialiased h-dvh overflow-hidden">
         <TopNav />
-        <div className="flex pt-[72px] h-dvh">
+        <div className="flex pt-20 h-dvh">
           <Suspense fallback={null}>
             <SideNav />
           </Suspense>
           {/* Background art stays put while only the content scrolls */}
-          <div className="pointer-events-none fixed inset-0 top-[72px] lg:left-64 overflow-hidden" aria-hidden="true">
+          <div className="pointer-events-none fixed inset-0 top-20 lg:left-64 overflow-hidden" aria-hidden="true">
             <Image
               src={PANDA_HERO_SRC}
               alt=""
@@ -35,7 +35,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <main
             id="app-main"
             ref={mainRef}
-            className="relative z-10 flex-1 lg:ml-64 w-full min-w-0 h-[calc(100dvh-72px)] overflow-y-auto overscroll-contain flex flex-col"
+            className="relative z-10 flex-1 lg:ml-64 w-full min-w-0 h-[calc(100dvh-5rem)] overflow-y-auto overscroll-contain flex flex-col"
           >
             <div className="flex-1 min-h-0 pb-24 lg:pb-0">{children}</div>
           </main>

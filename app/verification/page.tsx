@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { PandaStandaloneFrame } from "@/components/brand/PandaStandaloneFrame";
 import { BackLink } from "@/components/ui/BackLink";
-import { BrandLogo } from "@/components/ui/BrandLogo";
+import { Logo } from "@/components/ui/Logo";
 
 const MAX_FILE_BYTES = 10 * 1024 * 1024;
 const ALLOWED_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "application/pdf"]);
@@ -123,7 +123,7 @@ export default function VerificationPage() {
       <section className="w-full bg-surface-container-lowest rounded-xl shadow-premium p-8">
         <BackLink href="/login" label="Back to sign in" className="mb-4" />
         <Link href="/" className="inline-block mb-6" aria-label="SheRides home">
-          <BrandLogo className="text-[42px]" />
+          <Logo variant="lockup" height={140} priority />
         </Link>
         <p className="font-label-lg text-accent-magenta mb-2">RIDER VERIFICATION</p>
         <h1 className="font-headline-xl text-headline-xl mb-2">Complete your registration</h1>

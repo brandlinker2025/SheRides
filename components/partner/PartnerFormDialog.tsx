@@ -2,8 +2,9 @@
 
 import { useEffect, useId, useRef, useState, type FormEvent } from "react";
 import { Icon } from "@/components/ui/Icon";
+import { Logo } from "@/components/ui/Logo";
 import { bangladeshCities } from "@/lib/cities";
-import { validatePartnerApplication, type Commitment, type VehicleType } from "@/lib/partner-application";
+import { offeredVehicleTypes, validatePartnerApplication, type Commitment, type VehicleType } from "@/lib/partner-application";
 import type { PartnerCopy } from "./copy";
 
 const fieldClass =
@@ -93,7 +94,7 @@ export function PartnerFormDialog({ open, vehicle, copy, onClose }: PartnerFormD
       <div className="max-h-[92dvh] overflow-y-auto rounded-t-[2rem] border border-white/10 bg-[#1a1a24] p-5 shadow-[0_8px_32px_-4px_rgba(0,0,0,0.6)] md:rounded-[2rem] md:p-7">
         <div className="mb-5 flex items-start justify-between gap-4">
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#ffb95f]">SheRides</p>
+            <Logo variant="badge" height={36} />
             <h2 id={titleId} className="mt-1 text-[22px] font-bold leading-8 text-white">
               {done ? copy.successTitle : copy.title}
             </h2>
@@ -161,8 +162,8 @@ export function PartnerFormDialog({ open, vehicle, copy, onClose }: PartnerFormD
 
             <fieldset className="flex flex-col gap-2">
               <legend className="text-sm font-semibold">{copy.vehicle}</legend>
-              <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-                {(Object.keys(copy.vehicles) as VehicleType[]).map((option) => {
+              <div className={`grid grid-cols-1 gap-2 ${offeredVehicleTypes().length > 2 ? "sm:grid-cols-3" : "sm:grid-cols-2"}`}>
+                {offeredVehicleTypes().map((option) => {
                   const selected = vehicleType === option;
                   return (
                     <label
@@ -170,7 +171,7 @@ export function PartnerFormDialog({ open, vehicle, copy, onClose }: PartnerFormD
                       onClick={() => setVehicleType(option)}
                       className={`flex min-h-12 cursor-pointer items-center justify-center rounded-full border px-3 text-center text-sm font-semibold has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-[#f4b8d4] ${
                         selected
-                          ? "border-transparent bg-[#f4b8d4] text-[#3a1830]"
+                          ? "border-transparent bg-[#FF6772] text-[#460377]"
                           : "border-white/10 bg-[#1f1f24] text-white/75"
                       }`}
                     >

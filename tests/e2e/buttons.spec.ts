@@ -54,6 +54,11 @@ test("public pages, buttons, and retired SOS routes", async ({ page }) => {
       const name = path === "/" ? "home" : path.slice(1);
       await page.screenshot({ path: `/opt/cursor/artifacts/sherides-${name}.png`, fullPage: true });
     }
+    if (path === "/partner") {
+      const body = await page.locator("body").innerText();
+      expect(body, "car options stay hidden").not.toMatch(/কার ড্রাইভার|car driver|নিজের গাড়ি|own car/i);
+      expect(body).toMatch(/বাইক|স্কুটার/);
+    }
 
     const links = page.locator("a[href]:visible");
     const linkCount = await links.count();
@@ -112,6 +117,14 @@ test("public pages, buttons, and retired SOS routes", async ({ page }) => {
       expect(ok, `${path} button ${text}`).toBe(true);
     }
   }
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  for (const path of ["/", "/login", "/partner", "/download"]) {
+    await page.goto(path, { waitUntil: "domcontentloaded" });
+    const name = path === "/" ? "home" : path.slice(1);
+    await page.screenshot({ path: `/opt/cursor/artifacts/sherides-${name}-mobile.png`, fullPage: true });
+  }
+  await page.setViewportSize({ width: 1280, height: 720 });
 
   for (const path of GUARDED) {
     await page.goto(path, { waitUntil: "domcontentloaded" });

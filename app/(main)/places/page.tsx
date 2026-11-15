@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { PlaceInput } from "@/components/go/PlaceInput";
 import { Icon } from "@/components/ui/Icon";
+import { Logo } from "@/components/ui/Logo";
 import { useLocale } from "@/lib/locale";
 import type { GoPlace } from "@/lib/go";
 import { deletePlace, loadSavedPlaces, savePlace, type SavedPlace } from "@/lib/saved-places";
@@ -77,7 +78,7 @@ export default function PlacesPage() {
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-4 px-4 py-5 sm:px-6 sm:py-8">
       <header>
-        <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#ffb95f]">SheRides</p>
+        <Logo variant="badge" height={36} />
         <h1 className="text-2xl font-bold">{t("places.title")}</h1>
         <p className="mt-1 text-sm text-white/70">{t("places.lead")}</p>
       </header>

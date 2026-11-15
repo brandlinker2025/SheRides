@@ -41,12 +41,7 @@ function SignupForm() {
       }
     >
       <div className="w-full rounded-[28px] border border-[#6c5ce7]/50 bg-[rgba(12,10,14,0.82)] p-6 shadow-[0_20px_50px_rgba(0,0,0,0.35),0_0_0_1px_rgba(108,92,231,0.12)] backdrop-blur-xl sm:p-8">
-        <h1
-          className="mb-1 text-[34px] leading-none text-[#6c5ce7] sm:text-[42px]"
-          style={{ fontFamily: "var(--font-butterpop), Georgia, serif" }}
-        >
-          Join SheRides
-        </h1>
+        <h1 className="mb-1 text-2xl font-bold leading-tight text-white sm:text-3xl">Create your account</h1>
         <p className="mb-6 text-sm text-white/70">
           Create your account with your mobile number. An administrator will approve you before you can ride.
         </p>
