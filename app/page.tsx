@@ -2,34 +2,31 @@ import Link from "next/link";
 
 export default function EntryPage() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center bg-black px-6 text-white">
-      <div className="w-full max-w-md text-center">
-        <div className="mb-8 text-6xl">🛵</div>
-        <h1 className="mb-2 text-5xl font-black text-purple-400">SheRides</h1>
-        <p className="mb-8 text-sm uppercase tracking-widest text-amber-300">
+    <main className="flex min-h-dvh flex-col items-center justify-center bg-[#131318] px-6 text-[#e4e1e9]">
+      <div className="flex w-full max-w-md flex-col items-center text-center">
+        <h1 className="text-5xl font-bold tracking-tight text-[#A855F7] sm:text-6xl">SheRides</h1>
+        <p className="mt-4 text-sm font-semibold uppercase tracking-[0.22em] text-[#FFB95F]">
           RIDE · CONNECT · EMPOWER
         </p>
-
-        <p className="mb-10 text-lg text-white/80">Safe rides in Dhaka</p>
-
-        <div className="flex flex-col gap-4">
+        <div className="mt-10 flex w-full flex-col gap-3">
           <Link
             href="/go?role=passenger"
-            className="flex h-14 items-center justify-center rounded-full bg-purple-400 text-lg font-bold text-black"
+            className="flex h-14 items-center justify-center rounded-full bg-[#A855F7] text-lg font-bold text-white"
           >
             Take a ride / রাইড নিন
           </Link>
-
           <Link
             href="/go/apply?role=rider"
-            className="flex h-14 items-center justify-center rounded-full border-2 border-purple-400 text-lg font-bold"
+            className="flex h-14 items-center justify-center rounded-full border-2 border-[#A855F7] text-lg font-bold text-[#A855F7]"
           >
             Become a Rider / রাইডার হন
           </Link>
         </div>
-
-        <p className="mt-10 text-sm text-white/50">
-          Already have an account? <Link href="/login" className="text-purple-300 underline">Sign in</Link>
+        <p className="mt-10 text-sm text-white/60">
+          Already have an account?{" "}
+          <Link href="/login" className="font-semibold text-[#A855F7] underline">
+            Sign in
+          </Link>
         </p>
       </div>
     </main>
