@@ -82,7 +82,11 @@ export function RideMap({ pickup, drop }: { pickup: GoPlace | null; drop: GoPlac
           </span>
         </span>
       ))}
-      <div className="absolute inset-x-3 bottom-3 rounded-2xl border border-white/15 bg-white/10 px-4 py-3 text-white shadow-lg backdrop-blur-xl">
+      <div className="absolute left-3 top-3 flex max-w-[70%] items-center gap-2 rounded-full bg-[#1f1f24]/90 px-3 py-1.5 text-white shadow-lg backdrop-blur-md">
+        <span className="h-2 w-2 shrink-0 rounded-full bg-[#ffb95f]" />
+        <span className="truncate text-[10px] font-bold uppercase tracking-wider text-[#ffb95f]">100% female captains · checked by an admin</span>
+      </div>
+      <div className="absolute inset-x-3 bottom-3 rounded-2xl border border-white/10 bg-[#121217]/90 px-4 py-3 text-white shadow-lg backdrop-blur-xl">
         <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-white/70">Live map</p>
         <p className="mt-1 truncate text-sm font-semibold">{pickup?.label ?? "Pickup not set"}</p>
         <p className="truncate text-sm text-white/75">{drop ? drop.label : "Choose a destination"}</p>

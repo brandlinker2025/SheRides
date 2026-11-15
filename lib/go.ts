@@ -66,6 +66,8 @@ export type FareRate = {
   basePerKm: number;
   extraPerKm: number;
   waitingPerMinute: number;
+  /** Minutes of pickup wait included before the per-minute fee. */
+  waitingGraceMinutes: number;
   icon: string;
   pickupMin: number;
 };
@@ -80,7 +82,8 @@ export const FARE_RATES: FareRate[] = [
     basePerKm: 30,
     extraPerKm: 20,
     waitingPerMinute: 1.5,
-    icon: "electric_bike",
+    waitingGraceMinutes: 3,
+    icon: "electric_moped",
     pickupMin: 3,
   },
   {
@@ -92,6 +95,7 @@ export const FARE_RATES: FareRate[] = [
     basePerKm: 30,
     extraPerKm: 20,
     waitingPerMinute: 1.5,
+    waitingGraceMinutes: 3,
     icon: "sports_motorsports",
     pickupMin: 4,
   },
@@ -104,6 +108,7 @@ export const FARE_RATES: FareRate[] = [
     basePerKm: 30,
     extraPerKm: 20,
     waitingPerMinute: 1.5,
+    waitingGraceMinutes: 3,
     icon: "two_wheeler",
     pickupMin: 5,
   },
@@ -116,6 +121,7 @@ export const FARE_RATES: FareRate[] = [
     basePerKm: 30,
     extraPerKm: 15,
     waitingPerMinute: 1.5,
+    waitingGraceMinutes: 3,
     icon: "moped",
     pickupMin: 4,
   },
@@ -124,10 +130,38 @@ export const FARE_RATES: FareRate[] = [
 export const RIDE_SERVICES = FARE_RATES;
 
 export const SERVICE_LABEL: Record<GoService, string> = {
-  ev_bike: "EV Bikes",
-  racing_bike: "Racing Bikes",
-  moto_155: "Motorcycles (155cc)",
-  scooter_light: "Scooters & Light Bikes",
+  ev_bike: "SheRides EV Green",
+  racing_bike: "SheRides Racing Sport",
+  moto_155: "SheRides Moto 155cc",
+  scooter_light: "SheRides Scooty 113cc–125cc",
+};
+
+/** Marketing copy for the sanctuary fleet cards. Fares still come from FARE_RATES. */
+export const FLEET_COPY: Record<GoService, { title: string; badge: string; blurb: string; perk: string }> = {
+  ev_bike: {
+    title: "SheRides EV Green",
+    badge: "Eco EV",
+    blurb: "Electric Motorcycle & Scooter • Silent & zero-emission",
+    perk: "Clean helmet",
+  },
+  racing_bike: {
+    title: "SheRides Racing Sport",
+    badge: "Premium Speed",
+    blurb: "R15 / Gixxer SF • Premium high-performance tier",
+    perk: "Helmet",
+  },
+  moto_155: {
+    title: "SheRides Moto 155cc",
+    badge: "Standard 155cc",
+    blurb: "FZ-S / Pulsar NS160 • Standard base performance tier",
+    perk: "Helmet",
+  },
+  scooter_light: {
+    title: "SheRides Scooty 113cc–125cc",
+    badge: "Economical",
+    blurb: "Activa / RayZR / Pleasure+ • Most economical commuter tier",
+    perk: "Sanitized helmet",
+  },
 };
 
 const SERVICES = new Set<string>(FARE_RATES.map((rate) => rate.id));
@@ -175,6 +209,7 @@ type FareCatalogRow = {
   base_per_km: number | string;
   extra_per_km: number | string;
   waiting_per_minute: number | string;
+  waiting_grace_minutes?: number | string | null;
 };
 
 /** Turn go_list_fare_rates() rows into the same shape the booking screen calculates with. */
@@ -193,6 +228,7 @@ export function ratesFromCatalog(rows: FareCatalogRow[] | null | undefined): Far
       basePerKm: Number(row.base_per_km),
       extraPerKm: Number(row.extra_per_km),
       waitingPerMinute: Number(row.waiting_per_minute),
+      waitingGraceMinutes: row.waiting_grace_minutes == null ? local.waitingGraceMinutes : Number(row.waiting_grace_minutes),
     });
   }
   return merged.length ? merged : FARE_RATES;

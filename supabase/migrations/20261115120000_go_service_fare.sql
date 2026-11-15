@@ -1,6 +1,6 @@
 -- Stored vehicle rates. First 5 km are ৳30/km on every category (5 km = ৳150).
 -- Premium (EV, racing, 155cc) then ৳20/km. Economical (125cc/113cc scooters and light bikes) then ৳15/km.
--- Waiting is ৳1.50 per minute and is not added into the distance fare.
+-- Waiting is ৳1.50 per minute after a 3 minute grace window, and is not added into the distance fare.
 -- No car or CNG. The original go_request_ride signature stays so older clients still book.
 
 alter table public.go_rides
@@ -17,25 +17,27 @@ create table if not exists public.go_fare_rates (
   slab_km numeric not null check (slab_km > 0),
   base_per_km numeric not null check (base_per_km >= 0),
   extra_per_km numeric not null check (extra_per_km >= 0),
-  waiting_per_minute numeric not null check (waiting_per_minute >= 0)
+  waiting_per_minute numeric not null check (waiting_per_minute >= 0),
+  waiting_grace_minutes integer not null default 3 check (waiting_grace_minutes >= 0)
 );
 
 alter table public.go_fare_rates enable row level security;
 revoke all on table public.go_fare_rates from public, anon, authenticated;
 
-insert into public.go_fare_rates (service, label, tier, slab_km, base_per_km, extra_per_km, waiting_per_minute)
+insert into public.go_fare_rates (service, label, tier, slab_km, base_per_km, extra_per_km, waiting_per_minute, waiting_grace_minutes)
 values
-  ('ev_bike', 'EV Bikes', 'premium', 5, 30, 20, 1.50),
-  ('racing_bike', 'Racing Bikes', 'premium', 5, 30, 20, 1.50),
-  ('moto_155', 'Motorcycles (155cc)', 'premium', 5, 30, 20, 1.50),
-  ('scooter_light', 'Scooters & Light Bikes', 'economical', 5, 30, 15, 1.50)
+  ('ev_bike', 'EV Bikes', 'premium', 5, 30, 20, 1.50, 3),
+  ('racing_bike', 'Racing Bikes', 'premium', 5, 30, 20, 1.50, 3),
+  ('moto_155', 'Motorcycles (155cc)', 'premium', 5, 30, 20, 1.50, 3),
+  ('scooter_light', 'Scooters & Light Bikes', 'economical', 5, 30, 15, 1.50, 3)
 on conflict (service) do update set
   label = excluded.label,
   tier = excluded.tier,
   slab_km = excluded.slab_km,
   base_per_km = excluded.base_per_km,
   extra_per_km = excluded.extra_per_km,
-  waiting_per_minute = excluded.waiting_per_minute;
+  waiting_per_minute = excluded.waiting_per_minute,
+  waiting_grace_minutes = excluded.waiting_grace_minutes;
 
 create or replace function public.go_distance_fare(p_service text, p_distance_km numeric)
 returns integer
@@ -68,14 +70,15 @@ returns table (
   slab_km numeric,
   base_per_km numeric,
   extra_per_km numeric,
-  waiting_per_minute numeric
+  waiting_per_minute numeric,
+  waiting_grace_minutes integer
 )
 language sql
 stable
 security definer
 set search_path = ''
 as $$
-  select r.service, r.label, r.tier, r.slab_km, r.base_per_km, r.extra_per_km, r.waiting_per_minute
+  select r.service, r.label, r.tier, r.slab_km, r.base_per_km, r.extra_per_km, r.waiting_per_minute, r.waiting_grace_minutes
   from public.go_fare_rates r
   order by case r.service
     when 'ev_bike' then 1

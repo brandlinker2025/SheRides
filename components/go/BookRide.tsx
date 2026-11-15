@@ -2,11 +2,12 @@
 
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Icon } from "@/components/ui/Icon";
 import {
   FARE_RATES,
   SERVICE_LABEL,
+  FLEET_COPY,
   distanceFare,
   estimateFare,
   estimatePickupMinutes,
@@ -21,6 +22,7 @@ import {
   type GoService,
 } from "@/lib/go";
 import { createClient } from "@/lib/supabase/client";
+import { PickupSpot } from "./PickupSpot";
 import { PlaceInput } from "./PlaceInput";
 import { RideMap } from "./RideMap";
 
@@ -53,9 +55,9 @@ function FareBreakdown({
   const distance = km != null ? distanceFare(km, rate.id, [rate]) : null;
   const beyond = distance != null && km != null && km > rate.slabKm ? distance - rate.slabKm * rate.basePerKm : 0;
   return (
-    <section aria-label="Fare breakdown" className="rounded-[22px] border border-white/25 bg-surface-container-lowest/80 px-4 py-4 backdrop-blur-xl">
+    <section aria-label="Fare breakdown" className="rounded-[22px] border border-white/10 bg-[#1f1f24] px-4 py-4 text-[#e4e1e9] backdrop-blur-xl">
       <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-tertiary">{rate.label}</p>
-      <h2 className="mt-1 text-sm font-semibold">Distance fare</h2>
+      <h2 className="mt-1 text-sm font-semibold">Transparent Fare Calculation</h2>
       {distance == null || km == null ? (
         <p className="mt-1 text-3xl font-bold">—</p>
       ) : (
@@ -64,7 +66,7 @@ function FareBreakdown({
           <ul className="mt-2 flex flex-col gap-1 text-sm text-secondary">
             {km <= rate.slabKm ? (
               <li>
-                {km.toFixed(2)} km × ৳{rate.basePerKm} = {formatTaka(distance)}
+                Base transit rate ({km.toFixed(2)} km × ৳{rate.basePerKm.toFixed(2)}/km) = {formatTaka(distance)}
               </li>
             ) : (
               <>
@@ -81,12 +83,12 @@ function FareBreakdown({
       )}
       {hireFare != null ? <p className="mt-2 text-sm text-secondary">Hourly hire {formatTaka(hireFare)}. The distance fare above is the ride-now price.</p> : null}
       <div className="mt-4 border-t border-white/15 pt-3">
-        <h2 className="text-sm font-semibold">Potential waiting fee</h2>
+        <h2 className="text-sm font-semibold">Grace Pickup Window: {rate.waitingGraceMinutes} Free Minutes</h2>
         <p className="text-2xl font-bold">
           {formatTaka(rate.waitingPerMinute)} <span className="text-base font-semibold text-secondary">per minute</span>
         </p>
         <p className="mt-1 text-sm text-secondary">
-          Separate from the distance fare. Charged only if the ride is paused, delayed in traffic, or waiting for you at pickup.
+          Captain waits at the designated pickup spot. Post-grace charge: {formatTaka(rate.waitingPerMinute)} BDT/min. It stays separate from the distance fare and also covers a pause or traffic delay after the ride starts.
         </p>
       </div>
     </section>
@@ -110,7 +112,7 @@ export function BookRide({ pickup, drop, onPickup, onDrop, autoLocate = true }: 
   const [hours, setHours] = useState(2);
   const [payment, setPayment] = useState<"cash" | "bkash" | "nagad">("cash");
   const [note, setNote] = useState("");
-  const [optionsOpen, setOptionsOpen] = useState(false);
+  const onPickupNote = useCallback((value: string) => setNote(value), []);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -164,7 +166,7 @@ export function BookRide({ pickup, drop, onPickup, onDrop, autoLocate = true }: 
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="rounded-[28px] border border-white/30 bg-surface-container-lowest/75 p-4 shadow-[0_18px_50px_-28px_rgba(88,70,220,0.55)] backdrop-blur-xl sm:p-5">
+      <div className="rounded-[28px] border border-white/10 bg-[#1f1f24]/90 p-4 shadow-[0_8px_32px_-4px_rgba(0,0,0,0.6)] backdrop-blur-xl sm:p-5">
         <div className="relative flex flex-col gap-3 pl-5">
           <span className="absolute bottom-6 left-[7px] top-6 w-px bg-gradient-to-b from-cyan-400 to-violet-400" aria-hidden="true" />
           <PlaceInput
@@ -193,8 +195,8 @@ export function BookRide({ pickup, drop, onPickup, onDrop, autoLocate = true }: 
               onClick={() => setKind(item.id)}
               className={`h-9 flex-1 rounded-full border text-sm font-semibold ${
                 kind === item.id
-                  ? "border-transparent bg-accent-magenta text-white"
-                  : "border-surface-border bg-surface-container-lowest/80 text-secondary"
+                  ? "border-transparent bg-gradient-to-br from-[#A855F7] to-[#6366F1] text-white"
+                  : "border-white/10 bg-[#121217] text-white/70"
               }`}
             >
               {item.label}
@@ -229,88 +231,81 @@ export function BookRide({ pickup, drop, onPickup, onDrop, autoLocate = true }: 
         )}
       </div>
 
-      <div className="flex flex-col gap-2" role="listbox" aria-label="Choose a vehicle">
-        {rates.map((item, index) => {
-          const selected = service === item.id;
-          const fare = km != null && kind !== "hire" ? distanceFare(km, item.id, rates) : null;
-          const pickupMin = estimatePickupMinutes(item.id, km);
-          const tripMin = estimateTripMinutes(item.id, km);
-          return (
-            <motion.button
-              key={item.id}
-              type="button"
-              role="option"
-              aria-selected={selected}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.05, duration: 0.28 }}
-              whileTap={{ scale: 0.985 }}
-              onClick={() => setService(item.id)}
-              className={`flex items-center gap-3 rounded-[22px] border px-3 py-3 text-left backdrop-blur-xl transition-colors ${
-                selected
-                  ? "border-violet-400/80 bg-gradient-to-r from-violet-500/15 to-cyan-400/10 shadow-[0_12px_30px_-18px_rgba(108,92,231,0.9)]"
-                  : "border-white/25 bg-surface-container-lowest/70"
-              }`}
-            >
-              <span className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl text-white ${selected ? "bg-gradient-to-br from-[#8b7cf8] to-[#14b8c4]" : "bg-accent-magenta/80"}`}>
-                <Icon name={item.icon} filled />
-              </span>
-              <span className="min-w-0 flex-1">
-                <span className="block font-semibold">{item.label}</span>
-                <span className="block text-sm text-secondary">
-                  {item.detail}
-                  {" · "}
-                  {pickupMin} min away
-                  {tripMin != null ? ` · ${tripMin} min trip` : ""}
+      {pickup && <PickupSpot pickupLabel={pickup.label} onNote={onPickupNote} />}
+
+      <div>
+        <div className="mb-2 flex items-center justify-between gap-3">
+          <h2 className="text-lg font-bold text-[#e4e1e9]">Available Sanctuary Fleet</h2>
+          <span className="text-xs font-semibold text-[#ddb7ff]">Dhaka Traffic: Moderate</span>
+        </div>
+        <p className="mb-2 text-[11px] text-white/45">Traffic status is not live yet. This label is a placeholder, not a measured feed.</p>
+        <div className="flex flex-col gap-2.5" role="listbox" aria-label="Choose a vehicle">
+          {rates.map((item, index) => {
+            const copy = FLEET_COPY[item.id];
+            const selected = service === item.id;
+            const fare = km != null && kind !== "hire" ? distanceFare(km, item.id, rates) : null;
+            const pickupMin = estimatePickupMinutes(item.id, km);
+            const tripMin = estimateTripMinutes(item.id, km);
+            return (
+              <motion.button
+                key={item.id}
+                type="button"
+                role="option"
+                aria-selected={selected}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.05, duration: 0.28 }}
+                whileTap={{ scale: 0.985 }}
+                onClick={() => setService(item.id)}
+                className={`flex items-center gap-3 rounded-2xl px-3 py-3 text-left text-[#e4e1e9] ${
+                  selected ? "bg-[#2a292f] shadow-md ring-1 ring-[#A855F7]/40" : "bg-[#1f1f24]"
+                }`}
+              >
+                <span className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full ${selected ? "bg-[#ddb7ff]/15 text-[#ddb7ff]" : "bg-[#35343a] text-white/70"}`}>
+                  <Icon name={item.icon} />
                 </span>
-              </span>
-              <span className="text-right">
-                <span className="block text-lg font-bold">{fare != null ? formatTaka(fare) : "—"}</span>
-                <span className="block text-[11px] font-semibold uppercase tracking-wide text-tertiary">Distance</span>
-              </span>
-            </motion.button>
-          );
-        })}
+                <span className="min-w-0 flex-1">
+                  <span className="flex flex-wrap items-center gap-2">
+                    <span className="font-bold">{copy.title}</span>
+                    <span className="rounded-full bg-[#ffb95f]/20 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#ffb95f]">{copy.badge}</span>
+                  </span>
+                  <span className="mt-0.5 block text-xs text-white/70">
+                    {pickupMin} min away
+                    {tripMin != null ? ` · ${tripMin} min trip` : ""}
+                    {" · 1 seat · "}
+                    {copy.perk}
+                  </span>
+                  <span className="mt-0.5 block truncate text-[11px] text-white/55">{copy.blurb}</span>
+                </span>
+                <span className="shrink-0 text-right">
+                  <span className="block text-lg font-extrabold text-[#ddb7ff]">{fare != null ? formatTaka(fare) : "—"}</span>
+                  <span className="block text-[10px] uppercase tracking-wide text-white/45">Distance</span>
+                </span>
+              </motion.button>
+            );
+          })}
+        </div>
       </div>
 
-      <button
-        type="button"
-        onClick={() => setOptionsOpen((open) => !open)}
-        className="self-start text-sm font-semibold text-accent-magenta"
-        aria-expanded={optionsOpen}
-      >
-        {optionsOpen ? "Hide trip options" : "Payment and note"}
-      </button>
-      {optionsOpen && (
-        <div className="flex flex-col gap-3 rounded-[22px] border border-white/25 bg-surface-container-lowest/70 p-4 backdrop-blur-xl">
-          <div>
-            <span className="mb-1.5 block text-sm font-semibold text-secondary">Payment</span>
-            <div className="flex flex-wrap gap-2">
-              {(["cash", "bkash", "nagad"] as const).map((method) => (
-                <button
-                  key={method}
-                  type="button"
-                  onClick={() => setPayment(method)}
-                  className={`h-10 rounded-full border px-4 font-semibold capitalize ${
-                    payment === method ? "border-accent-magenta bg-accent-magenta/10 text-accent-magenta" : "border-surface-border"
-                  }`}
-                >
-                  {method === "bkash" ? "bKash" : method}
-                </button>
-              ))}
-            </div>
-            <p className="mt-1 text-sm text-tertiary">Pay your rider directly at the end of the ride.</p>
-          </div>
-          <textarea
-            value={note}
-            onChange={(event) => setNote(event.target.value)}
-            maxLength={300}
-            rows={2}
-            placeholder="Note for your rider (gate, scarf colour)"
-            className="w-full rounded-xl border border-surface-border bg-soft-off-white px-4 py-3 text-sm"
-          />
+      <div className="flex items-center justify-between gap-3 rounded-2xl bg-[#1f1f24] p-3 text-[#e4e1e9]">
+        <div className="min-w-0">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-white/45">Payment method</p>
+          <p className="truncate text-sm font-semibold">{payment === "bkash" ? "bKash" : payment === "nagad" ? "Nagad" : "Cash"}</p>
+          <p className="text-[11px] text-white/45">No saved wallet number. Pay the captain directly.</p>
         </div>
-      )}
+        <div className="flex shrink-0 rounded-full bg-[#2a292f] p-1">
+          {(["bkash", "nagad", "cash"] as const).map((method) => (
+            <button
+              key={method}
+              type="button"
+              onClick={() => setPayment(method)}
+              className={`rounded-full px-2.5 py-1 text-xs font-semibold ${payment === method ? "bg-[#b76dff] text-[#400071]" : "text-white/70"}`}
+            >
+              {method === "bkash" ? "bKash" : method === "nagad" ? "Nagad" : "Cash"}
+            </button>
+          ))}
+        </div>
+      </div>
 
       <FareBreakdown km={kind === "hire" ? null : km} rate={selectedRate} hireFare={hireFare} />
 
@@ -323,9 +318,9 @@ export function BookRide({ pickup, drop, onPickup, onDrop, autoLocate = true }: 
         type="button"
         disabled={busy || !canSubmit}
         onClick={() => void submit()}
-        className="h-14 rounded-full bg-accent-magenta text-lg font-semibold text-white"
+        className="h-14 rounded-full bg-gradient-to-br from-[#A855F7] to-[#6366F1] text-lg font-semibold text-white disabled:bg-[#1A1A24] disabled:text-white/30"
       >
-        {busy ? "Requesting…" : kind === "now" ? "Request Ride" : kind === "hire" ? "Request hire" : "Schedule ride"}
+        {busy ? "Requesting…" : kind === "now" ? "Request SheRides Ride" : kind === "hire" ? "Request hire" : "Schedule SheRides Ride"}
       </button>
       {!canSubmit && (
         <p className="text-center text-sm text-tertiary">
@@ -350,7 +345,7 @@ export function RideDeck({ children, below, showForm = true, initialPickup = nul
   const [drop, setDrop] = useState<GoPlace | null>(initialDrop);
 
   return (
-    <div className="flex w-full min-w-0 flex-col lg:grid lg:grid-cols-[minmax(300px,440px)_minmax(0,1fr)] lg:items-start">
+    <div className="flex w-full min-w-0 flex-col bg-[#131318] text-[#e4e1e9] lg:grid lg:grid-cols-[minmax(300px,440px)_minmax(0,1fr)] lg:items-start">
       <div className="order-1 h-[240px] min-w-0 p-3 sm:h-[280px] sm:p-4 lg:sticky lg:top-0 lg:order-2 lg:h-[calc(100dvh-72px)] lg:pl-0">
         <RideMap pickup={pickup} drop={drop} />
       </div>

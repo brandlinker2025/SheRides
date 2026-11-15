@@ -43,7 +43,20 @@ function ApplyCard({ role, app }: { role: GoRole; app: GoApplication | undefined
         </div>
         {status && <span className={`px-3 py-1 rounded-full font-label-lg text-xs capitalize ${STATUS_STYLE[status]}`}>{status}</span>}
       </div>
-      {status === "pending" && <p className="font-body-sm text-secondary">An admin is checking your documents. You will get a notification.</p>}
+      {status === "pending" && (
+        <div className="rounded-2xl border border-[#ffb95f]/25 bg-[#1a1a24] p-4 text-[#e4e1e9]">
+          <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#ffb95f]">Identity and safety verification</p>
+          <p className="mt-1 text-base font-bold">An admin is checking your documents.</p>
+          <p className="mt-2 text-sm text-white/70">
+            Your National ID and live selfie are with the admin. This card does not show a biometric score, a government match, or a document number.
+          </p>
+          <ul className="mt-3 flex flex-col gap-1 text-sm text-white/70">
+            <li>Smart NID — under review</li>
+            <li>Live selfie — submitted, not marked verified</li>
+          </ul>
+          <p className="mt-3 text-xs text-white/45">Usually approved within 15–30 minutes. You will get a notification.</p>
+        </div>
+      )}
       {(status === "rejected" || status === "suspended") && app?.admin_notes && (
         <p className="font-body-sm text-error">Admin note: {app.admin_notes}</p>
       )}
@@ -198,8 +211,9 @@ function GoHub() {
           <Icon name="two_wheeler" filled />
         </span>
         <div className="min-w-0">
-          <h1 className="text-2xl font-bold leading-tight">Where to?</h1>
-          <p className="text-sm text-secondary">Women riders only · every rider checked by an admin</p>
+          <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#ffb95f]">Sanctuary</p>
+          <h1 className="text-2xl font-bold leading-tight text-[#e4e1e9]">Book A Ride</h1>
+          <p className="text-sm text-white/70">Women riders only · an admin checks every captain</p>
         </div>
       </header>
       {notices}

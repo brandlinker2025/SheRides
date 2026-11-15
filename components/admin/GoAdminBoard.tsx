@@ -102,10 +102,10 @@ function RiderHistory({ rides }: { rides: AdminGoRide[] }) {
 function DocThumb({ doc }: { doc: { label: string; url: string } | undefined }) {
   if (!doc) return <span className="text-xs text-tertiary">Missing</span>;
   return (
-    <a href={doc.url} target="_blank" rel="noreferrer" className="block w-16">
+    <a href={doc.url} target="_blank" rel="noreferrer" className="block">
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={doc.url} alt={doc.label} className="h-16 w-16 rounded-lg object-cover border border-surface-border bg-black/5" />
-      <span className="mt-1 block text-[10px] font-semibold uppercase tracking-wide text-tertiary">{doc.label}</span>
+      <img src={doc.url} alt={doc.label} className="aspect-[4/5] w-full rounded-xl object-cover border border-white/10 bg-black/40" />
+      <span className="mt-1 block text-[10px] font-semibold uppercase tracking-wide text-white/50">{doc.label}</span>
     </a>
   );
 }
@@ -135,72 +135,73 @@ function VerificationRow({ app, rides }: { app: AdminGoApplication; rides: Admin
   const extraDocs = app.docs.filter((doc) => doc.label !== "Live selfie" && doc.label !== "NID front");
 
   return (
-    <tr className="border-t border-surface-border align-top">
-      <td className="p-3">
-        <div className="flex gap-2">
+    <article className="flex flex-col gap-4 rounded-2xl border border-white/10 bg-[#1f1f24] p-4 text-[#e4e1e9]">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h3 className="text-lg font-bold">{app.full_name}</h3>
+          <p className="text-sm text-white/60">{app.profile?.full_name ?? "No profile name"} · {new Date(app.created_at).toLocaleString("en-BD", { timeZone: "Asia/Dhaka" })}</p>
+        </div>
+        <div className="text-right">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-white/45">Case</p>
+          <p className="font-mono text-sm text-[#ddb7ff]">#{app.id.slice(0, 8)}</p>
+        </div>
+      </div>
+      <p className="text-xs text-white/55">Compare the live selfie with the NID yourself. This card does not score liveness, gender, or a government match.</p>
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <p className="mb-1 text-[10px] font-bold uppercase tracking-wider text-[#ffb95f]">Live selfie</p>
           <DocThumb doc={selfie} />
+        </div>
+        <div>
+          <p className="mb-1 text-[10px] font-bold uppercase tracking-wider text-[#ffb95f]">NID</p>
           <DocThumb doc={nidFront} />
         </div>
-      </td>
-      <td className="p-3 min-w-[160px]">
-        <p className="font-label-lg">{app.full_name}</p>
-        <p className="font-body-sm text-tertiary">{app.profile?.full_name ?? "No profile name"}</p>
-        <p className="font-body-sm text-tertiary">{new Date(app.created_at).toLocaleDateString("en-BD")}</p>
-      </td>
-      <td className="p-3">
-        <button type="button" onClick={() => setShowNid((value) => !value)} className="text-left">
-          <span className="block text-[10px] font-bold uppercase tracking-wide text-tertiary">NID · tap to {showNid ? "hide" : "show"}</span>
-          <span className="font-body-sm break-all">{showNid ? app.nid_number : maskNid(app.nid_number)}</span>
-        </button>
-        {app.role === "rider" && (
-          <p className="mt-2 font-body-sm text-secondary">
-            {app.bike_model ?? "Bike not given"} · {app.bike_plate ?? "no plate"}
-          </p>
-        )}
-      </td>
-      <td className="p-3">
+      </div>
+      <button type="button" onClick={() => setShowNid((value) => !value)} className="text-left">
+        <span className="block text-[10px] font-bold uppercase tracking-wide text-white/45">NID number · tap to {showNid ? "hide" : "show"}</span>
+        <span className="font-mono text-sm">{showNid ? app.nid_number : maskNid(app.nid_number)}</span>
+      </button>
+      {app.role === "rider" && (
+        <p className="text-sm text-white/70">{app.bike_model ?? "Bike not given"} · {app.bike_plate ?? "no plate"}</p>
+      )}
+      {app.emergency_contact_name && (
+        <p className="text-sm text-white/70">Emergency contact on file: {app.emergency_contact_name}. The phone stays hidden on this card.</p>
+      )}
+      <div className="flex flex-wrap items-center gap-2">
         <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold capitalize ${CHIP[app.status]}`}>{app.status}</span>
-        <div className="mt-2 flex flex-col gap-1">
-          {extraDocs.map((doc) => (
-            <a key={doc.label} href={doc.url} target="_blank" rel="noreferrer" className="text-sm font-semibold text-accent-magenta">
-              {doc.label}
-            </a>
-          ))}
-        </div>
-      </td>
-      <td className="p-3 min-w-[220px]">
-        <input
-          value={notes}
-          onChange={(event) => setNotes(event.target.value)}
-          maxLength={500}
-          placeholder="Note (required to reject)"
-          className="mb-2 w-full rounded-lg border border-surface-border bg-soft-off-white px-3 py-2 text-sm"
-        />
-        {error && <p className="mb-2 text-sm text-error">{error}</p>}
-        <div className="flex flex-wrap gap-2">
-          {app.status !== "approved" && (
-            <button type="button" disabled={busy} onClick={() => void act("approved")} className="h-9 rounded-lg bg-accent-magenta px-3 text-sm font-semibold text-white">
-              Approve
-            </button>
-          )}
-          {app.status === "pending" && (
-            <button type="button" disabled={busy} onClick={() => void act("rejected")} className="h-9 rounded-lg border border-error px-3 text-sm font-semibold text-error">
-              Reject
-            </button>
-          )}
-          {app.status === "approved" && (
-            <button type="button" disabled={busy} onClick={() => void act("suspended")} className="h-9 rounded-lg border border-error px-3 text-sm font-semibold text-error">
-              Suspend
-            </button>
-          )}
-        </div>
-        {app.role === "rider" && app.status !== "pending" && (
-          <div className="mt-3">
-            <RiderHistory rides={rides} />
-          </div>
+        {extraDocs.map((doc) => (
+          <a key={doc.label} href={doc.url} target="_blank" rel="noreferrer" className="text-sm font-semibold text-[#ddb7ff]">
+            {doc.label}
+          </a>
+        ))}
+      </div>
+      <input
+        value={notes}
+        onChange={(event) => setNotes(event.target.value)}
+        maxLength={500}
+        placeholder="Note (required to reject)"
+        className="w-full rounded-xl border border-white/10 bg-[#0e0e13] px-3 py-2 text-sm text-[#e4e1e9]"
+      />
+      {error && <p className="text-sm text-[#ffb4ab]">{error}</p>}
+      <div className="flex flex-wrap gap-2">
+        {app.status !== "approved" && (
+          <button type="button" disabled={busy} onClick={() => void act("approved")} className="h-11 rounded-full bg-gradient-to-br from-[#A855F7] to-[#6366F1] px-4 text-sm font-semibold text-white">
+            Approve & Activate {app.role === "rider" ? "Rider" : "Passenger"}
+          </button>
         )}
-      </td>
-    </tr>
+        {app.status === "pending" && (
+          <button type="button" disabled={busy} onClick={() => void act("rejected")} className="h-11 rounded-full border border-[#ffb4ab] px-4 text-sm font-semibold text-[#ffb4ab]">
+            Flag Discrepancy / Reject
+          </button>
+        )}
+        {app.status === "approved" && (
+          <button type="button" disabled={busy} onClick={() => void act("suspended")} className="h-11 rounded-full border border-[#ffb4ab] px-4 text-sm font-semibold text-[#ffb4ab]">
+            Suspend
+          </button>
+        )}
+      </div>
+      {app.role === "rider" && app.status !== "pending" && <RiderHistory rides={rides} />}
+    </article>
   );
 }
 
@@ -294,25 +295,19 @@ export function GoAdminBoard({ applications, rides }: { applications: AdminGoApp
         ))}
       </nav>
 
-      <div className="max-w-full overflow-x-auto rounded-[20px] border border-surface-border bg-surface-container-lowest">
-        <table className="w-full min-w-[760px] text-left">
-          <thead className="bg-soft-off-white text-[11px] font-bold uppercase tracking-wide text-tertiary">
-            <tr>
-              <th className="p-3 font-semibold">Selfie and NID</th>
-              <th className="p-3 font-semibold">Applicant</th>
-              <th className="p-3 font-semibold">Identity</th>
-              <th className="p-3 font-semibold">Status</th>
-              <th className="p-3 font-semibold">Review</th>
-            </tr>
-          </thead>
-          <tbody>
-            {shown.map((app) => (
-              <VerificationRow key={app.id} app={app} rides={ridesByRider.get(app.user_id) ?? []} />
-            ))}
-          </tbody>
-        </table>
-        {!shown.length && <p className="p-8 text-center text-sm text-secondary">No {role === "rider" ? "rider" : "passenger"} applications in this list.</p>}
-      </div>
+      <section className="flex flex-col gap-3">
+        <div>
+          <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#ffb95f]">High assurance protocol</p>
+          <h2 className="text-xl font-bold text-[#e4e1e9]">Trust & Safety Ops Center</h2>
+          <p className="text-sm text-white/60">NID and selfie review. Counts below are the applications loaded for this admin, not a live city dashboard.</p>
+        </div>
+        <div className="flex flex-col gap-3">
+          {shown.map((app) => (
+            <VerificationRow key={app.id} app={app} rides={ridesByRider.get(app.user_id) ?? []} />
+          ))}
+        </div>
+        {!shown.length && <p className="rounded-2xl bg-[#1f1f24] p-8 text-center text-sm text-white/60">No {role === "rider" ? "rider" : "passenger"} applications in this list.</p>}
+      </section>
 
       <section className="flex flex-col gap-3">
         <h2 className="text-lg font-bold">Live rides</h2>

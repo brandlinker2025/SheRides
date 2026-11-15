@@ -74,7 +74,7 @@ export default async function AdminGoPage() {
   return (
     <div>
       <BackLink href="/admin" label="Dashboard" className="mb-3" />
-      <h1 className="font-headline-xl text-headline-xl mb-2">Rider verification</h1>
+      <h1 className="font-headline-xl text-headline-xl mb-2">Trust & Safety Ops Center</h1>
       <p className="font-body-lg text-secondary mb-8">
         Compare each live selfie with the NID photo, then approve, reject, or suspend. Approve a rider only when the face matches and the applicant is a woman.
       </p>

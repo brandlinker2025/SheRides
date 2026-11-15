@@ -20,6 +20,7 @@ import {
   type GoRide,
 } from "@/lib/go";
 import { createClient } from "@/lib/supabase/client";
+import { LiveRideBoard, RideRating } from "@/components/go/RideFollowup";
 import { RideChat } from "@/components/go/RideChat";
 import { useDriverLocationSender } from "@/hooks/useDriverLocationSender";
 import { useRideTracking } from "@/hooks/useRideTracking";
@@ -38,8 +39,6 @@ export default function GoRidePage() {
   const [passenger, setPassenger] = useState<Person | null>(null);
   const [secret, setSecret] = useState<{ pin: string; share_token: string } | null>(null);
   const [pin, setPin] = useState("");
-  const [stars, setStars] = useState(0);
-  const [feedback, setFeedback] = useState("");
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -276,6 +275,30 @@ export default function GoRidePage() {
         />
       )}
 
+      {ride.status === "in_progress" && (
+        <LiveRideBoard
+          pickup={ride.pickup_text}
+          drop={ride.drop_text}
+          fleet={serviceLabel(ride.service)}
+          captain={
+            rider
+              ? {
+                  name: rider.full_name,
+                  bike: rider.bike_model,
+                  plate: rider.bike_plate,
+                  rating: rider.rating != null ? `★ ${rider.rating}` : "New captain — rating not earned yet",
+                  rides: `${rider.completed_rides} completed rides on record`,
+                }
+              : null
+          }
+          positionLabel={
+            ride.rider_lat != null && ride.rider_lng != null
+              ? `Last shared position ${ride.rider_lat.toFixed(5)}, ${ride.rider_lng.toFixed(5)}${ride.rider_seen_at ? ` · ${formatWhen(ride.rider_seen_at)}` : ""}`
+              : null
+          }
+        />
+      )}
+
       {active && (
         <div className="grid grid-cols-2 gap-3">
           {isPassenger && (
@@ -312,20 +335,11 @@ export default function GoRidePage() {
       )}
 
       {ride.status === "completed" && (isPassenger || isRider) && !alreadyRated && (
-        <div className="card-surface p-5 flex flex-col gap-3">
-          <p className="font-label-lg">Rate your {isPassenger ? "rider" : "passenger"}</p>
-          <div className="flex gap-2">
-            {[1, 2, 3, 4, 5].map((n) => (
-              <button key={n} type="button" onClick={() => setStars(n)} aria-label={`${n} stars`}>
-                <Icon name="star" filled={n <= stars} className={`text-[36px] ${n <= stars ? "text-amber-400" : "text-surface-variant"}`} />
-              </button>
-            ))}
-          </div>
-          <textarea value={feedback} onChange={(e) => setFeedback(e.target.value)} maxLength={500} rows={2} placeholder={stars && stars <= 2 ? "What went wrong? Admins will review this." : "Anything to add? (optional)"} className="w-full bg-soft-off-white border border-surface-border rounded-xl px-4 py-3 font-body-sm" />
-          <button type="button" disabled={busy || !stars} onClick={() => void call("go_rate_ride", { p_ride_id: ride.id, p_stars: stars, p_feedback: feedback }, "Thank you for rating!")} className="h-12 rounded-full bg-accent-magenta text-white font-label-lg">
-            Submit rating
-          </button>
-        </div>
+        <RideRating
+          personName={(isPassenger ? rider?.full_name : passenger?.full_name) ?? (isPassenger ? "your captain" : "your passenger")}
+          busy={busy}
+          onSubmit={(stars, feedback) => void call("go_rate_ride", { p_ride_id: ride.id, p_stars: stars, p_feedback: feedback }, "Thank you for rating!")}
+        />
       )}
 
       {(ride.status === "requested" || ride.status === "accepted") && (isPassenger || isRider) && (
