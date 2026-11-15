@@ -4,9 +4,15 @@ export default function EntryPage() {
   return (
     <main className="flex min-h-dvh flex-col items-center justify-center bg-black px-6 text-white">
       <div className="w-full max-w-md text-center">
-        {/* Brand logo */}
-        <div className="mb-10 flex justify-center">
-          <img src="/sherides-logo.svg" alt="SheRides" className="h-28 w-auto" />
+        {/* Logo matching the illustration font */}
+        <div className="mb-8 flex flex-col items-center">
+          <div className="mb-2 text-6xl">🛵</div>
+          <div
+            className="text-6xl font-black tracking-tight text-[#6b21d4] sm:text-7xl"
+            style={{ fontFamily: "'Nunito', 'Poppins', system-ui, sans-serif", fontWeight: 900 }}
+          >
+            SheRides
+          </div>
         </div>
 
         <h1 className="mb-2 text-2xl font-bold text-white/90">
