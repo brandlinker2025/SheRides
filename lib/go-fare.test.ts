@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { FARE_RATES, distanceFare, estimateServiceFare, formatTaka, ratesFromCatalog, waitingFee } from "./go";
+import { FARE_RATES, distanceFare, estimateServiceFare, formatTaka, goErrorMessage, legacyDistanceFare, ratesFromCatalog, rideNoteWithPreference, waitingFee } from "./go";
 
 test("5 km is 150 BDT on every category", () => {
   for (const rate of FARE_RATES) {
@@ -26,6 +26,25 @@ test("catalog rows override the local mirror and drop unknown vehicles", () => {
   ]);
   assert.deepEqual(rates.map((rate) => rate.id), ["scooter_light"]);
   assert.equal(distanceFare(8, "scooter_light", rates), 195);
+});
+
+test("legacy server fare matches the installed go_fare formula", () => {
+  assert.equal(legacyDistanceFare(0), 70);
+  assert.equal(legacyDistanceFare(1), 70);
+  assert.equal(legacyDistanceFare(5), 100);
+  assert.equal(legacyDistanceFare(10), 170);
+});
+
+test("vehicle preference does not replace a long pickup note", () => {
+  assert.equal(rideNoteWithPreference("Vehicle: EV", ""), "Vehicle: EV");
+  assert.equal(rideNoteWithPreference("Vehicle: EV", "Gate 2"), "Vehicle: EV · Gate 2");
+  const longNote = "A".repeat(300);
+  assert.equal(rideNoteWithPreference("Vehicle: EV", longNote), longNote);
+});
+
+test("business ride errors stay readable", () => {
+  assert.equal(goErrorMessage({ message: "You already have an active ride." }), "You already have an active ride.");
+  assert.match(goErrorMessage({ message: "Could not find the function public.go_request_ride" }), /still being set up/);
 });
 
 test("waiting is 1.50 per minute and stays off the distance fare", () => {

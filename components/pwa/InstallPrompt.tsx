@@ -1,5 +1,6 @@
 "use client";
 
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Icon } from "../ui/Icon";
 
@@ -12,9 +13,17 @@ const DISMISS_KEY = "sherides-install-dismissed-at";
 const DISMISS_DAYS = 7;
 
 export function InstallPrompt() {
+  const pathname = usePathname();
   const [event, setEvent] = useState<BeforeInstallPromptEvent | null>(null);
   const [hidden, setHidden] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const coversAForm =
+    pathname === "/login" ||
+    pathname === "/signup" ||
+    pathname === "/admin-login" ||
+    pathname.startsWith("/partner") ||
+    pathname.startsWith("/auth");
+  const aboveAppNav = pathname.startsWith("/go") || pathname.startsWith("/safety") || pathname.startsWith("/profile") || pathname.startsWith("/notifications");
 
   useEffect(() => {
     const mql = window.matchMedia("(max-width: 1023px)");
@@ -54,10 +63,10 @@ export function InstallPrompt() {
     }
   };
 
-  if (!event || hidden || !isMobile) return null;
+  if (!event || hidden || !isMobile || coversAForm) return null;
 
   return (
-    <div className="panda-install-prompt fixed bottom-24 lg:bottom-6 left-4 right-4 lg:left-auto lg:right-6 z-[70] max-w-sm bg-deep-charcoal text-on-primary rounded-xl shadow-premium-hover p-4 flex items-center gap-3 animate-fade-in-up">
+    <div className={`panda-install-prompt fixed left-4 right-4 z-[70] max-w-sm rounded-xl bg-deep-charcoal p-4 text-on-primary shadow-premium-hover flex items-center gap-3 animate-fade-in-up ${aboveAppNav ? "bottom-24" : "bottom-4"}`}>
       <div className="w-10 h-10 rounded-full bg-accent-magenta flex items-center justify-center shrink-0">
         <Icon name="install_mobile" />
       </div>

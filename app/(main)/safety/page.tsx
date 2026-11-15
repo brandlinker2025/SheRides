@@ -117,7 +117,7 @@ export default function SafetyPage() {
         <BackLink href="/go" label="Book a ride" className="mb-4" />
         <h1 className="font-headline-xl text-headline-xl text-on-background mb-2">Safety Center</h1>
         <p className="font-body-lg text-secondary max-w-2xl">
-          Your well-being is our priority. Access immediate assistance, share your trip, and report anything that feels unsafe.
+          Your well-being is our priority. Send an SOS to SheRides admins. Sharing a trip, trusted contacts, and reports are still being built.
         </p>
       </div>
 
@@ -159,26 +159,23 @@ export default function SafetyPage() {
         </div>
 
         {tiles.map((tile) => (
-          <button
+          <article
             key={tile.title}
-            type="button"
-            onClick={() => ping(`${tile.title} opened.`)}
-            className="bg-surface-container-lowest text-on-background rounded-xl p-6 flex flex-col items-start gap-4 shadow-premium border border-surface-border hover:-translate-y-1 hover:shadow-premium-hover transition-all duration-300 group text-left active:scale-[0.99]"
+            className="bg-surface-container-lowest text-on-background rounded-xl p-6 flex flex-col items-start gap-4 shadow-premium border border-surface-border"
           >
             <div
               className={`w-12 h-12 rounded-full bg-soft-off-white flex items-center justify-center ${
-                tile.danger
-                  ? "text-secondary group-hover:text-error"
-                  : "text-accent-magenta group-hover:bg-accent-magenta group-hover:text-on-primary"
-              } transition-colors`}
+                tile.danger ? "text-secondary" : "text-accent-magenta"
+              }`}
             >
               <Icon name={tile.icon} filled />
             </div>
             <div>
+              <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.14em] text-[#ffb95f]">Coming soon</p>
               <h3 className="font-label-lg text-label-lg mb-1">{tile.title}</h3>
               <p className="font-body-sm text-secondary">{tile.body}</p>
             </div>
-          </button>
+          </article>
         ))}
       </div>
 

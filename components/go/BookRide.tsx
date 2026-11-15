@@ -14,7 +14,9 @@ import {
   estimateTripMinutes,
   formatTaka,
   goErrorMessage,
+  legacyDistanceFare,
   ratesFromCatalog,
+  rideNoteWithPreference,
   roadKm,
   type FareRate,
   type GoPlace,
@@ -47,20 +49,24 @@ function FareBreakdown({
   km,
   rate,
   hireFare,
+  hours,
+  catalogLive,
 }: {
   km: number | null;
   rate: FareRate;
   hireFare: number | null;
+  hours: number;
+  catalogLive: boolean;
 }) {
-  const distance = km != null ? distanceFare(km, rate.id, [rate]) : null;
+  const distance = km != null ? (catalogLive ? distanceFare(km, rate.id, [rate]) : legacyDistanceFare(km)) : null;
   const beyond = distance != null && km != null && km > rate.slabKm ? distance - rate.slabKm * rate.basePerKm : 0;
   return (
     <section aria-label="Fare breakdown" className="rounded-3xl border border-white/10 bg-[#1f1f24]/95 px-4 py-4 text-[#e4e1e9] backdrop-blur-xl">
-      <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-[#ffb95f]">{rate.label}</p>
+      <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-[#ffb95f]">{catalogLive ? rate.label : "Standard rate"}</p>
       <h2 className="mt-1 text-sm font-semibold">Transparent Fare / স্বচ্ছ ভাড়া</h2>
       {distance == null || km == null ? (
         <p className="mt-1 text-3xl font-bold">—</p>
-      ) : (
+      ) : catalogLive ? (
         <>
           <p className="mt-1 text-3xl font-bold text-[#ddb7ff]">{formatTaka(distance)}</p>
           <ul className="mt-2 flex flex-col gap-1 text-sm text-white/70">
@@ -80,8 +86,19 @@ function FareBreakdown({
             )}
           </ul>
         </>
+      ) : (
+        <>
+          <p className="mt-1 text-3xl font-bold text-[#ddb7ff]">{formatTaka(distance)}</p>
+          <p className="mt-2 text-sm text-white/70">
+            {km.toFixed(2)} km · ৳30 + ৳14/km · minimum ৳70
+          </p>
+        </>
       )}
-      {hireFare != null ? <p className="mt-2 text-sm text-white/60">Hire {formatTaka(hireFare)} / hour</p> : null}
+      {hireFare != null ? (
+        <p className="mt-2 text-sm text-white/60">
+          Hire total {formatTaka(hireFare)} ({hours} h × ৳250)
+        </p>
+      ) : null}
     </section>
   );
 }
@@ -99,6 +116,7 @@ export function BookRide({ pickup, drop, onPickup, onDrop, autoLocate = true }: 
   const [kind, setKind] = useState<GoRideKind>("now");
   const [service, setService] = useState<GoService>("ev_bike");
   const [rates, setRates] = useState<FareRate[]>(FARE_RATES);
+  const [fareSource, setFareSource] = useState<"unknown" | "catalog" | "legacy">("unknown");
   const [when, setWhen] = useState("");
   const [hours, setHours] = useState(2);
   const [payment, setPayment] = useState<"cash" | "bkash" | "nagad">("cash");
@@ -110,13 +128,26 @@ export function BookRide({ pickup, drop, onPickup, onDrop, autoLocate = true }: 
   const km = useMemo(() => (pickup && drop ? roadKm(pickup, drop) : null), [pickup, drop]);
   const selectedRate = rates.find((rate) => rate.id === service) ?? rates[0];
   const hireFare = kind === "hire" ? estimateFare("hire", null, hours, service, rates) : null;
+  const catalogLive = fareSource === "catalog";
 
   useEffect(() => {
     const supabase = createClient();
-    if (!supabase) return;
+    if (!supabase) {
+      setFareSource("legacy");
+      return;
+    }
     void supabase.rpc("go_list_fare_rates").then(({ data, error: loadError }) => {
-      if (loadError || !data) return;
-      setRates(ratesFromCatalog(data as Parameters<typeof ratesFromCatalog>[0]));
+      if (loadError || !data) {
+        setFareSource("legacy");
+        return;
+      }
+      const next = ratesFromCatalog(data as Parameters<typeof ratesFromCatalog>[0]);
+      if (!next.length) {
+        setFareSource("legacy");
+        return;
+      }
+      setRates(next);
+      setFareSource("catalog");
     });
   }, []);
   const canSubmit = Boolean(pickup) && (kind === "hire" || Boolean(drop)) && (kind !== "scheduled" || Boolean(when));
@@ -129,6 +160,7 @@ export function BookRide({ pickup, drop, onPickup, onDrop, autoLocate = true }: 
     const supabase = createClient();
     if (!supabase) return setError("Ride booking is not connected yet.");
     setBusy(true);
+    const preference = `Vehicle: ${SERVICE_LABEL[service]}`;
     const payload = {
       p_kind: kind,
       p_pickup_text: pickup.label,
@@ -142,10 +174,14 @@ export function BookRide({ pickup, drop, onPickup, onDrop, autoLocate = true }: 
       p_payment: payment,
       p_note: note.trim() || null,
     };
-    let result = await supabase.rpc("go_request_ride", { ...payload, p_service: service });
+    const legacyPayload = { ...payload, p_note: rideNoteWithPreference(preference, note) };
+    let result =
+      fareSource === "legacy"
+        ? await supabase.rpc("go_request_ride", legacyPayload)
+        : await supabase.rpc("go_request_ride", { ...payload, p_service: service });
     if (result.error && serviceRpcMissing(result.error.message)) {
-      const tagged = [SERVICE_LABEL[service], note.trim()].filter(Boolean).join(" · ").slice(0, 300);
-      result = await supabase.rpc("go_request_ride", { ...payload, p_note: tagged || null });
+      setFareSource("legacy");
+      result = await supabase.rpc("go_request_ride", legacyPayload);
     }
     setBusy(false);
     if (result.error || !result.data) {
@@ -229,11 +265,21 @@ export function BookRide({ pickup, drop, onPickup, onDrop, autoLocate = true }: 
           <h2 className="text-lg font-bold text-[#e4e1e9]">Sanctuary Fleet / ফ্লিট</h2>
           <span className="text-xs font-semibold text-[#ffb95f]">100% Female Captains</span>
         </div>
+        {fareSource !== "catalog" && (
+          <p className="mb-2 text-xs text-white/55">
+            Bike choice is saved as a preference. The charged fare is the standard rate until fleet pricing is turned on.
+          </p>
+        )}
         <div className="flex flex-col gap-2.5" role="listbox" aria-label="Choose a vehicle">
           {rates.map((item, index) => {
             const copy = FLEET_COPY[item.id];
             const selected = service === item.id;
-            const fare = km != null && kind !== "hire" ? distanceFare(km, item.id, rates) : null;
+            const fare =
+              km != null && kind !== "hire"
+                ? catalogLive
+                  ? distanceFare(km, item.id, rates)
+                  : legacyDistanceFare(km)
+                : null;
             const pickupMin = estimatePickupMinutes(item.id, km);
             const tripMin = estimateTripMinutes(item.id, km);
             return (
@@ -294,7 +340,7 @@ export function BookRide({ pickup, drop, onPickup, onDrop, autoLocate = true }: 
         </div>
       </div>
 
-      <FareBreakdown km={kind === "hire" ? null : km} rate={selectedRate} hireFare={hireFare} />
+      <FareBreakdown km={kind === "hire" ? null : km} rate={selectedRate} hireFare={hireFare} hours={hours} catalogLive={catalogLive} />
 
       {error && (
         <p className="text-sm text-red-400" role="alert">
@@ -305,7 +351,7 @@ export function BookRide({ pickup, drop, onPickup, onDrop, autoLocate = true }: 
         type="button"
         disabled={busy || !canSubmit}
         onClick={() => void submit()}
-        className="h-14 rounded-full bg-gradient-to-br from-[#ddb7ff] to-[#a855f7] text-lg font-bold text-[#1a1a24] disabled:bg-[#1A1A24] disabled:text-white/30"
+        className="h-14 rounded-full bg-gradient-to-br from-[#ddb7ff] to-[#a855f7] text-lg font-bold text-[#1a1a24] disabled:opacity-40"
       >
         {busy ? "Requesting…" : kind === "now" ? "Request SheRides" : kind === "hire" ? "Request Hire" : "Schedule Ride"}
       </button>
@@ -331,11 +377,11 @@ export function RideDeck({ children, below, showForm = true, initialPickup = nul
   const [drop, setDrop] = useState<GoPlace | null>(initialDrop);
 
   return (
-    <div className="relative flex h-[100dvh] w-full flex-col bg-[#131318] text-[#e4e1e9] lg:grid lg:h-auto lg:grid-cols-[minmax(320px,420px)_1fr]">
-      <div className="absolute inset-0 z-0 lg:relative lg:order-2 lg:h-[calc(100dvh-72px)]">
+    <div className="relative flex h-[calc(100dvh-72px-6rem)] w-full flex-col bg-[#131318] text-[#e4e1e9] lg:grid lg:h-[calc(100dvh-72px)] lg:grid-cols-[minmax(320px,420px)_1fr]">
+      <div className="absolute inset-0 z-0 lg:relative lg:order-2 lg:h-full">
         <RideMap pickup={pickup} drop={drop} />
       </div>
-      <div className="relative z-10 mt-auto max-h-[72dvh] overflow-y-auto rounded-t-3xl border border-white/10 bg-[#131318]/95 p-4 pb-28 shadow-2xl backdrop-blur-xl lg:order-1 lg:mt-0 lg:max-h-none lg:rounded-none lg:border-0 lg:bg-transparent lg:p-6 lg:pb-6 lg:shadow-none">
+      <div className="relative z-10 mt-auto max-h-[78%] overflow-y-auto rounded-t-3xl border border-white/10 bg-[#131318]/95 p-4 pb-4 shadow-2xl backdrop-blur-xl lg:order-1 lg:mt-0 lg:max-h-none lg:overflow-y-auto lg:rounded-none lg:border-0 lg:bg-transparent lg:p-6 lg:pb-6 lg:shadow-none">
         {children}
         {showForm ? (
           <BookRide pickup={pickup} drop={drop} onPickup={setPickup} onDrop={setDrop} autoLocate={!initialPickup} />

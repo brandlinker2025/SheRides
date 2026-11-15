@@ -175,6 +175,27 @@ export function serviceLabel(service: string | null | undefined) {
   return SERVICE_LABEL[service as GoService];
 }
 
+/**
+ * Fare charged by the original `go_fare()` still installed in production
+ * (supabase/migrations/20261108090000_sherides_go.sql): ৳70 minimum, else ৳30 + ৳14/km.
+ * The booking screen uses this until `go_list_fare_rates()` exists.
+ */
+export function legacyDistanceFare(distanceKm: number) {
+  const km = Math.max(0, distanceKm);
+  return Math.max(70, Math.round(30 + 14 * km));
+}
+
+/** Keep the rider's own note when a vehicle preference is attached. Never cut the note to make room for the tag. */
+export function rideNoteWithPreference(preference: string, userNote: string, max = 300) {
+  const note = userNote.trim();
+  const tag = preference.trim();
+  if (!tag) return note.slice(0, max) || null;
+  if (!note) return tag.slice(0, max);
+  const joiner = " · ";
+  if (tag.length + joiner.length + note.length <= max) return `${tag}${joiner}${note}`;
+  return note.slice(0, max);
+}
+
 /** Distance fare from a stored rate. 5 km is ৳150. Premium extra is ৳20/km, economical is ৳15/km. */
 export function distanceFare(distanceKm: number, service: GoService | string = "ev_bike", rates: FareRate[] = FARE_RATES) {
   const rate = rateFor(service, rates);
@@ -341,7 +362,7 @@ export async function uploadGoDocument(supabase: SupabaseClient, userId: string,
 /** Turn database errors into one readable line. */
 export function goErrorMessage(error: unknown) {
   const message = error && typeof error === "object" && "message" in error ? String((error as { message: string }).message) : "";
-  if (/go_applications|go_rides|go_request_ride|go_submit_application|function .* does not exist|relation .* does not exist/i.test(message)) {
+  if (/could not find the function|schema cache|does not exist|PGRST202|PGRST205/i.test(message)) {
     return "Ride booking is still being set up. Please try again later.";
   }
   return message || "Something went wrong. Please try again.";

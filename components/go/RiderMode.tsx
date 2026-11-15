@@ -30,19 +30,30 @@ export function RiderMode() {
   const [mine, setMine] = useState<RideWithPassenger[]>([]);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const [boardError, setBoardError] = useState<string | null>(null);
   const heartbeat = useRef<number | null>(null);
 
   const load = useCallback(async () => {
     const supabase = createClient();
-    if (!supabase || !user) return;
-    const [{ data: openRows }, { data: mineRows }, { data: state }] = await Promise.all([
+    if (!user) return;
+    if (!supabase) {
+      setBoardError("Rider mode is not connected yet.");
+      return;
+    }
+    const [openResult, mineResult, stateResult] = await Promise.all([
       supabase.from("go_rides").select(SELECT).eq("status", "requested").is("rider_id", null).order("created_at", { ascending: false }).limit(30),
       supabase.from("go_rides").select(SELECT).eq("rider_id", user.id).in("status", ["accepted", "in_progress"]).order("scheduled_at", { ascending: true, nullsFirst: true }),
       supabase.from("go_rider_state").select("is_online").eq("user_id", user.id).maybeSingle(),
     ]);
-    setOpen(((openRows ?? []) as RideWithPassenger[]).filter((r) => r.passenger_id !== user.id));
-    setMine((mineRows ?? []) as RideWithPassenger[]);
-    if (state) setOnline(Boolean(state.is_online));
+    const failed = openResult.error || mineResult.error || stateResult.error;
+    if (failed) {
+      setBoardError(goErrorMessage(failed));
+      return;
+    }
+    setBoardError(null);
+    setOpen(((openResult.data ?? []) as RideWithPassenger[]).filter((r) => r.passenger_id !== user.id));
+    setMine((mineResult.data ?? []) as RideWithPassenger[]);
+    if (stateResult.data) setOnline(Boolean(stateResult.data.is_online));
   }, [user]);
 
   useEffect(() => {
@@ -117,6 +128,7 @@ export function RiderMode() {
           type="button"
           onClick={() => void toggle()}
           aria-pressed={online}
+          aria-label={online ? "Go offline" : "Go online"}
           className={`relative w-20 h-11 rounded-full transition-colors shrink-0 ${online ? "bg-green-600" : "bg-surface-container-high"}`}
         >
           <span className={`absolute top-1 w-9 h-9 rounded-full bg-white shadow transition-all ${online ? "left-10" : "left-1"}`} />
@@ -150,7 +162,9 @@ export function RiderMode() {
 
       <section>
         <h3 className="font-headline-md text-[18px] font-bold mb-3">Open requests</h3>
-        {open.length === 0 ? (
+        {boardError ? (
+          <p className="card-surface p-6 font-body-sm text-error text-center" role="alert">{boardError}</p>
+        ) : open.length === 0 ? (
           <p className="card-surface p-6 font-body-sm text-secondary text-center">No open requests right now.</p>
         ) : (
           <div className="flex flex-col gap-3">

@@ -126,9 +126,10 @@ export async function proxy(request: NextRequest) {
 function redirectToLogin(request: NextRequest, pathname: string) {
   const login = request.nextUrl.clone();
   login.pathname = isAdminAppPath(pathname) ? "/admin-login" : "/login";
+  const nextPath = `${pathname}${request.nextUrl.search}`;
   login.search = "";
   if (pathname !== "/login" && pathname !== "/admin-login") {
-    login.searchParams.set("next", pathname);
+    login.searchParams.set("next", nextPath);
   }
   return NextResponse.redirect(login);
 }

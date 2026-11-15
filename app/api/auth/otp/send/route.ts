@@ -57,6 +57,9 @@ export async function POST(request: Request) {
     if (!error) claimed = data === true;
   }
 
+  if (claimed === null) {
+    return jsonError("We could not check this number right now. Please try again.", 503);
+  }
   if (body.purpose === "reset" && claimed === false) {
     return jsonError("No SheRides account uses this mobile number.", 404);
   }

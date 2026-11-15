@@ -9,9 +9,9 @@ import type { PartnerApplication } from "@/lib/partner-application";
  * supabase/migrations/20261115183000_partner_applications.sql). The service role
  * bypasses RLS; anonymous clients cannot read or write the table.
  *
- * If the service role is not configured, the same record is appended as one JSON
- * line in data/partner-applications.ndjson. That file is gitignored and is only
- * a local fallback so the form still works in development.
+ * If the service role is not configured, local development appends one JSON line
+ * to gitignored data/partner-applications.ndjson. On Vercel the save fails instead,
+ * because that file would vanish when the function exits.
  */
 const FALLBACK_FILE = path.join(process.cwd(), "data", "partner-applications.ndjson");
 
@@ -39,6 +39,13 @@ export async function storePartnerApplication(application: PartnerApplication): 
       throw new Error(error?.message ?? "Partner application was not saved.");
     }
     return { id: String(data.id), via: "supabase" };
+  }
+
+  // A serverless instance's disk disappears when the function exits. Pretending
+  // the lead was saved would drop the application. Local development can still
+  // append the gitignored file so the form can be tried without a service key.
+  if (process.env.VERCEL) {
+    throw new Error("Partner applications need SUPABASE_SERVICE_ROLE_KEY.");
   }
 
   const id = crypto.randomUUID();
