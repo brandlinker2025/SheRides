@@ -9,6 +9,7 @@ const PUBLIC_PATHS = new Set([
   "/admin-login",
   "/signup",
   "/download",
+  "/partner",
   "/auth/callback",
   "/api/keep-alive",
   "/api/cron/birthday-wishes",
@@ -30,6 +31,7 @@ function isPublicPath(pathname: string) {
   if (PUBLIC_PATHS.has(pathname)) return true;
   if (pathname.startsWith("/_next/")) return true;
   if (pathname.startsWith("/api/auth/")) return true;
+  if (pathname === "/api/partner") return true;
   if (pathname.startsWith("/track/")) return true;
   if (PUBLIC_METADATA_PATHS.has(pathname)) return true;
   if (pathname === "/sherides.apk") return true;
