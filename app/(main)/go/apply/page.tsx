@@ -280,7 +280,7 @@ function ApplyForm() {
         </Section>
 
         <Section title="2. Emergency contact">
-          <p className="font-body-sm text-secondary -mt-2">If you press SOS during a ride, the SheRides admin team contacts this person.</p>
+          <p className="font-body-sm text-secondary -mt-2">A trusted contact for the SheRides admin team. The number is not shown to captains.</p>
           <input value={emergencyName} onChange={(e) => setEmergencyName(e.target.value)} maxLength={80} placeholder="Name (e.g. Mother, Sister)" className={field} />
           <input value={emergencyPhone} onChange={(e) => setEmergencyPhone(e.target.value)} inputMode="tel" placeholder="01XXXXXXXXX" className={field} />
         </Section>

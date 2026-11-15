@@ -23,7 +23,7 @@ export function InstallPrompt() {
     pathname === "/admin-login" ||
     pathname.startsWith("/partner") ||
     pathname.startsWith("/auth");
-  const aboveAppNav = pathname.startsWith("/go") || pathname.startsWith("/safety") || pathname.startsWith("/profile") || pathname.startsWith("/notifications");
+  const aboveAppNav = pathname.startsWith("/go") || pathname.startsWith("/places") || pathname.startsWith("/profile") || pathname.startsWith("/notifications");
 
   useEffect(() => {
     const mql = window.matchMedia("(max-width: 1023px)");

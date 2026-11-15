@@ -1,4 +1,4 @@
-import { GoAdminBoard, type AdminGoApplication, type AdminGoRide } from "@/components/admin/GoAdminBoard";
+import { GoAdminBoard, type AdminGoApplication, type AdminGoRide, type AdminPartnerLead } from "@/components/admin/GoAdminBoard";
 import { BackLink } from "@/components/ui/BackLink";
 import { requireAdmin } from "@/lib/supabase/require-admin";
 
@@ -17,7 +17,7 @@ const DOC_LABEL: Record<(typeof DOC_FIELDS)[number], string> = {
 export default async function AdminGoPage() {
   const { supabase } = await requireAdmin();
 
-  const [{ data: appRows, error: appError }, { data: rideRows, error: rideError }] = await Promise.all([
+  const [{ data: appRows, error: appError }, { data: rideRows, error: rideError }, partnerResult] = await Promise.all([
     supabase
       .from("go_applications")
       .select("*, profile:profiles!go_applications_user_id_fkey(full_name, username, avatar_url)")
@@ -30,6 +30,11 @@ export default async function AdminGoPage() {
       )
       .order("created_at", { ascending: false })
       .limit(300),
+    supabase
+      .from("partner_applications")
+      .select("id, full_name, phone, area, vehicle_type, commitment, note, created_at, status, admin_notes")
+      .order("created_at", { ascending: false })
+      .limit(200),
   ]);
 
   const applications: AdminGoApplication[] = await Promise.all(
@@ -84,7 +89,12 @@ export default async function AdminGoPage() {
           {appError ? ` (${appError.message})` : ""}
         </p>
       ) : (
-        <GoAdminBoard applications={applications} rides={rides} />
+        <GoAdminBoard
+          applications={applications}
+          rides={rides}
+          partners={(partnerResult.data ?? []) as AdminPartnerLead[]}
+          partnerNote={partnerResult.error ? partnerResult.error.message : null}
+        />
       )}
     </div>
   );

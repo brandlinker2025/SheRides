@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { adminCancelGoRide, reviewGoApplication } from "@/app/admin/go/actions";
+import { adminCancelGoRide, reviewGoApplication, reviewPartnerApplication } from "@/app/admin/go/actions";
 import { Icon } from "@/components/ui/Icon";
 import { KIND_LABEL, RIDE_STATUS_LABEL, formatTaka, type GoRideKind, type GoRideStatus } from "@/lib/go";
 
@@ -22,6 +22,19 @@ export type AdminGoApplication = {
   created_at: string;
   profile: { full_name: string; username: string; avatar_url: string | null } | null;
   docs: { label: string; url: string }[];
+};
+
+export type AdminPartnerLead = {
+  id: string;
+  full_name: string;
+  phone: string;
+  area: string;
+  vehicle_type: string;
+  commitment: string;
+  note: string | null;
+  created_at: string;
+  status: "pending" | "approved" | "rejected";
+  admin_notes: string | null;
 };
 
 export type AdminGoRide = {
@@ -212,7 +225,83 @@ function VerificationRow({ app, rides }: { app: AdminGoApplication; rides: Admin
   );
 }
 
-export function GoAdminBoard({ applications, rides }: { applications: AdminGoApplication[]; rides: AdminGoRide[] }) {
+const VEHICLE: Record<string, string> = {
+  car: "Car",
+  bike_scooter: "Bike or scooter",
+  none: "No vehicle yet",
+};
+
+function PartnerLeadRow({ lead }: { lead: AdminPartnerLead }) {
+  const router = useRouter();
+  const [notes, setNotes] = useState(lead.admin_notes ?? "");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function act(status: "approved" | "rejected" | "pending") {
+    if (status === "rejected" && notes.trim().length < 2) {
+      setError("Write a short reason before rejecting.");
+      return;
+    }
+    setBusy(true);
+    setError(null);
+    const result = await reviewPartnerApplication(lead.id, status, notes);
+    setBusy(false);
+    if (result.error) setError(result.error);
+    else router.refresh();
+  }
+
+  return (
+    <article className="card-surface flex flex-col gap-3 p-4">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h3 className="text-lg font-bold">{lead.full_name}</h3>
+          <p className="text-sm text-white/70">{lead.phone} · {lead.area}</p>
+          <p className="text-sm text-white/60">
+            {VEHICLE[lead.vehicle_type] ?? lead.vehicle_type} · {lead.commitment === "full_time" ? "Full time" : "Part time"}
+          </p>
+        </div>
+        <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold capitalize ${CHIP[lead.status]}`}>{lead.status}</span>
+      </div>
+      {lead.note && <p className="text-sm text-white/70">{lead.note}</p>}
+      <p className="text-xs text-white/45">
+        Approving this recruitment lead does not create a login and does not let her go online. She still needs an approved in-app rider application.
+      </p>
+      <input
+        value={notes}
+        onChange={(event) => setNotes(event.target.value)}
+        maxLength={500}
+        placeholder="Note (required to reject)"
+        aria-label={`Note for ${lead.full_name}`}
+        className="w-full rounded-xl border border-white/10 bg-[#0e0e13] px-3 py-2 text-sm"
+      />
+      {error && <p className="text-sm text-[#ffb4ab]" role="alert">{error}</p>}
+      <div className="flex flex-wrap gap-2">
+        {lead.status !== "approved" && (
+          <button type="button" disabled={busy} onClick={() => void act("approved")} className="btn btn-primary h-11 min-h-11 px-4 text-sm">
+            {busy ? "Saving…" : "Approve lead"}
+          </button>
+        )}
+        {lead.status !== "rejected" && (
+          <button type="button" disabled={busy} onClick={() => void act("rejected")} className="btn btn-danger h-11 min-h-11 px-4 text-sm">
+            Reject lead
+          </button>
+        )}
+      </div>
+    </article>
+  );
+}
+
+export function GoAdminBoard({
+  applications,
+  rides,
+  partners,
+  partnerNote,
+}: {
+  applications: AdminGoApplication[];
+  rides: AdminGoRide[];
+  partners: AdminPartnerLead[];
+  partnerNote: string | null;
+}) {
   const router = useRouter();
   const [role, setRole] = useState<Role>("rider");
   const [filter, setFilter] = useState<Filter>("pending");
@@ -314,6 +403,23 @@ export function GoAdminBoard({ applications, rides }: { applications: AdminGoApp
           ))}
         </div>
         {!shown.length && <p className="rounded-2xl bg-[#1f1f24] p-8 text-center text-sm text-white/60">No {role === "rider" ? "rider" : "passenger"} applications in this list.</p>}
+      </section>
+
+      <section className="flex flex-col gap-3">
+        <div>
+          <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#ffb95f]">Recruitment</p>
+          <h2 className="text-xl font-bold">Partner applications</h2>
+          <p className="text-sm text-white/60">Leads from /partner. No NID, licence image, password, or card data is stored here.</p>
+        </div>
+        {partnerNote ? (
+          <p className="card-surface p-4 text-sm text-error" role="alert">
+            Partner review is not available yet. Apply supabase/migrations/20261116030000_partner_review_and_ride_extras.sql. {partnerNote}
+          </p>
+        ) : partners.length === 0 ? (
+          <p className="card-surface p-6 text-center text-sm text-white/60">No partner applications yet.</p>
+        ) : (
+          partners.map((lead) => <PartnerLeadRow key={lead.id} lead={lead} />)
+        )}
       </section>
 
       <section className="flex flex-col gap-3">

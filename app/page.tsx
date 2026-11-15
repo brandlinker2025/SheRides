@@ -9,16 +9,10 @@ export default function EntryPage() {
           RIDE · CONNECT · EMPOWER
         </p>
         <div className="mt-10 flex w-full flex-col gap-3">
-          <Link
-            href="/go"
-            className="flex h-14 items-center justify-center rounded-full bg-[#A855F7] text-lg font-bold text-white"
-          >
+          <Link href="/go" className="btn btn-primary h-14 w-full text-lg">
             Take a ride / রাইড নিন
           </Link>
-          <Link
-            href="/partner"
-            className="flex h-14 items-center justify-center rounded-full border-2 border-[#A855F7] text-lg font-bold text-[#A855F7]"
-          >
+          <Link href="/partner" className="btn btn-secondary h-14 w-full text-lg">
             Become a partner / পার্টনার হন
           </Link>
         </div>

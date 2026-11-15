@@ -29,7 +29,7 @@ export default function NotificationsPage() {
         <EmptyState
           variant="notifications"
           title="No notifications yet."
-          body="Ride requests, approvals and safety alerts will show up here."
+          body="Ride requests and approvals will show up here."
         />
       ) : null}
       {!loading && !error && items.length > 0 ? (

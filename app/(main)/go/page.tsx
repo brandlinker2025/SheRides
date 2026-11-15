@@ -7,6 +7,7 @@ import { RideDeck } from "@/components/go/BookRide";
 import { RiderMode } from "@/components/go/RiderMode";
 import { Icon } from "@/components/ui/Icon";
 import { useAuth } from "@/lib/auth-context";
+import { useLocale } from "@/lib/locale";
 import {
   KIND_LABEL,
   RIDE_STATUS_LABEL,
@@ -29,6 +30,7 @@ const STATUS_STYLE: Record<string, string> = {
 };
 
 function ApplyCard({ role, app }: { role: GoRole; app: GoApplication | undefined }) {
+  const { t } = useLocale();
   const rider = role === "rider";
   const status = app?.status;
   return (
@@ -44,24 +46,22 @@ function ApplyCard({ role, app }: { role: GoRole; app: GoApplication | undefined
         {status && <span className={`px-3 py-1 rounded-full font-label-lg text-xs capitalize ${STATUS_STYLE[status]}`}>{status}</span>}
       </div>
       {status === "pending" && (
-        <div className="rounded-2xl border border-[#ffb95f]/25 bg-[#1a1a24] p-4 text-[#e4e1e9]">
-          <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#ffb95f]">Identity and safety verification</p>
-          <p className="mt-1 text-base font-bold">An admin is checking your documents.</p>
-          <p className="mt-2 text-sm text-white/70">
-            Your National ID and live selfie are with the admin. This card does not show a biometric score, a government match, or a document number.
+        <div className="rounded-2xl border border-[#ffb95f]/40 bg-[#1a1a24] p-4 text-[#e4e1e9]" role="status">
+          <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#ffb95f]">{t("wait.title")}</p>
+          <p className="mt-1 text-base font-bold">{t("wait.title")}</p>
+          <p className="mt-2 text-sm text-white/70">{t("wait.body")}</p>
+          <p className="mt-3 text-xs text-white/45">
+            {rider
+              ? "The online switch and ride requests stay closed until an admin approves this rider application."
+              : "Booking stays closed until an admin approves this passenger application."}
           </p>
-          <ul className="mt-3 flex flex-col gap-1 text-sm text-white/70">
-            <li>Smart NID — under review</li>
-            <li>Live selfie — submitted, not marked verified</li>
-          </ul>
-          <p className="mt-3 text-xs text-white/45">Usually approved within 15–30 minutes. You will get a notification.</p>
         </div>
       )}
       {(status === "rejected" || status === "suspended") && app?.admin_notes && (
         <p className="font-body-sm text-error">Admin note: {app.admin_notes}</p>
       )}
       {(!status || status === "rejected") && (
-        <Link href={`/go/apply?role=${role}`} className="h-12 rounded-full bg-accent-magenta text-white font-label-lg inline-flex items-center justify-center gap-2">
+        <Link href={`/go/apply?role=${role}`} className="btn btn-primary">
           <Icon name="verified_user" size={20} />
           {status === "rejected" ? "Fix and resubmit" : rider ? "Apply as rider" : "Get verified"}
         </Link>

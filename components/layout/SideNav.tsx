@@ -7,12 +7,24 @@ import { img } from "@/lib/images";
 import { PandaNavBackdrop } from "@/components/brand/PandaNavBackdrop";
 import { Avatar } from "../ui/Avatar";
 import { Icon } from "../ui/Icon";
+import { useLocale, type CopyKey } from "@/lib/locale";
 import { isNavActive, sideNav } from "./nav-items";
+
+const LABEL: Record<string, CopyKey> = {
+  "/go": "nav.bookLong",
+  "/go?tab=rides": "nav.ridesLong",
+  "/go?tab=rider": "nav.riderLong",
+  "/partner": "nav.partner",
+  "/notifications": "nav.alertsLong",
+  "/places": "nav.placesLong",
+  "/profile": "nav.profileLong",
+};
 
 export function SideNav() {
   const pathname = usePathname();
   const tab = useSearchParams().get("tab");
   const { user } = useAuth();
+  const { t } = useLocale();
 
   return (
     <nav aria-label="Main navigation" className="hidden lg:flex flex-col h-dvh fixed left-0 top-0 w-64 shadow-xl z-40 border-r border-white/10 pt-[96px] pb-6 overflow-hidden">
@@ -53,7 +65,7 @@ export function SideNav() {
               className={`nav-pill ${active ? "nav-pill-active" : ""}`}
             >
               <Icon name={item.icon} filled={active} />
-              <span className="font-label-lg text-label-lg">{item.label}</span>
+              <span className="font-label-lg text-label-lg">{t(LABEL[item.href] ?? "nav.bookLong")}</span>
             </Link>
           );
         })}
@@ -62,10 +74,10 @@ export function SideNav() {
       <div className="relative z-10 mt-auto px-4">
         <Link
           href="/go"
-          className="w-full bg-accent-magenta text-white font-label-lg text-label-lg py-3.5 rounded-full inline-flex items-center justify-center gap-2"
+          className="btn btn-primary w-full"
         >
           <Icon name="two_wheeler" size={20} />
-          Book a Ride
+          {t("nav.bookLong")}
         </Link>
       </div>
     </nav>

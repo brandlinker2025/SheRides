@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
 import { Icon } from "../ui/Icon";
 import { Avatar } from "../ui/Avatar";
+import { LanguageToggle } from "../ui/LanguageToggle";
 import { ThemeToggle } from "../ui/ThemeToggle";
 import { BrandLogo } from "../ui/BrandLogo";
 import { NotificationsBell } from "./NotificationsBell";
@@ -36,6 +37,7 @@ export function TopNav() {
           <Icon name="handshake" size={22} />
           <span className="hidden md:inline">Partner</span>
         </Link>
+        <LanguageToggle />
         <ThemeToggle />
         <NotificationsBell />
         <button

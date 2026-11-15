@@ -12,7 +12,6 @@ import { useScrollTopOnNavigate } from "@/hooks/useScrollTopOnNavigate";
 const nav = [
   { href: "/admin", label: "Dashboard", icon: "dashboard", exact: true },
   { href: "/admin/go", label: "Riders", icon: "sports_motorsports" },
-  { href: "/admin/emergency-alerts", label: "SOS Alerts", icon: "sos" },
   { href: "/admin/verifications", label: "New Joins", icon: "verified_user" },
   { href: "/admin/users", label: "Accounts", icon: "group" },
   { href: "/admin/user-details", label: "Contacts", icon: "badge" },
