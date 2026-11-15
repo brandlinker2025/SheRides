@@ -11,17 +11,26 @@ type Props = {
   value: GoPlace | null;
   onChange: (place: GoPlace | null) => void;
   allowCurrentLocation?: boolean;
+  /** Read GPS once when the field is still empty. */
+  autoLocate?: boolean;
+  placeholder?: string;
 };
 
-export function PlaceInput({ label, icon, value, onChange, allowCurrentLocation }: Props) {
+export function PlaceInput({ label, icon, value, onChange, allowCurrentLocation, autoLocate, placeholder }: Props) {
   const [text, setText] = useState(value?.label ?? "");
   const [results, setResults] = useState<GoPlace[]>([]);
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
+  const located = useRef(false);
+  const skipSearch = useRef(false);
 
   useEffect(() => {
+    if (skipSearch.current) {
+      skipSearch.current = false;
+      return;
+    }
     if (value && value.label === text) return;
     if (text.trim().length < 3) {
       setResults([]);
@@ -42,7 +51,15 @@ export function PlaceInput({ label, icon, value, onChange, allowCurrentLocation 
     return () => window.clearTimeout(timer);
   }, [text, value]);
 
-  async function fillMyLocation() {
+  useEffect(() => {
+    if (!autoLocate || located.current || value) return;
+    located.current = true;
+    void fillMyLocation(false);
+    // Run once on mount. fillMyLocation is stable enough for a single GPS read.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoLocate]);
+
+  async function fillMyLocation(manual = true) {
     setBusy(true);
     setNote(null);
     try {
@@ -51,11 +68,12 @@ export function PlaceInput({ label, icon, value, onChange, allowCurrentLocation 
       const lng = position.coords.longitude;
       const name = await reversePlace(lat, lng);
       const place = { label: name, lat, lng };
+      skipSearch.current = true;
       setText(name);
       onChange(place);
       setOpen(false);
     } catch (err) {
-      setNote(locationErrorMessage(err));
+      setNote(manual ? locationErrorMessage(err) : "Location is off. Type a pickup, or tap to try again.");
     } finally {
       setBusy(false);
     }
@@ -63,9 +81,9 @@ export function PlaceInput({ label, icon, value, onChange, allowCurrentLocation 
 
   return (
     <div className="relative">
-      <span className="mb-1.5 block font-label-lg text-secondary">{label}</span>
-      <div className="flex items-center gap-2 bg-soft-off-white border border-surface-border rounded-xl px-3 focus-within:border-accent-magenta focus-within:ring-2 focus-within:ring-accent-magenta/20">
-        <Icon name={icon} className="text-accent-magenta" />
+      <span className="mb-1.5 block text-sm font-semibold text-white/70">{label}</span>
+      <div className="flex items-center gap-2 rounded-full border border-white/10 bg-[#1A1A24]/80 px-3 focus-within:border-[#A855F7] focus-within:ring-2 focus-within:ring-[#A855F7]/30">
+        <Icon name={icon} className="text-[#ddb7ff]" />
         <input
           value={text}
           onChange={(event) => {
@@ -73,8 +91,8 @@ export function PlaceInput({ label, icon, value, onChange, allowCurrentLocation 
             if (value) onChange(null);
           }}
           onFocus={() => results.length && setOpen(true)}
-          placeholder="Type an area, road or place"
-          className="flex-1 bg-transparent py-3 font-body-md focus:outline-none min-w-0"
+          placeholder={busy ? "Finding your location…" : placeholder ?? "Type an area, road or place"}
+          className="min-w-0 flex-1 bg-transparent py-3 text-sm text-[#e4e1e9] placeholder:text-white/35 focus:outline-none"
         />
         {value ? <Icon name="check_circle" filled className="text-green-600" size={20} /> : null}
       </div>
@@ -83,7 +101,7 @@ export function PlaceInput({ label, icon, value, onChange, allowCurrentLocation 
           type="button"
           onClick={() => void fillMyLocation()}
           disabled={busy}
-          className="mt-2 inline-flex items-center gap-1.5 font-label-lg text-accent-magenta text-sm disabled:opacity-60"
+          className="mt-2 inline-flex items-center gap-1.5 text-sm font-semibold text-[#ddb7ff] disabled:opacity-60"
         >
           <Icon name="my_location" size={18} />
           {busy ? "Finding you…" : "Use my current location"}

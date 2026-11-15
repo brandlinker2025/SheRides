@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useState } from "react";
-import { BookRide } from "@/components/go/BookRide";
+import { RideDeck } from "@/components/go/BookRide";
 import { RiderMode } from "@/components/go/RiderMode";
 import { Icon } from "@/components/ui/Icon";
 import { useAuth } from "@/lib/auth-context";
@@ -43,7 +43,20 @@ function ApplyCard({ role, app }: { role: GoRole; app: GoApplication | undefined
         </div>
         {status && <span className={`px-3 py-1 rounded-full font-label-lg text-xs capitalize ${STATUS_STYLE[status]}`}>{status}</span>}
       </div>
-      {status === "pending" && <p className="font-body-sm text-secondary">An admin is checking your documents. You will get a notification.</p>}
+      {status === "pending" && (
+        <div className="rounded-2xl border border-[#ffb95f]/25 bg-[#1a1a24] p-4 text-[#e4e1e9]">
+          <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#ffb95f]">Identity and safety verification</p>
+          <p className="mt-1 text-base font-bold">An admin is checking your documents.</p>
+          <p className="mt-2 text-sm text-white/70">
+            Your National ID and live selfie are with the admin. This card does not show a biometric score, a government match, or a document number.
+          </p>
+          <ul className="mt-3 flex flex-col gap-1 text-sm text-white/70">
+            <li>Smart NID — under review</li>
+            <li>Live selfie — submitted, not marked verified</li>
+          </ul>
+          <p className="mt-3 text-xs text-white/45">Usually approved within 15–30 minutes. You will get a notification.</p>
+        </div>
+      )}
       {(status === "rejected" || status === "suspended") && app?.admin_notes && (
         <p className="font-body-sm text-error">Admin note: {app.admin_notes}</p>
       )}
@@ -96,7 +109,6 @@ function MyRides() {
 
 function GoHub() {
   const params = useSearchParams();
-  const router = useRouter();
   const { user } = useAuth();
   const [apps, setApps] = useState<GoApplication[] | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -136,27 +148,11 @@ function GoHub() {
   const canBook = passenger?.status === "approved";
   const canRide = rider?.status === "approved";
   const requested = params.get("tab") as Tab | null;
-  const tab: Tab = requested === "rider" && canRide ? "rider" : requested === "rides" ? "rides" : canBook ? "book" : canRide ? "rider" : "book";
+  const tab: Tab = requested === "rides" ? "rides" : requested === "rider" ? "rider" : "book";
   const submitted = params.get("submitted");
 
-  const tabs: { id: Tab; label: string; icon: string; show: boolean }[] = [
-    { id: "book", label: "Book", icon: "hail", show: true },
-    { id: "rides", label: "My rides", icon: "history", show: Boolean(canBook || canRide) },
-    { id: "rider", label: "Rider mode", icon: "sports_motorsports", show: canRide },
-  ];
-
-  return (
-    <div className="w-full max-w-3xl mx-auto px-container-margin-mobile lg:px-0 py-5 sm:py-8 flex flex-col gap-5">
-      <header className="flex items-center gap-3">
-        <span className="w-11 h-11 rounded-2xl bg-gradient-to-br from-[#8b7cf8] to-[#14b8c4] text-white flex items-center justify-center shrink-0">
-          <Icon name="two_wheeler" filled />
-        </span>
-        <div className="min-w-0">
-          <h1 className="font-headline-md text-[24px] leading-tight font-bold">Where to?</h1>
-          <p className="font-body-sm text-secondary">Women riders only · every rider checked by an admin</p>
-        </div>
-      </header>
-
+  const notices = (
+    <>
       {submitted && (
         <p className="card-surface p-4 font-body-sm flex items-center gap-2">
           <Icon name="task_alt" className="text-green-600" /> Application sent. You will get a notification once an admin approves it.
@@ -164,58 +160,64 @@ function GoHub() {
       )}
       {error && <p className="card-surface p-4 font-body-sm text-error">{error}</p>}
       {apps === null && <div className="skeleton h-40" />}
-
       {active && tab === "book" && (
         <Link href={`/go/ride/${active.id}`} className="card-surface card-hover p-5 flex items-center gap-4 border-2 border-accent-magenta">
           <span className="w-3 h-3 rounded-full bg-accent-magenta animate-pulse" />
-          <div className="flex-1">
+          <div className="flex-1 min-w-0">
             <p className="font-label-lg">Your ride: {RIDE_STATUS_LABEL[active.status]}</p>
             <p className="font-body-sm text-tertiary truncate">{active.pickup_text}</p>
           </div>
           <Icon name="chevron_right" />
         </Link>
       )}
+    </>
+  );
 
-      {apps && (canBook || canRide) && (
-        <nav className="flex gap-2 overflow-x-auto hide-scrollbar">
-          {tabs
-            .filter((t) => t.show)
-            .map((t) => (
-              <button
-                key={t.id}
-                type="button"
-                onClick={() => router.replace(`/go?tab=${t.id}`)}
-                className={`nav-pill !py-2 !px-4 ${tab === t.id ? "nav-pill-active" : "!bg-surface-container-lowest !text-on-surface !border-surface-border"}`}
-              >
-                <Icon name={t.icon} size={20} filled={tab === t.id} /> {t.label}
-              </button>
-            ))}
-        </nav>
-      )}
+  if (tab === "rides") {
+    return (
+      <div className="mx-auto flex w-full min-w-0 max-w-3xl flex-col gap-4 px-4 py-5 sm:px-6 sm:py-8">
+        <h1 className="text-2xl font-bold">My Rides</h1>
+        {notices}
+        {apps && <MyRides />}
+      </div>
+    );
+  }
 
-      {apps && tab === "book" && (canBook ? <BookRide /> : null)}
-      {apps && tab === "rides" && <MyRides />}
-      {apps && tab === "rider" && canRide && <RiderMode />}
+  if (tab === "rider") {
+    return (
+      <div className="mx-auto flex w-full min-w-0 max-w-3xl flex-col gap-4 px-4 py-5 sm:px-6 sm:py-8">
+        <h1 className="text-2xl font-bold">Rider Mode</h1>
+        {notices}
+        {apps && canRide && <RiderMode />}
+        {apps && !canRide && <ApplyCard role="rider" app={rider} />}
+      </div>
+    );
+  }
 
-      {apps && (!canBook || !canRide) && tab !== "rider" && (
-        <div className="grid sm:grid-cols-2 gap-4">
-          {!canBook && <ApplyCard role="passenger" app={passenger} />}
-          {!canRide && <ApplyCard role="rider" app={rider} />}
+  return (
+    <RideDeck
+      showForm={Boolean(apps && canBook)}
+      below={
+        apps && (!canBook || !canRide) ? (
+          <div className="grid gap-4">
+            {!canBook && <ApplyCard role="passenger" app={passenger} />}
+            {!canRide && <ApplyCard role="rider" app={rider} />}
+          </div>
+        ) : null
+      }
+    >
+      <header className="flex items-center gap-3">
+        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[#8b7cf8] to-[#14b8c4] text-white">
+          <Icon name="two_wheeler" filled />
+        </span>
+        <div className="min-w-0">
+          <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#ffb95f]">Sanctuary</p>
+          <h1 className="text-2xl font-bold leading-tight text-[#e4e1e9]">Book A Ride</h1>
+          <p className="text-sm text-white/70">Women riders only · an admin checks every captain</p>
         </div>
-      )}
-
-      <section className="card-surface p-6">
-        <h2 className="font-headline-md text-[18px] font-bold mb-3 flex items-center gap-2">
-          <Icon name="shield_person" className="text-accent-magenta" /> How we keep it women-only
-        </h2>
-        <ul className="font-body-sm text-secondary flex flex-col gap-2">
-          <li>• Every passenger and rider shows NID + a live selfie; an admin checks each one by hand.</li>
-          <li>• Your ride starts only when you tell the rider your secret 4-digit PIN.</li>
-          <li>• Share your live trip with family, and SOS is one tap away during the ride.</li>
-          <li>• Phone numbers stay hidden. Low ratings go straight to the admin team.</li>
-        </ul>
-      </section>
-    </div>
+      </header>
+      {notices}
+    </RideDeck>
   );
 }
 

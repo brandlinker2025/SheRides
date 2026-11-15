@@ -3,7 +3,9 @@ export type NavItem = { href: string; label: string; icon: string; tab?: string 
 /** Ride-sharing only: every destination is about booking, riding or staying safe. */
 export const primaryNav: NavItem[] = [
   { href: "/go", label: "Book", icon: "two_wheeler" },
-  { href: "/go?tab=rides", label: "My rides", icon: "history", tab: "rides" },
+  { href: "/go?tab=rides", label: "Rides", icon: "history", tab: "rides" },
+  { href: "/go?tab=rider", label: "Rider", icon: "sports_motorsports", tab: "rider" },
+  { href: "/notifications", label: "Alerts", icon: "notifications" },
   { href: "/safety", label: "Safety", icon: "shield" },
   { href: "/profile", label: "Profile", icon: "person" },
 ];
