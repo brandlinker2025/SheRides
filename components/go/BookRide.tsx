@@ -26,10 +26,10 @@ import { PickupSpot } from "./PickupSpot";
 import { PlaceInput } from "./PlaceInput";
 import { RideMap } from "./RideMap";
 
-const KINDS: { id: GoRideKind; label: string }[] = [
-  { id: "now", label: "Ride now" },
-  { id: "scheduled", label: "Schedule" },
-  { id: "hire", label: "Hire" },
+const KINDS: { id: GoRideKind; label: string; bn: string }[] = [
+  { id: "now", label: "Ride now", bn: "এখনই" },
+  { id: "scheduled", label: "Schedule", bn: "সিডিউল" },
+  { id: "hire", label: "Hire", bn: "হায়ার" },
 ];
 
 function minDateTime() {
@@ -55,18 +55,18 @@ function FareBreakdown({
   const distance = km != null ? distanceFare(km, rate.id, [rate]) : null;
   const beyond = distance != null && km != null && km > rate.slabKm ? distance - rate.slabKm * rate.basePerKm : 0;
   return (
-    <section aria-label="Fare breakdown" className="rounded-[22px] border border-white/10 bg-[#1f1f24] px-4 py-4 text-[#e4e1e9] backdrop-blur-xl">
-      <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-tertiary">{rate.label}</p>
-      <h2 className="mt-1 text-sm font-semibold">Transparent Fare Calculation</h2>
+    <section aria-label="Fare breakdown" className="rounded-3xl border border-white/10 bg-[#1f1f24]/95 px-4 py-4 text-[#e4e1e9] backdrop-blur-xl">
+      <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-[#ffb95f]">{rate.label}</p>
+      <h2 className="mt-1 text-sm font-semibold">Transparent Fare / স্বচ্ছ ভাড়া</h2>
       {distance == null || km == null ? (
         <p className="mt-1 text-3xl font-bold">—</p>
       ) : (
         <>
-          <p className="mt-1 text-3xl font-bold">{formatTaka(distance)}</p>
-          <ul className="mt-2 flex flex-col gap-1 text-sm text-secondary">
+          <p className="mt-1 text-3xl font-bold text-[#ddb7ff]">{formatTaka(distance)}</p>
+          <ul className="mt-2 flex flex-col gap-1 text-sm text-white/70">
             {km <= rate.slabKm ? (
               <li>
-                Base transit rate ({km.toFixed(2)} km × ৳{rate.basePerKm.toFixed(2)}/km) = {formatTaka(distance)}
+                {km.toFixed(2)} km × ৳{rate.basePerKm.toFixed(2)} = {formatTaka(distance)}
               </li>
             ) : (
               <>
@@ -81,16 +81,7 @@ function FareBreakdown({
           </ul>
         </>
       )}
-      {hireFare != null ? <p className="mt-2 text-sm text-secondary">Hourly hire {formatTaka(hireFare)}. The distance fare above is the ride-now price.</p> : null}
-      <div className="mt-4 border-t border-white/15 pt-3">
-        <h2 className="text-sm font-semibold">Grace Pickup Window: {rate.waitingGraceMinutes} Free Minutes</h2>
-        <p className="text-2xl font-bold">
-          {formatTaka(rate.waitingPerMinute)} <span className="text-base font-semibold text-secondary">per minute</span>
-        </p>
-        <p className="mt-1 text-sm text-secondary">
-          Captain waits at the designated pickup spot. Post-grace charge: {formatTaka(rate.waitingPerMinute)} BDT/min. It stays separate from the distance fare and also covers a pause or traffic delay after the ride starts.
-        </p>
-      </div>
+      {hireFare != null ? <p className="mt-2 text-sm text-white/60">Hire {formatTaka(hireFare)} / hour</p> : null}
     </section>
   );
 }
@@ -165,25 +156,25 @@ export function BookRide({ pickup, drop, onPickup, onDrop, autoLocate = true }: 
   }
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="rounded-[28px] border border-white/10 bg-[#1f1f24]/90 p-4 shadow-[0_8px_32px_-4px_rgba(0,0,0,0.6)] backdrop-blur-xl sm:p-5">
+    <div className="flex flex-col gap-3">
+      <div className="rounded-3xl border border-white/10 bg-[#1f1f24]/95 p-4 shadow-2xl backdrop-blur-xl">
         <div className="relative flex flex-col gap-3 pl-5">
-          <span className="absolute bottom-6 left-[7px] top-6 w-px bg-gradient-to-b from-cyan-400 to-violet-400" aria-hidden="true" />
+          <span className="absolute bottom-6 left-[7px] top-6 w-px bg-gradient-to-b from-[#5eead4] to-[#ddb7ff]" aria-hidden="true" />
           <PlaceInput
-            label="Pickup"
+            label="Pickup / পিকআপ"
             icon="trip_origin"
             value={pickup}
             onChange={onPickup}
             allowCurrentLocation
             autoLocate={autoLocate && !pickup}
-            placeholder="Current location or a landmark"
+            placeholder="Current location or landmark"
           />
           <PlaceInput
-            label="Where to?"
+            label="Where to? / কোথায়?"
             icon="flag"
             value={drop}
             onChange={onDrop}
-            placeholder="Drop-off — area, road or place"
+            placeholder="Drop-off area or place"
           />
         </div>
 
@@ -195,7 +186,7 @@ export function BookRide({ pickup, drop, onPickup, onDrop, autoLocate = true }: 
               onClick={() => setKind(item.id)}
               className={`h-9 flex-1 rounded-full border text-sm font-semibold ${
                 kind === item.id
-                  ? "border-transparent bg-gradient-to-br from-[#A855F7] to-[#6366F1] text-white"
+                  ? "border-transparent bg-gradient-to-br from-[#ddb7ff] to-[#a855f7] text-[#1a1a24]"
                   : "border-white/10 bg-[#121217] text-white/70"
               }`}
             >
@@ -206,25 +197,25 @@ export function BookRide({ pickup, drop, onPickup, onDrop, autoLocate = true }: 
 
         {kind !== "now" && (
           <label className="mt-3 block">
-            <span className="mb-1.5 block text-sm font-semibold text-secondary">
-              {kind === "hire" ? "Start time (optional)" : "Pickup date and time"}
+            <span className="mb-1.5 block text-sm font-semibold text-white/70">
+              {kind === "hire" ? "Start time (optional)" : "Pickup date & time"}
             </span>
             <input
               type="datetime-local"
               min={minDateTime()}
               value={when}
               onChange={(event) => setWhen(event.target.value)}
-              className="w-full rounded-xl border border-surface-border bg-soft-off-white px-4 py-3"
+              className="w-full rounded-xl border border-white/10 bg-[#121217] px-4 py-3 text-white"
             />
           </label>
         )}
         {kind === "hire" && (
           <div className="mt-3 flex items-center gap-3">
-            <button type="button" onClick={() => setHours((value) => Math.max(1, value - 1))} className="h-11 w-11 rounded-full border border-surface-border text-xl font-bold" aria-label="Fewer hours">
+            <button type="button" onClick={() => setHours((value) => Math.max(1, value - 1))} className="h-11 w-11 rounded-full border border-white/10 text-xl font-bold text-white" aria-label="Fewer hours">
               −
             </button>
             <span className="w-16 text-center text-2xl font-bold">{hours} h</span>
-            <button type="button" onClick={() => setHours((value) => Math.min(12, value + 1))} className="h-11 w-11 rounded-full border border-surface-border text-xl font-bold" aria-label="More hours">
+            <button type="button" onClick={() => setHours((value) => Math.min(12, value + 1))} className="h-11 w-11 rounded-full border border-white/10 text-xl font-bold text-white" aria-label="More hours">
               +
             </button>
           </div>
@@ -235,10 +226,9 @@ export function BookRide({ pickup, drop, onPickup, onDrop, autoLocate = true }: 
 
       <div>
         <div className="mb-2 flex items-center justify-between gap-3">
-          <h2 className="text-lg font-bold text-[#e4e1e9]">Available Sanctuary Fleet</h2>
-          <span className="text-xs font-semibold text-[#ddb7ff]">Dhaka Traffic: Moderate</span>
+          <h2 className="text-lg font-bold text-[#e4e1e9]">Sanctuary Fleet / ফ্লিট</h2>
+          <span className="text-xs font-semibold text-[#ffb95f]">100% Female Captains</span>
         </div>
-        <p className="mb-2 text-[11px] text-white/45">Traffic status is not live yet. This label is a placeholder, not a measured feed.</p>
         <div className="flex flex-col gap-2.5" role="listbox" aria-label="Choose a vehicle">
           {rates.map((item, index) => {
             const copy = FLEET_COPY[item.id];
@@ -252,16 +242,16 @@ export function BookRide({ pickup, drop, onPickup, onDrop, autoLocate = true }: 
                 type="button"
                 role="option"
                 aria-selected={selected}
-                initial={{ opacity: 0, y: 10 }}
+                initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.05, duration: 0.28 }}
-                whileTap={{ scale: 0.985 }}
+                transition={{ delay: index * 0.04, duration: 0.25 }}
+                whileTap={{ scale: 0.98 }}
                 onClick={() => setService(item.id)}
                 className={`flex items-center gap-3 rounded-2xl px-3 py-3 text-left text-[#e4e1e9] ${
-                  selected ? "bg-[#2a292f] shadow-md ring-1 ring-[#A855F7]/40" : "bg-[#1f1f24]"
+                  selected ? "bg-[#2a292f] ring-2 ring-[#ddb7ff]/50" : "bg-[#1f1f24]"
                 }`}
               >
-                <span className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full ${selected ? "bg-[#ddb7ff]/15 text-[#ddb7ff]" : "bg-[#35343a] text-white/70"}`}>
+                <span className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full ${selected ? "bg-[#ddb7ff]/20 text-[#ddb7ff]" : "bg-[#35343a] text-white/70"}`}>
                   <Icon name={item.icon} />
                 </span>
                 <span className="min-w-0 flex-1">
@@ -271,15 +261,13 @@ export function BookRide({ pickup, drop, onPickup, onDrop, autoLocate = true }: 
                   </span>
                   <span className="mt-0.5 block text-xs text-white/70">
                     {pickupMin} min away
-                    {tripMin != null ? ` · ${tripMin} min trip` : ""}
-                    {" · 1 seat · "}
+                    {tripMin != null ? ` · ${tripMin} min` : ""}
+                    {" · "}
                     {copy.perk}
                   </span>
-                  <span className="mt-0.5 block truncate text-[11px] text-white/55">{copy.blurb}</span>
                 </span>
                 <span className="shrink-0 text-right">
                   <span className="block text-lg font-extrabold text-[#ddb7ff]">{fare != null ? formatTaka(fare) : "—"}</span>
-                  <span className="block text-[10px] uppercase tracking-wide text-white/45">Distance</span>
                 </span>
               </motion.button>
             );
@@ -289,9 +277,8 @@ export function BookRide({ pickup, drop, onPickup, onDrop, autoLocate = true }: 
 
       <div className="flex items-center justify-between gap-3 rounded-2xl bg-[#1f1f24] p-3 text-[#e4e1e9]">
         <div className="min-w-0">
-          <p className="text-[10px] font-bold uppercase tracking-wider text-white/45">Payment method</p>
+          <p className="text-[10px] font-bold uppercase tracking-wider text-white/45">Payment / পেমেন্ট</p>
           <p className="truncate text-sm font-semibold">{payment === "bkash" ? "bKash" : payment === "nagad" ? "Nagad" : "Cash"}</p>
-          <p className="text-[11px] text-white/45">No saved wallet number. Pay the captain directly.</p>
         </div>
         <div className="flex shrink-0 rounded-full bg-[#2a292f] p-1">
           {(["bkash", "nagad", "cash"] as const).map((method) => (
@@ -299,7 +286,7 @@ export function BookRide({ pickup, drop, onPickup, onDrop, autoLocate = true }: 
               key={method}
               type="button"
               onClick={() => setPayment(method)}
-              className={`rounded-full px-2.5 py-1 text-xs font-semibold ${payment === method ? "bg-[#b76dff] text-[#400071]" : "text-white/70"}`}
+              className={`rounded-full px-3 py-1 text-xs font-semibold ${payment === method ? "bg-[#ddb7ff] text-[#1a1a24]" : "text-white/70"}`}
             >
               {method === "bkash" ? "bKash" : method === "nagad" ? "Nagad" : "Cash"}
             </button>
@@ -310,7 +297,7 @@ export function BookRide({ pickup, drop, onPickup, onDrop, autoLocate = true }: 
       <FareBreakdown km={kind === "hire" ? null : km} rate={selectedRate} hireFare={hireFare} />
 
       {error && (
-        <p className="text-sm text-error" role="alert">
+        <p className="text-sm text-red-400" role="alert">
           {error}
         </p>
       )}
@@ -318,13 +305,13 @@ export function BookRide({ pickup, drop, onPickup, onDrop, autoLocate = true }: 
         type="button"
         disabled={busy || !canSubmit}
         onClick={() => void submit()}
-        className="h-14 rounded-full bg-gradient-to-br from-[#A855F7] to-[#6366F1] text-lg font-semibold text-white disabled:bg-[#1A1A24] disabled:text-white/30"
+        className="h-14 rounded-full bg-gradient-to-br from-[#ddb7ff] to-[#a855f7] text-lg font-bold text-[#1a1a24] disabled:bg-[#1A1A24] disabled:text-white/30"
       >
-        {busy ? "Requesting…" : kind === "now" ? "Request SheRides Ride" : kind === "hire" ? "Request hire" : "Schedule SheRides Ride"}
+        {busy ? "Requesting…" : kind === "now" ? "Request SheRides" : kind === "hire" ? "Request Hire" : "Schedule Ride"}
       </button>
       {!canSubmit && (
-        <p className="text-center text-sm text-tertiary">
-          {pickup ? "Add a destination to see fares and request a ride." : "Allow location, or type a pickup, to start."}
+        <p className="text-center text-sm text-white/50">
+          {pickup ? "Add destination to see fare" : "Allow location or type pickup"}
         </p>
       )}
     </div>
@@ -339,17 +326,16 @@ type RideDeckProps = {
   initialDrop?: GoPlace | null;
 };
 
-/** Booking sheet beside the map. The page scroll stays on the app shell. */
 export function RideDeck({ children, below, showForm = true, initialPickup = null, initialDrop = null }: RideDeckProps) {
   const [pickup, setPickup] = useState<GoPlace | null>(initialPickup);
   const [drop, setDrop] = useState<GoPlace | null>(initialDrop);
 
   return (
-    <div className="flex w-full min-w-0 flex-col bg-[#131318] text-[#e4e1e9] lg:grid lg:grid-cols-[minmax(300px,440px)_minmax(0,1fr)] lg:items-start">
-      <div className="order-1 h-[240px] min-w-0 p-3 sm:h-[280px] sm:p-4 lg:sticky lg:top-0 lg:order-2 lg:h-[calc(100dvh-72px)] lg:pl-0">
+    <div className="relative flex h-[100dvh] w-full flex-col bg-[#131318] text-[#e4e1e9] lg:grid lg:h-auto lg:grid-cols-[minmax(320px,420px)_1fr]">
+      <div className="absolute inset-0 z-0 lg:relative lg:order-2 lg:h-[calc(100dvh-72px)]">
         <RideMap pickup={pickup} drop={drop} />
       </div>
-      <div className="order-2 flex min-w-0 flex-col gap-4 px-4 py-4 pb-28 sm:px-6 lg:order-1 lg:py-6 lg:pb-6">
+      <div className="relative z-10 mt-auto max-h-[72dvh] overflow-y-auto rounded-t-3xl border border-white/10 bg-[#131318]/95 p-4 pb-28 shadow-2xl backdrop-blur-xl lg:order-1 lg:mt-0 lg:max-h-none lg:rounded-none lg:border-0 lg:bg-transparent lg:p-6 lg:pb-6 lg:shadow-none">
         {children}
         {showForm ? (
           <BookRide pickup={pickup} drop={drop} onPickup={setPickup} onDrop={setDrop} autoLocate={!initialPickup} />
