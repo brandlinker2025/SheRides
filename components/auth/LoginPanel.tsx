@@ -40,7 +40,6 @@ export function LoginPanel({ admin = false }: { admin?: boolean }) {
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [resetMessage, setResetMessage] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -396,19 +395,7 @@ export function LoginPanel({ admin = false }: { admin?: boolean }) {
                 <Icon name={showPassword ? "visibility_off" : "visibility"} size={20} />
               </button>
             </label>
-            <div className={`flex items-center justify-between gap-3 -mt-1 ${resetMode ? "hidden" : ""}`}>
-              <label className="inline-flex items-center gap-2 text-sm text-white/70">
-                <input
-                  type="checkbox"
-                  checked={rememberMe}
-                  onChange={(event) => {
-                    const nextValue = event.target.checked;
-                    setRememberMe(nextValue);
-                  }}
-                  className="h-4 w-4 rounded border-white/30 bg-black/40 text-[#6c5ce7] accent-[#6c5ce7]"
-                />
-                Remember me
-              </label>
+            <div className={`flex items-center justify-end gap-3 -mt-1 ${resetMode ? "hidden" : ""}`}>
               <button
                 type="button"
                 onClick={() => void (admin ? handleAdminForgotPassword() : handleMemberForgotPassword())}

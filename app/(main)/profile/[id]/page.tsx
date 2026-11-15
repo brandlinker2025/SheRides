@@ -15,21 +15,37 @@ export default function RiderProfilePage() {
   const { user } = useAuth();
   const [rider, setRider] = useState<Rider | null>(null);
   const [missing, setMissing] = useState(false);
+  const [problem, setProblem] = useState<string | null>(null);
 
   useEffect(() => {
     const supabase = createClient();
-    if (!supabase) return;
+    if (!supabase) {
+      setProblem("Profiles are not connected right now.");
+      return;
+    }
     void supabase
       .from("profiles")
       .select("*")
       .or(`id.eq.${params.id},username.eq.${params.id}`)
       .maybeSingle()
-      .then(({ data }) => {
+      .then(({ data, error }) => {
+        if (error) {
+          setProblem("This profile is not available.");
+          return;
+        }
         if (!data) setMissing(true);
         else setRider(riderFromProfile(data.id as string, data as Record<string, unknown>));
       });
   }, [params.id]);
 
+  if (problem) {
+    return (
+      <div className="p-gutter">
+        <BackLink href="/go" label="Book a ride" className="mb-4" />
+        <EmptyState title={problem} />
+      </div>
+    );
+  }
   if (missing) {
     return (
       <div className="p-gutter">

@@ -55,7 +55,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (!data) await supabase.from("profiles").upsert({ id, full_name: fullName ?? "", username: fullName?.toLowerCase().replace(/\s+/g, "") || id.slice(0, 8) });
       const latest = await supabase.from("profiles").select("*").eq("id", id).maybeSingle();
       const birthday = await supabase.from("member_birthdays").select("user_id").eq("user_id", id).maybeSingle();
-      const rider = riderFromProfile(id, { ...(latest.data ?? {}), hasBirthday: birthday.error ? true : Boolean(birthday.data) }, fullName);
+      const rider = riderFromProfile(id, { ...(latest.data ?? {}), hasBirthday: !birthday.error && Boolean(birthday.data) }, fullName);
       setUser(rider);
     } catch { setUser((prev) => prev ?? riderFromProfile(id, null, fullName)); }
   }, []);

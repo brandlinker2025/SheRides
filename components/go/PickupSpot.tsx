@@ -32,16 +32,18 @@ type PickupSpotProps = {
 /** Exact pickup details. A photo stays on the phone because there is no upload store yet. */
 export function PickupSpot({ pickupLabel, onNote }: PickupSpotProps) {
   const [open, setOpen] = useState(true);
-  const [landmark, setLandmark] = useState(LANDMARKS[0]);
-  const [spot, setSpot] = useState(SPOTS[0].id);
+  const [landmark, setLandmark] = useState<string | null>(null);
+  const [spot, setSpot] = useState<string | null>(null);
   const [quick, setQuick] = useState<string[]>([]);
   const [written, setWritten] = useState("");
   const [photoName, setPhotoName] = useState<string | null>(null);
+  const [attached, setAttached] = useState(false);
 
   const note = useMemo(() => {
+    const waiting = SPOTS.find((item) => item.id === spot)?.title;
     const parts = [
-      `Gate/landmark: ${landmark}`,
-      `Waiting spot: ${SPOTS.find((item) => item.id === spot)?.title ?? spot}`,
+      landmark ? `Gate/landmark: ${landmark}` : "",
+      waiting ? `Waiting spot: ${waiting}` : "",
       ...quick,
       written.trim(),
       photoName ? "Gate photo taken on this phone (not uploaded)" : "",
@@ -50,8 +52,8 @@ export function PickupSpot({ pickupLabel, onNote }: PickupSpotProps) {
   }, [landmark, spot, quick, written, photoName]);
 
   useEffect(() => {
-    onNote(note);
-  }, [note, onNote]);
+    onNote(attached ? note : "");
+  }, [attached, note, onNote]);
 
   return (
     <section className="rounded-[28px] border border-white/10 bg-[#121217]/90 p-4 text-[#e4e1e9] shadow-[0_8px_32px_-4px_rgba(0,0,0,0.6)] backdrop-blur-xl">
@@ -191,7 +193,14 @@ export function PickupSpot({ pickupLabel, onNote }: PickupSpotProps) {
             <Icon name="shield_with_heart" className="shrink-0 text-[#ffb95f]" size={18} />
             Sanctuary Arrival Promise. Captain waits up to 3 mins complimentary inside this safe perimeter. A camera check is not recorded in the app.
           </p>
-          <button type="button" onClick={() => setOpen(false)} className="h-12 rounded-full bg-gradient-to-br from-[#A855F7] to-[#6366F1] text-sm font-semibold text-white">
+          <button
+            type="button"
+            onClick={() => {
+              setAttached(true);
+              setOpen(false);
+            }}
+            className="h-12 rounded-full bg-gradient-to-br from-[#A855F7] to-[#6366F1] text-sm font-semibold text-white"
+          >
             Confirm Pickup Spot
           </button>
         </div>

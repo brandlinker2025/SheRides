@@ -10,16 +10,16 @@ export default function EntryPage() {
         </p>
         <div className="mt-10 flex w-full flex-col gap-3">
           <Link
-            href="/go?role=passenger"
+            href="/go"
             className="flex h-14 items-center justify-center rounded-full bg-[#A855F7] text-lg font-bold text-white"
           >
             Take a ride / রাইড নিন
           </Link>
           <Link
-            href="/go/apply?role=rider"
+            href="/partner"
             className="flex h-14 items-center justify-center rounded-full border-2 border-[#A855F7] text-lg font-bold text-[#A855F7]"
           >
-            Become a Rider / রাইডার হন
+            Become a partner / পার্টনার হন
           </Link>
         </div>
         <p className="mt-10 text-sm text-white/60">

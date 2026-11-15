@@ -109,7 +109,7 @@ export function PlaceInput({ label, icon, value, onChange, allowCurrentLocation,
       )}
       {note && <p className="mt-1 font-body-sm text-error">{note}</p>}
       {open && results.length > 0 && !value && (
-        <ul className="absolute z-30 mt-1 w-full card-surface overflow-hidden max-h-72 overflow-y-auto">
+        <ul className="z-30 mt-1 max-h-60 w-full overflow-y-auto overflow-hidden card-surface">
           {results.map((place) => (
             <li key={`${place.lat},${place.lng}`}>
               <button

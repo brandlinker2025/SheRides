@@ -47,13 +47,18 @@ export default function GoRidePage() {
   const isRider = Boolean(ride && user && ride.rider_id === user.id);
 
   const load = useCallback(async () => {
+    if (!id) return;
     const supabase = createClient();
-    if (!supabase || !id) return;
+    if (!supabase) {
+      setLoadError("Ride booking is not connected yet.");
+      return;
+    }
     const { data, error } = await supabase.from("go_rides").select("*").eq("id", id).maybeSingle();
     if (error || !data) {
       setLoadError(error ? goErrorMessage(error) : "Ride not found.");
       return;
     }
+    setLoadError(null);
     const row = data as GoRide;
     setRide(row);
     if (row.rider_id) {
@@ -138,7 +143,10 @@ export default function GoRidePage() {
   }
 
   async function shareTrip() {
-    if (!secret) return;
+    if (!secret) {
+      setMessage("The trip link is not ready yet. Wait a moment and try again.");
+      return;
+    }
     const url = `${window.location.origin}/track/${secret.share_token}`;
     const text = "Follow my SheRides ride live:";
     try {

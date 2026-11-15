@@ -8,6 +8,13 @@ import { BrandLogo } from "@/components/ui/BrandLogo";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
+async function leaveAccount() {
+  "use server";
+  const supabase = await createServerSupabase();
+  if (supabase) await supabase.auth.signOut();
+  redirect("/");
+}
+
 export default async function PendingApprovalPage() {
   const supabase = await createServerSupabase();
   if (!supabase) redirect("/login");
@@ -41,12 +48,14 @@ export default async function PendingApprovalPage() {
             This is not an SMS check. Stay signed in — you will be able to ride once an admin approves your membership from the dashboard.
           </p>
         </div>
-        <Link
-          href="/login"
-          className="h-12 px-5 inline-flex items-center rounded-full border border-surface-border font-label-lg"
-        >
-          Back to sign in
-        </Link>
+        <form action={leaveAccount}>
+          <button
+            type="submit"
+            className="h-12 px-5 inline-flex items-center rounded-full border border-surface-border font-label-lg"
+          >
+            Sign out
+          </button>
+        </form>
       </section>
     </PandaStandaloneFrame>
   );

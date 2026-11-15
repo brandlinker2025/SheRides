@@ -110,6 +110,9 @@ export function PartnerLanding() {
         </div>
         {menuOpen && (
           <nav id="partner-menu" className="flex flex-col gap-1 border-t border-white/10 px-4 py-3 lg:hidden" aria-label="Partner">
+            <button type="button" className="rounded-full px-3 py-3 text-left text-sm font-semibold text-[#f4b8d4]" onClick={() => openForm(null)}>
+              {t.nav.apply}
+            </button>
             <a className="rounded-full px-3 py-3 text-sm font-semibold" href="#content" onClick={() => setMenuOpen(false)}>
               {t.nav.home}
             </a>

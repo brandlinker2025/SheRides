@@ -57,7 +57,13 @@ function SignupForm() {
             e.preventDefault();
             setError(null);
             const normalized = normalizeBdPhone(phone);
-            if (!normalized || !password.trim()) {
+            if (!normalized) {
+              setError("Enter a valid Bangladesh mobile number (01XXXXXXXXX).");
+              dodge();
+              return;
+            }
+            if (!password.trim()) {
+              setError("Enter a password.");
               dodge();
               return;
             }
@@ -165,7 +171,8 @@ function SignupForm() {
               onChange={(e) => setPassword(e.target.value)}
               onFocus={() => panda.onPasswordFocus(showPassword)}
               onBlur={panda.onBlur}
-              placeholder="Password (min. 6 characters)"
+              placeholder="Password"
+              aria-label="Password"
               className={`${authFieldClass} pl-11 pr-12`}
             />
             <button
@@ -193,6 +200,7 @@ function SignupForm() {
             onFocus={() => panda.onPasswordFocus(showPassword)}
             onBlur={panda.onBlur}
             placeholder="Confirm password"
+            aria-label="Confirm password"
             className={authFieldClass}
           />
           {error && (

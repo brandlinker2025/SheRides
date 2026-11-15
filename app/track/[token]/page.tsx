@@ -26,7 +26,7 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 export default function TrackTripPage() {
   const { token } = useParams<{ token: string }>();
   const [trip, setTrip] = useState<Trip | null>(null);
-  const [state, setState] = useState<"loading" | "ok" | "missing">("loading");
+  const [state, setState] = useState<"loading" | "ok" | "missing" | "unavailable">("loading");
 
   useEffect(() => {
     if (!token || !UUID.test(token)) {
@@ -35,7 +35,10 @@ export default function TrackTripPage() {
     }
     const load = async () => {
       const supabase = createClient();
-      if (!supabase) return;
+      if (!supabase) {
+        setState("unavailable");
+        return;
+      }
       const { data } = await supabase.rpc("go_shared_trip", { p_token: token });
       const row = ((data ?? []) as Trip[])[0];
       if (!row) {
@@ -55,6 +58,9 @@ export default function TrackTripPage() {
       <section className="bg-surface-container-lowest rounded-[24px] shadow-premium p-6 sm:p-8 flex flex-col gap-5 max-w-lg mx-auto">
         <BrandLogo className="text-[38px]" />
         {state === "loading" && <div className="skeleton h-40" />}
+        {state === "unavailable" && (
+          <p className="font-body-md text-secondary">Trip tracking is not connected right now. Ask the rider to send the link again in a moment.</p>
+        )}
         {state === "missing" && (
           <p className="font-body-md text-secondary">This trip link has expired or is not valid. Trip links stop working 2 hours after the ride ends.</p>
         )}

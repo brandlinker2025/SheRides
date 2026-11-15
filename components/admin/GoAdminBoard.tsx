@@ -101,10 +101,17 @@ function RiderHistory({ rides }: { rides: AdminGoRide[] }) {
 
 function DocThumb({ doc }: { doc: { label: string; url: string } | undefined }) {
   if (!doc) return <span className="text-xs text-tertiary">Missing</span>;
+  const pdf = /\.pdf(?:$|\?)/i.test(doc.url);
   return (
     <a href={doc.url} target="_blank" rel="noreferrer" className="block">
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={doc.url} alt={doc.label} className="aspect-[4/5] w-full rounded-xl object-cover border border-white/10 bg-black/40" />
+      {pdf ? (
+        <span className="flex aspect-[4/5] w-full items-center justify-center rounded-xl border border-white/10 bg-black/40 text-sm font-bold text-[#ffb95f]">
+          PDF
+        </span>
+      ) : (
+        /* eslint-disable-next-line @next/next/no-img-element */
+        <img src={doc.url} alt={doc.label} className="aspect-[4/5] w-full rounded-xl object-cover border border-white/10 bg-black/40" />
+      )}
       <span className="mt-1 block text-[10px] font-semibold uppercase tracking-wide text-white/50">{doc.label}</span>
     </a>
   );

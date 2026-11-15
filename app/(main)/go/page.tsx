@@ -73,18 +73,32 @@ function ApplyCard({ role, app }: { role: GoRole; app: GoApplication | undefined
 function MyRides() {
   const { user } = useAuth();
   const [rides, setRides] = useState<GoRide[] | null>(null);
+  const [ridesError, setRidesError] = useState<string | null>(null);
   useEffect(() => {
     const supabase = createClient();
-    if (!supabase || !user) return;
+    if (!user) return;
+    if (!supabase) {
+      setRidesError("Ride history is not connected yet.");
+      setRides([]);
+      return;
+    }
     void supabase
       .from("go_rides")
       .select("*")
       .or(`passenger_id.eq.${user.id},rider_id.eq.${user.id}`)
       .order("created_at", { ascending: false })
       .limit(40)
-      .then(({ data }) => setRides((data ?? []) as GoRide[]));
+      .then(({ data, error }) => {
+        if (error) {
+          setRidesError(goErrorMessage(error));
+          setRides([]);
+          return;
+        }
+        setRides((data ?? []) as GoRide[]);
+      });
   }, [user]);
 
+  if (ridesError) return <p className="card-surface p-6 font-body-sm text-error" role="alert">{ridesError}</p>;
   if (!rides) return <div className="skeleton h-40" />;
   if (!rides.length) return <p className="card-surface p-8 text-center font-body-sm text-secondary">No rides yet.</p>;
   return (
@@ -147,8 +161,9 @@ function GoHub() {
   const rider = apps?.find((a) => a.role === "rider");
   const canBook = passenger?.status === "approved";
   const canRide = rider?.status === "approved";
-  const requested = params.get("tab") as Tab | null;
-  const tab: Tab = requested === "rides" ? "rides" : requested === "rider" ? "rider" : "book";
+  const requested = params.get("tab");
+  const role = params.get("role");
+  const tab: Tab = requested === "rides" || requested === "rider" ? requested : role === "rider" ? "rider" : "book";
   const submitted = params.get("submitted");
 
   const notices = (
