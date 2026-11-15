@@ -1,13 +1,32 @@
--- Vehicle choice for SheRides ride requests.
--- Bike keeps the existing go_fare. Scooter and car scale that rate.
+-- Vehicle label for a ride request. Every category uses the same distance slab.
+-- Up to 5 km: ৳30/km (5 km = ৳150). Each km after that: ৳18. No car, CNG, or tier multiplier.
+-- Waiting time (৳1.50/min) is not stored here; it is shown on the booking screen and
+-- applies only while a ride is paused, delayed, or waiting at pickup.
 -- The original go_request_ride signature stays so older clients still book.
 
 alter table public.go_rides
-  add column if not exists service text not null default 'bike';
+  add column if not exists service text not null default 'ev_bike';
 
 alter table public.go_rides drop constraint if exists go_rides_service_check;
 alter table public.go_rides
-  add constraint go_rides_service_check check (service in ('bike', 'scooter', 'car'));
+  add constraint go_rides_service_check check (service in ('ev_bike', 'racing_bike', 'moto_155', 'scooter_light'));
+
+create or replace function public.go_fare(p_kind text, p_distance_km numeric, p_hire_hours integer)
+returns integer
+language sql
+immutable
+set search_path = ''
+as $$
+  select case
+    when p_kind = 'hire' then 250 * greatest(1, coalesce(p_hire_hours, 1))
+    else round((
+      case
+        when coalesce(p_distance_km, 0) <= 5 then 30 * coalesce(p_distance_km, 0)
+        else 150 + 18 * (coalesce(p_distance_km, 0) - 5)
+      end
+    )::numeric)::integer
+  end;
+$$;
 
 create or replace function public.go_service_fare(
   p_service text,
@@ -20,21 +39,8 @@ language sql
 immutable
 set search_path = ''
 as $$
-  select case
-    when p_kind = 'hire' then round(
-      (250 * greatest(1, coalesce(p_hire_hours, 1)))
-      * case lower(coalesce(p_service, 'bike'))
-          when 'car' then 1.85
-          when 'scooter' then 1.15
-          else 1
-        end
-    )::integer
-    when lower(coalesce(p_service, 'bike')) = 'car' then
-      greatest(180, round((30 + 14 * coalesce(p_distance_km, 0)) * 1.85))::integer
-    when lower(coalesce(p_service, 'bike')) = 'scooter' then
-      greatest(80, round((30 + 14 * coalesce(p_distance_km, 0)) * 1.15))::integer
-    else greatest(70, round(30 + 14 * coalesce(p_distance_km, 0)))::integer
-  end;
+  -- p_service is recorded on the ride. It does not change the amount.
+  select public.go_fare(p_kind, p_distance_km, p_hire_hours);
 $$;
 
 revoke all on function public.go_service_fare(text, text, numeric, integer) from public, anon;
@@ -65,7 +71,10 @@ declare
   new_id uuid;
   rider record;
   notified integer := 0;
-  chosen text := case when lower(coalesce(p_service, '')) in ('scooter', 'car') then lower(p_service) else 'bike' end;
+  chosen text := case
+    when lower(coalesce(p_service, '')) in ('ev_bike', 'racing_bike', 'moto_155', 'scooter_light') then lower(p_service)
+    else 'ev_bike'
+  end;
 begin
   if me is null or not public.go_is_approved('passenger') then
     raise exception 'Your SheRides passenger verification must be approved first';

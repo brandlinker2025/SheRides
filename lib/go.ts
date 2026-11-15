@@ -4,7 +4,7 @@ export type GoRole = "passenger" | "rider";
 export type GoAppStatus = "pending" | "approved" | "rejected" | "suspended";
 export type GoRideKind = "now" | "scheduled" | "hire";
 export type GoRideStatus = "requested" | "accepted" | "in_progress" | "completed" | "cancelled";
-export type GoService = "bike" | "scooter" | "car";
+export type GoService = "ev_bike" | "racing_bike" | "moto_155" | "scooter_light";
 
 export type GoApplication = {
   id: string;
@@ -49,38 +49,59 @@ export type GoRide = {
 
 export type GoPlace = { label: string; lat: number; lng: number };
 
-/** Mirrors public.go_fare in the database (bike baseline; the database value is the one charged). */
+/** First 5 km are ৳30/km. A 5 km trip is exactly ৳150. Each km after that is ৳18. */
+export const SLAB_KM = 5;
+export const FARE_PER_KM_WITHIN_SLAB = 30;
+export const FARE_PER_KM_BEYOND_SLAB = 18;
+/** Charged per minute only while paused, delayed in traffic, or waiting at pickup. */
+export const WAITING_FEE_PER_MINUTE = 1.5;
+
+/**
+ * Distance fare in BDT. Mirrors public.go_fare for ride-now and pre-booked trips.
+ * Whole kilometres on the slab land on exact taka (5 km = 150, 8 km = 204).
+ */
+export function distanceFare(distanceKm: number) {
+  const km = Math.max(0, distanceKm);
+  const raw =
+    km <= SLAB_KM
+      ? FARE_PER_KM_WITHIN_SLAB * km
+      : SLAB_KM * FARE_PER_KM_WITHIN_SLAB + FARE_PER_KM_BEYOND_SLAB * (km - SLAB_KM);
+  return Math.round(raw);
+}
+
+/** Potential waiting charge. Not included in the distance fare. */
+export function waitingFee(minutes: number) {
+  return Math.round(Math.max(0, minutes) * WAITING_FEE_PER_MINUTE * 100) / 100;
+}
+
+/** Mirrors public.go_fare. Hire stays hourly. Every other kind uses the distance slab. */
 export function estimateFare(kind: GoRideKind, distanceKm: number | null, hireHours: number | null) {
   if (kind === "hire") return 250 * Math.max(1, hireHours ?? 1);
-  return Math.max(70, Math.round(30 + 14 * (distanceKm ?? 0)));
+  return distanceFare(distanceKm ?? 0);
 }
 
 export const RIDE_SERVICES: { id: GoService; label: string; icon: string; detail: string; pickupMin: number }[] = [
-  { id: "bike", label: "SheRides Bike", icon: "two_wheeler", detail: "1 seat · fastest", pickupMin: 3 },
-  { id: "scooter", label: "SheRides Scooter", icon: "electric_scooter", detail: "1 seat · easy hop", pickupMin: 5 },
-  { id: "car", label: "SheRides Car", icon: "directions_car", detail: "3 seats · more room", pickupMin: 7 },
+  { id: "ev_bike", label: "EV Bikes", icon: "electric_bike", detail: "Same distance slab", pickupMin: 3 },
+  { id: "racing_bike", label: "Racing Bikes", icon: "sports_motorsports", detail: "Same distance slab", pickupMin: 4 },
+  { id: "moto_155", label: "155cc Motorcycles", icon: "two_wheeler", detail: "Same distance slab", pickupMin: 5 },
+  { id: "scooter_light", label: "125cc/113cc Scooters/Light Bikes", icon: "moped", detail: "Same distance slab", pickupMin: 4 },
 ];
 
 export const SERVICE_LABEL: Record<GoService, string> = {
-  bike: "SheRides Bike",
-  scooter: "SheRides Scooter",
-  car: "SheRides Car",
+  ev_bike: "EV Bikes",
+  racing_bike: "Racing Bikes",
+  moto_155: "155cc Motorcycles",
+  scooter_light: "125cc/113cc Scooters/Light Bikes",
 };
 
-/**
- * Mirrors public.go_service_fare. Bike matches go_fare exactly.
- * Scooter and car scale that distance rate; hire uses the same multipliers.
- */
-export function estimateServiceFare(service: GoService, kind: GoRideKind, distanceKm: number | null, hireHours: number | null) {
-  if (kind === "hire") {
-    const hours = 250 * Math.max(1, hireHours ?? 1);
-    const multiplier = service === "car" ? 1.85 : service === "scooter" ? 1.15 : 1;
-    return Math.round(hours * multiplier);
-  }
-  const raw = 30 + 14 * (distanceKm ?? 0);
-  if (service === "car") return Math.max(180, Math.round(raw * 1.85));
-  if (service === "scooter") return Math.max(80, Math.round(raw * 1.15));
-  return Math.max(70, Math.round(raw));
+export function serviceLabel(service: string | null | undefined) {
+  if (!service) return null;
+  return (SERVICE_LABEL as Record<string, string>)[service] ?? null;
+}
+
+/** Every vehicle uses the same slab. The service argument does not change the fare. */
+export function estimateServiceFare(_service: GoService, kind: GoRideKind, distanceKm: number | null, hireHours: number | null) {
+  return estimateFare(kind, distanceKm, hireHours);
 }
 
 /** Typical minutes until pickup, plus a road-time estimate once a destination exists. */
@@ -90,10 +111,9 @@ export function estimatePickupMinutes(service: GoService, distanceKm: number | n
   return base + Math.min(8, Math.round(distanceKm / 4));
 }
 
-export function estimateTripMinutes(service: GoService, distanceKm: number | null) {
+export function estimateTripMinutes(_service: GoService, distanceKm: number | null) {
   if (distanceKm == null) return null;
-  const kmh = service === "car" ? 22 : service === "scooter" ? 24 : 26;
-  return Math.max(4, Math.round((distanceKm / kmh) * 60));
+  return Math.max(4, Math.round((distanceKm / 26) * 60));
 }
 
 /** Mirrors public.go_distance_km: straight line x 1.3 for Dhaka roads. */
@@ -157,7 +177,9 @@ export const KIND_LABEL: Record<GoRideKind, string> = {
 };
 
 export function formatTaka(value: number) {
-  return `৳${value.toLocaleString("en-BD")}`;
+  const rounded = Math.round(value * 100) / 100;
+  const whole = Math.abs(rounded - Math.round(rounded)) < 0.001;
+  return `৳${rounded.toLocaleString("en-BD", whole ? { maximumFractionDigits: 0 } : { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
 export function formatWhen(iso: string | null) {

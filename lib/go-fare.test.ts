@@ -1,23 +1,45 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { estimateFare, estimateServiceFare, estimateTripMinutes } from "./go";
+import {
+  RIDE_SERVICES,
+  WAITING_FEE_PER_MINUTE,
+  distanceFare,
+  estimateFare,
+  estimateServiceFare,
+  formatTaka,
+  waitingFee,
+} from "./go";
 
-test("bike service fare matches the database baseline", () => {
-  assert.equal(estimateServiceFare("bike", "now", 5.5, null), estimateFare("now", 5.5, null));
-  assert.equal(estimateServiceFare("bike", "now", 0, null), 70);
-  assert.equal(estimateServiceFare("bike", "hire", null, 2), 500);
+test("5 km is exactly 150 BDT at 30 per km", () => {
+  assert.equal(distanceFare(5), 150);
+  assert.equal(estimateFare("now", 5, null), 150);
+  assert.equal(distanceFare(4), 120);
+  assert.equal(distanceFare(1), 30);
 });
 
-test("scooter and car estimates sit above the bike fare", () => {
-  const bike = estimateServiceFare("bike", "now", 8, null);
-  const scooter = estimateServiceFare("scooter", "now", 8, null);
-  const car = estimateServiceFare("car", "now", 8, null);
-  assert.ok(scooter > bike);
-  assert.ok(car > scooter);
-  assert.equal(car, Math.max(180, Math.round((30 + 14 * 8) * 1.85)));
+test("distance beyond 5 km is 18 BDT per km", () => {
+  assert.equal(distanceFare(8), 204);
+  assert.equal(distanceFare(6), 168);
+  assert.equal(distanceFare(5.5), 159);
+  assert.equal(estimateFare("scheduled", 8, null), 204);
 });
 
-test("trip minutes need a destination", () => {
-  assert.equal(estimateTripMinutes("bike", null), null);
-  assert.ok((estimateTripMinutes("car", 10) ?? 0) >= 4);
+test("every vehicle uses the same slab and there is no car tier", () => {
+  const ids = RIDE_SERVICES.map((item) => item.id);
+  assert.deepEqual(ids, ["ev_bike", "racing_bike", "moto_155", "scooter_light"]);
+  for (const service of ids) {
+    assert.equal(estimateServiceFare(service, "now", 5, null), 150);
+    assert.equal(estimateServiceFare(service, "now", 8, null), 204);
+  }
+  assert.equal(JSON.stringify(RIDE_SERVICES).includes("car"), false);
+  assert.equal(JSON.stringify(RIDE_SERVICES).toLowerCase().includes("cng"), false);
+});
+
+test("waiting is 1.50 BDT per minute and stays separate from distance", () => {
+  assert.equal(WAITING_FEE_PER_MINUTE, 1.5);
+  assert.equal(waitingFee(1), 1.5);
+  assert.equal(waitingFee(10), 15);
+  assert.equal(formatTaka(waitingFee(1)), "৳1.50");
+  assert.equal(formatTaka(distanceFare(5)), "৳150");
+  assert.equal(distanceFare(5) + waitingFee(0), 150);
 });

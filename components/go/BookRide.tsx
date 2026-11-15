@@ -5,9 +5,14 @@ import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { Icon } from "@/components/ui/Icon";
 import {
+  FARE_PER_KM_BEYOND_SLAB,
+  FARE_PER_KM_WITHIN_SLAB,
   RIDE_SERVICES,
   SERVICE_LABEL,
-  estimateServiceFare,
+  SLAB_KM,
+  WAITING_FEE_PER_MINUTE,
+  distanceFare,
+  estimateFare,
   estimatePickupMinutes,
   estimateTripMinutes,
   formatTaka,
@@ -38,6 +43,58 @@ function serviceRpcMissing(message: string) {
   return /schema cache|could not find the function|p_service|go_service_fare|column ["']?service/i.test(message);
 }
 
+function FareBreakdown({
+  km,
+  serviceLabel,
+  hireFare,
+}: {
+  km: number | null;
+  serviceLabel: string;
+  hireFare: number | null;
+}) {
+  const distance = km != null ? distanceFare(km) : null;
+  const beyond = distance != null && km != null && km > SLAB_KM ? distance - SLAB_KM * FARE_PER_KM_WITHIN_SLAB : 0;
+  return (
+    <section aria-label="Fare breakdown" className="rounded-[22px] border border-white/25 bg-surface-container-lowest/80 px-4 py-4 backdrop-blur-xl">
+      <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-tertiary">{serviceLabel}</p>
+      <h2 className="mt-1 text-sm font-semibold">Distance fare</h2>
+      {distance == null || km == null ? (
+        <p className="mt-1 text-3xl font-bold">—</p>
+      ) : (
+        <>
+          <p className="mt-1 text-3xl font-bold">{formatTaka(distance)}</p>
+          <ul className="mt-2 flex flex-col gap-1 text-sm text-secondary">
+            {km <= SLAB_KM ? (
+              <li>
+                {km.toFixed(2)} km × ৳{FARE_PER_KM_WITHIN_SLAB} = {formatTaka(distance)}
+              </li>
+            ) : (
+              <>
+                <li>
+                  First {SLAB_KM} km × ৳{FARE_PER_KM_WITHIN_SLAB} = {formatTaka(SLAB_KM * FARE_PER_KM_WITHIN_SLAB)}
+                </li>
+                <li>
+                  {(km - SLAB_KM).toFixed(2)} km × ৳{FARE_PER_KM_BEYOND_SLAB} = {formatTaka(beyond)}
+                </li>
+              </>
+            )}
+          </ul>
+        </>
+      )}
+      {hireFare != null ? <p className="mt-2 text-sm text-secondary">Hourly hire {formatTaka(hireFare)}. The distance slab above is the ride-now price.</p> : null}
+      <div className="mt-4 border-t border-white/15 pt-3">
+        <h2 className="text-sm font-semibold">Potential waiting fee</h2>
+        <p className="text-2xl font-bold">
+          {formatTaka(WAITING_FEE_PER_MINUTE)} <span className="text-base font-semibold text-secondary">per minute</span>
+        </p>
+        <p className="mt-1 text-sm text-secondary">
+          Separate from the distance fare. Charged only if the ride is paused, delayed in traffic, or waiting for you at pickup.
+        </p>
+      </div>
+    </section>
+  );
+}
+
 type BookRideProps = {
   pickup: GoPlace | null;
   drop: GoPlace | null;
@@ -49,7 +106,7 @@ type BookRideProps = {
 export function BookRide({ pickup, drop, onPickup, onDrop, autoLocate = true }: BookRideProps) {
   const router = useRouter();
   const [kind, setKind] = useState<GoRideKind>("now");
-  const [service, setService] = useState<GoService>("bike");
+  const [service, setService] = useState<GoService>("ev_bike");
   const [when, setWhen] = useState("");
   const [hours, setHours] = useState(2);
   const [payment, setPayment] = useState<"cash" | "bkash" | "nagad">("cash");
@@ -59,9 +116,8 @@ export function BookRide({ pickup, drop, onPickup, onDrop, autoLocate = true }: 
   const [error, setError] = useState<string | null>(null);
 
   const km = useMemo(() => (pickup && drop ? roadKm(pickup, drop) : null), [pickup, drop]);
-  const fareFor = (id: GoService) =>
-    kind === "hire" || km != null ? estimateServiceFare(id, kind, km, kind === "hire" ? hours : null) : null;
-  const selectedFare = fareFor(service);
+  const distanceQuote = km != null && kind !== "hire" ? distanceFare(km) : null;
+  const hireFare = kind === "hire" ? estimateFare("hire", null, hours) : null;
   const canSubmit = Boolean(pickup) && (kind === "hire" || Boolean(drop)) && (kind !== "scheduled" || Boolean(when));
 
   async function submit() {
@@ -168,7 +224,7 @@ export function BookRide({ pickup, drop, onPickup, onDrop, autoLocate = true }: 
       <div className="flex flex-col gap-2" role="listbox" aria-label="Choose a vehicle">
         {RIDE_SERVICES.map((item, index) => {
           const selected = service === item.id;
-          const fare = fareFor(item.id);
+          const fare = distanceQuote;
           const pickupMin = estimatePickupMinutes(item.id, km);
           const tripMin = estimateTripMinutes(item.id, km);
           return (
@@ -202,7 +258,7 @@ export function BookRide({ pickup, drop, onPickup, onDrop, autoLocate = true }: 
               </span>
               <span className="text-right">
                 <span className="block text-lg font-bold">{fare != null ? formatTaka(fare) : "—"}</span>
-                <span className="block text-[11px] font-semibold uppercase tracking-wide text-tertiary">Est. fare</span>
+                <span className="block text-[11px] font-semibold uppercase tracking-wide text-tertiary">Distance</span>
               </span>
             </motion.button>
           );
@@ -248,14 +304,7 @@ export function BookRide({ pickup, drop, onPickup, onDrop, autoLocate = true }: 
         </div>
       )}
 
-      <div className="flex items-end justify-between rounded-[22px] bg-gradient-to-br from-violet-500/15 to-cyan-400/10 px-4 py-3">
-        <div>
-          <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-tertiary">{SERVICE_LABEL[service]}</p>
-          <p className="text-3xl font-bold leading-tight">{selectedFare != null ? formatTaka(selectedFare) : "—"}</p>
-          {km != null && kind !== "hire" && <p className="text-sm text-tertiary">about {km.toFixed(1)} km</p>}
-        </div>
-        <p className="max-w-[140px] text-right text-sm text-secondary">Women riders only. An admin checks every rider.</p>
-      </div>
+      <FareBreakdown km={kind === "hire" ? null : km} serviceLabel={SERVICE_LABEL[service]} hireFare={hireFare} />
 
       {error && (
         <p className="text-sm text-error" role="alert">
