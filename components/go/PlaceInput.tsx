@@ -11,17 +11,26 @@ type Props = {
   value: GoPlace | null;
   onChange: (place: GoPlace | null) => void;
   allowCurrentLocation?: boolean;
+  /** Read GPS once when the field is still empty. */
+  autoLocate?: boolean;
+  placeholder?: string;
 };
 
-export function PlaceInput({ label, icon, value, onChange, allowCurrentLocation }: Props) {
+export function PlaceInput({ label, icon, value, onChange, allowCurrentLocation, autoLocate, placeholder }: Props) {
   const [text, setText] = useState(value?.label ?? "");
   const [results, setResults] = useState<GoPlace[]>([]);
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
+  const located = useRef(false);
+  const skipSearch = useRef(false);
 
   useEffect(() => {
+    if (skipSearch.current) {
+      skipSearch.current = false;
+      return;
+    }
     if (value && value.label === text) return;
     if (text.trim().length < 3) {
       setResults([]);
@@ -42,7 +51,15 @@ export function PlaceInput({ label, icon, value, onChange, allowCurrentLocation 
     return () => window.clearTimeout(timer);
   }, [text, value]);
 
-  async function fillMyLocation() {
+  useEffect(() => {
+    if (!autoLocate || located.current || value) return;
+    located.current = true;
+    void fillMyLocation(false);
+    // Run once on mount. fillMyLocation is stable enough for a single GPS read.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoLocate]);
+
+  async function fillMyLocation(manual = true) {
     setBusy(true);
     setNote(null);
     try {
@@ -51,11 +68,12 @@ export function PlaceInput({ label, icon, value, onChange, allowCurrentLocation 
       const lng = position.coords.longitude;
       const name = await reversePlace(lat, lng);
       const place = { label: name, lat, lng };
+      skipSearch.current = true;
       setText(name);
       onChange(place);
       setOpen(false);
     } catch (err) {
-      setNote(locationErrorMessage(err));
+      setNote(manual ? locationErrorMessage(err) : "Location is off. Type a pickup, or tap to try again.");
     } finally {
       setBusy(false);
     }
@@ -73,7 +91,7 @@ export function PlaceInput({ label, icon, value, onChange, allowCurrentLocation 
             if (value) onChange(null);
           }}
           onFocus={() => results.length && setOpen(true)}
-          placeholder="Type an area, road or place"
+          placeholder={busy ? "Finding your location…" : placeholder ?? "Type an area, road or place"}
           className="flex-1 bg-transparent py-3 font-body-md focus:outline-none min-w-0"
         />
         {value ? <Icon name="check_circle" filled className="text-green-600" size={20} /> : null}

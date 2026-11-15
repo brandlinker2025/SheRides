@@ -3,9 +3,8 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { adminCancelGoRide, reviewGoApplication } from "@/app/admin/go/actions";
-import { Avatar } from "@/components/ui/Avatar";
 import { Icon } from "@/components/ui/Icon";
-import { KIND_LABEL, RIDE_STATUS_LABEL, formatTaka, formatWhen, type GoRideKind, type GoRideStatus } from "@/lib/go";
+import { KIND_LABEL, RIDE_STATUS_LABEL, formatTaka, type GoRideKind, type GoRideStatus } from "@/lib/go";
 
 export type AdminGoApplication = {
   id: string;
@@ -44,7 +43,7 @@ export type AdminGoRide = {
   rider: { full_name: string } | null;
 };
 
-type Filter = "pending" | "approved" | "rejected" | "suspended" | "rides";
+type Filter = "pending" | "approved" | "rejected" | "suspended";
 type Role = "rider" | "passenger";
 
 const CHIP: Record<string, string> = {
@@ -100,7 +99,18 @@ function RiderHistory({ rides }: { rides: AdminGoRide[] }) {
   );
 }
 
-function ApplicationCard({ app, rides }: { app: AdminGoApplication; rides: AdminGoRide[] }) {
+function DocThumb({ doc }: { doc: { label: string; url: string } | undefined }) {
+  if (!doc) return <span className="text-xs text-tertiary">Missing</span>;
+  return (
+    <a href={doc.url} target="_blank" rel="noreferrer" className="block w-16">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={doc.url} alt={doc.label} className="h-16 w-16 rounded-lg object-cover border border-surface-border bg-black/5" />
+      <span className="mt-1 block text-[10px] font-semibold uppercase tracking-wide text-tertiary">{doc.label}</span>
+    </a>
+  );
+}
+
+function VerificationRow({ app, rides }: { app: AdminGoApplication; rides: AdminGoRide[] }) {
   const router = useRouter();
   const [notes, setNotes] = useState(app.admin_notes ?? "");
   const [busy, setBusy] = useState(false);
@@ -122,94 +132,75 @@ function ApplicationCard({ app, rides }: { app: AdminGoApplication; rides: Admin
 
   const selfie = app.docs.find((d) => d.label === "Live selfie");
   const nidFront = app.docs.find((d) => d.label === "NID front");
+  const extraDocs = app.docs.filter((doc) => doc.label !== "Live selfie" && doc.label !== "NID front");
 
   return (
-    <article className="card-surface p-5 flex flex-col gap-4">
-      <div className="flex items-center gap-3">
-        <span className="avatar-ring w-12 h-12 rounded-full overflow-hidden shrink-0">
-          <Avatar src={app.profile?.avatar_url} alt={app.full_name} size={48} className="w-full h-full" />
-        </span>
-        <div className="flex-1 min-w-0">
-          <p className="font-label-lg truncate">{app.full_name}</p>
-          <p className="font-body-sm text-tertiary truncate">
-            Profile: {app.profile?.full_name ?? "—"} · {new Date(app.created_at).toLocaleDateString("en-BD")}
-          </p>
+    <tr className="border-t border-surface-border align-top">
+      <td className="p-3">
+        <div className="flex gap-2">
+          <DocThumb doc={selfie} />
+          <DocThumb doc={nidFront} />
         </div>
-        <span className="px-3 py-1 rounded-full text-xs font-label-lg capitalize bg-accent-magenta/10 text-accent-magenta">{app.role}</span>
-        <span className={`px-3 py-1 rounded-full text-xs font-label-lg capitalize ${CHIP[app.status]}`}>{app.status}</span>
-      </div>
-
-      {/* Face check side by side: selfie vs NID photo */}
-      {(selfie || nidFront) && (
-        <div className="grid grid-cols-2 gap-3">
-          {[selfie, nidFront].map((doc) =>
-            doc ? (
-              <a key={doc.label} href={doc.url} target="_blank" rel="noreferrer" className="block rounded-xl overflow-hidden border border-surface-border bg-black/5">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={doc.url} alt={doc.label} className="w-full h-44 object-cover" />
-                <p className="font-label-caps text-[10px] p-2 text-tertiary">{doc.label.toUpperCase()} · TAP TO ENLARGE</p>
-              </a>
-            ) : null
-          )}
-        </div>
-      )}
-
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 font-body-sm">
-        <button type="button" onClick={() => setShowNid((v) => !v)} className="rounded-lg bg-soft-off-white p-3 text-left">
-          <p className="font-label-caps text-[10px] text-tertiary">NID (tap to {showNid ? "hide" : "show"})</p>
-          <p className="break-all">{showNid ? app.nid_number : maskNid(app.nid_number)}</p>
+      </td>
+      <td className="p-3 min-w-[160px]">
+        <p className="font-label-lg">{app.full_name}</p>
+        <p className="font-body-sm text-tertiary">{app.profile?.full_name ?? "No profile name"}</p>
+        <p className="font-body-sm text-tertiary">{new Date(app.created_at).toLocaleDateString("en-BD")}</p>
+      </td>
+      <td className="p-3">
+        <button type="button" onClick={() => setShowNid((value) => !value)} className="text-left">
+          <span className="block text-[10px] font-bold uppercase tracking-wide text-tertiary">NID · tap to {showNid ? "hide" : "show"}</span>
+          <span className="font-body-sm break-all">{showNid ? app.nid_number : maskNid(app.nid_number)}</span>
         </button>
-        <div className="rounded-lg bg-soft-off-white p-3">
-          <p className="font-label-caps text-[10px] text-tertiary">Emergency contact</p>
-          <p>{app.emergency_contact_name ?? "—"}</p>
-          {app.emergency_contact_phone && <a href={`tel:${app.emergency_contact_phone}`} className="text-accent-magenta">{app.emergency_contact_phone}</a>}
-        </div>
         {app.role === "rider" && (
-          <>
-            <div className="rounded-lg bg-soft-off-white p-3">
-              <p className="font-label-caps text-[10px] text-tertiary">Licence</p>
-              <p className="break-all">{app.license_number ?? "—"}</p>
-            </div>
-            <div className="rounded-lg bg-soft-off-white p-3 col-span-2 sm:col-span-3">
-              <p className="font-label-caps text-[10px] text-tertiary">Bike</p>
-              <p>{app.bike_model ?? "—"} · <span className="font-bold">{app.bike_plate ?? "—"}</span></p>
-            </div>
-          </>
+          <p className="mt-2 font-body-sm text-secondary">
+            {app.bike_model ?? "Bike not given"} · {app.bike_plate ?? "no plate"}
+          </p>
         )}
-      </div>
-
-      <div className="flex flex-wrap gap-2">
-        {app.docs
-          .filter((d) => d.label !== "Live selfie" && d.label !== "NID front")
-          .map((doc) => (
-            <a key={doc.label} href={doc.url} target="_blank" rel="noreferrer" className="h-10 px-4 inline-flex items-center gap-1.5 rounded-full border border-surface-border font-label-lg text-sm text-accent-magenta">
-              <Icon name="description" size={18} /> {doc.label}
+      </td>
+      <td className="p-3">
+        <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold capitalize ${CHIP[app.status]}`}>{app.status}</span>
+        <div className="mt-2 flex flex-col gap-1">
+          {extraDocs.map((doc) => (
+            <a key={doc.label} href={doc.url} target="_blank" rel="noreferrer" className="text-sm font-semibold text-accent-magenta">
+              {doc.label}
             </a>
           ))}
-      </div>
-
-      {app.role === "rider" && app.status !== "pending" && <RiderHistory rides={rides} />}
-
-      <input value={notes} onChange={(e) => setNotes(e.target.value)} maxLength={500} placeholder="Note to applicant (required to reject/suspend)" className="w-full bg-soft-off-white border border-surface-border rounded-lg px-4 py-3 font-body-sm" />
-      {error && <p className="font-body-sm text-error">{error}</p>}
-      <div className="flex flex-wrap gap-2 justify-end">
-        {app.status !== "approved" && (
-          <button type="button" disabled={busy} onClick={() => void act("approved")} className="h-11 px-5 rounded-lg bg-accent-magenta text-white font-label-lg">
-            Approve
-          </button>
+        </div>
+      </td>
+      <td className="p-3 min-w-[220px]">
+        <input
+          value={notes}
+          onChange={(event) => setNotes(event.target.value)}
+          maxLength={500}
+          placeholder="Note (required to reject)"
+          className="mb-2 w-full rounded-lg border border-surface-border bg-soft-off-white px-3 py-2 text-sm"
+        />
+        {error && <p className="mb-2 text-sm text-error">{error}</p>}
+        <div className="flex flex-wrap gap-2">
+          {app.status !== "approved" && (
+            <button type="button" disabled={busy} onClick={() => void act("approved")} className="h-9 rounded-lg bg-accent-magenta px-3 text-sm font-semibold text-white">
+              Approve
+            </button>
+          )}
+          {app.status === "pending" && (
+            <button type="button" disabled={busy} onClick={() => void act("rejected")} className="h-9 rounded-lg border border-error px-3 text-sm font-semibold text-error">
+              Reject
+            </button>
+          )}
+          {app.status === "approved" && (
+            <button type="button" disabled={busy} onClick={() => void act("suspended")} className="h-9 rounded-lg border border-error px-3 text-sm font-semibold text-error">
+              Suspend
+            </button>
+          )}
+        </div>
+        {app.role === "rider" && app.status !== "pending" && (
+          <div className="mt-3">
+            <RiderHistory rides={rides} />
+          </div>
         )}
-        {app.status === "pending" && (
-          <button type="button" disabled={busy} onClick={() => void act("rejected")} className="h-11 px-4 rounded-lg border border-error text-error font-label-lg">
-            Reject
-          </button>
-        )}
-        {app.status === "approved" && (
-          <button type="button" disabled={busy} onClick={() => void act("suspended")} className="h-11 px-4 rounded-lg border border-error text-error font-label-lg">
-            Suspend
-          </button>
-        )}
-      </div>
-    </article>
+      </td>
+    </tr>
   );
 }
 
@@ -289,7 +280,7 @@ export function GoAdminBoard({ applications, rides }: { applications: AdminGoApp
       </div>
 
       <nav className="flex gap-2 overflow-x-auto hide-scrollbar">
-        {(["pending", "approved", "rejected", "suspended", "rides"] as Filter[]).map((f) => (
+        {(["pending", "approved", "rejected", "suspended"] as Filter[]).map((f) => (
           <button
             key={f}
             type="button"
@@ -298,61 +289,65 @@ export function GoAdminBoard({ applications, rides }: { applications: AdminGoApp
               filter === f ? "bg-accent-magenta text-white border-accent-magenta" : "border-surface-border bg-surface-container-lowest"
             }`}
           >
-            {f === "rides" ? `All rides (${rides.length})` : `${f} (${counts[f]})`}
+            {f} ({counts[f]})
           </button>
         ))}
       </nav>
 
-      {filter !== "rides" ? (
-        shown.length ? (
-          <div className="grid gap-4 xl:grid-cols-2">
+      <div className="max-w-full overflow-x-auto rounded-[20px] border border-surface-border bg-surface-container-lowest">
+        <table className="w-full min-w-[760px] text-left">
+          <thead className="bg-soft-off-white text-[11px] font-bold uppercase tracking-wide text-tertiary">
+            <tr>
+              <th className="p-3 font-semibold">Selfie and NID</th>
+              <th className="p-3 font-semibold">Applicant</th>
+              <th className="p-3 font-semibold">Identity</th>
+              <th className="p-3 font-semibold">Status</th>
+              <th className="p-3 font-semibold">Review</th>
+            </tr>
+          </thead>
+          <tbody>
             {shown.map((app) => (
-              <ApplicationCard key={app.id} app={app} rides={ridesByRider.get(app.user_id) ?? []} />
+              <VerificationRow key={app.id} app={app} rides={ridesByRider.get(app.user_id) ?? []} />
             ))}
-          </div>
-        ) : (
-          <p className="card-surface p-8 text-center font-body-sm text-secondary">Nothing here.</p>
-        )
-      ) : (
-        <div className="flex flex-col gap-3">
-          {rides.map((ride) => {
-            const low = (ride.rider_rating ?? 5) <= 2 || (ride.passenger_rating ?? 5) <= 2;
-            return (
-              <article key={ride.id} className={`card-surface p-4 flex flex-col gap-2 ${low ? "border-2 border-error" : ""}`}>
-                <div className="flex items-center gap-3 flex-wrap">
-                  <span className="font-label-lg">{ride.passenger?.full_name ?? "Passenger"}</span>
-                  <Icon name="arrow_forward" size={16} className="text-tertiary" />
-                  <span className="font-label-lg">{ride.rider?.full_name ?? "No rider yet"}</span>
-                  <span className="ml-auto font-label-lg">{formatTaka(ride.fare)}</span>
-                </div>
-                <p className="font-body-sm text-tertiary">
-                  {KIND_LABEL[ride.kind]} · {ride.kind === "now" ? new Date(ride.created_at).toLocaleString("en-BD", { timeZone: "Asia/Dhaka" }) : formatWhen(ride.scheduled_at)} · {RIDE_STATUS_LABEL[ride.status]}
-                </p>
-                <p className="font-body-sm">{ride.pickup_text}{ride.drop_text ? ` → ${ride.drop_text}` : ""}</p>
-                {(ride.rider_rating || ride.passenger_rating) && (
-                  <p className="font-body-sm">
-                    {ride.rider_rating ? `Rider ★${ride.rider_rating}${ride.rider_feedback ? ` “${ride.rider_feedback}”` : ""}` : ""}
-                    {ride.passenger_rating ? ` · Passenger ★${ride.passenger_rating}${ride.passenger_feedback ? ` “${ride.passenger_feedback}”` : ""}` : ""}
-                  </p>
-                )}
-                {(ride.status === "requested" || ride.status === "accepted") && (
-                  <button
-                    type="button"
-                    onClick={async () => {
-                      const result = await adminCancelGoRide(ride.id);
-                      if (!result.error) router.refresh();
-                    }}
-                    className="self-end h-9 px-4 rounded-lg border border-error text-error font-label-lg text-sm"
-                  >
-                    Cancel ride
-                  </button>
-                )}
-              </article>
-            );
-          })}
-          {!rides.length && <p className="card-surface p-8 text-center font-body-sm text-secondary">No rides yet.</p>}
-        </div>
-      )}
+          </tbody>
+        </table>
+        {!shown.length && <p className="p-8 text-center text-sm text-secondary">No {role === "rider" ? "rider" : "passenger"} applications in this list.</p>}
+      </div>
+
+      <section className="flex flex-col gap-3">
+        <h2 className="text-lg font-bold">Live rides</h2>
+        {rides
+          .filter((ride) => ride.status === "requested" || ride.status === "accepted" || ride.status === "in_progress")
+          .map((ride) => (
+            <article key={ride.id} className="card-surface flex flex-col gap-2 p-4">
+              <div className="flex flex-wrap items-center gap-3">
+                <span className="font-label-lg">{ride.passenger?.full_name ?? "Passenger"}</span>
+                <Icon name="arrow_forward" size={16} className="text-tertiary" />
+                <span className="font-label-lg">{ride.rider?.full_name ?? "No rider yet"}</span>
+                <span className="ml-auto font-label-lg">{formatTaka(ride.fare)}</span>
+              </div>
+              <p className="font-body-sm text-tertiary">
+                {KIND_LABEL[ride.kind]} · {RIDE_STATUS_LABEL[ride.status]} · {ride.pickup_text}
+                {ride.drop_text ? ` → ${ride.drop_text}` : ""}
+              </p>
+              {(ride.status === "requested" || ride.status === "accepted") && (
+                <button
+                  type="button"
+                  onClick={async () => {
+                    const result = await adminCancelGoRide(ride.id);
+                    if (!result.error) router.refresh();
+                  }}
+                  className="self-end h-9 rounded-lg border border-error px-4 text-sm font-semibold text-error"
+                >
+                  Cancel ride
+                </button>
+              )}
+            </article>
+          ))}
+        {!rides.some((ride) => ride.status === "requested" || ride.status === "accepted" || ride.status === "in_progress") && (
+          <p className="card-surface p-6 text-center text-sm text-secondary">No live rides.</p>
+        )}
+      </section>
     </div>
   );
 }

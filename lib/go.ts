@@ -4,6 +4,7 @@ export type GoRole = "passenger" | "rider";
 export type GoAppStatus = "pending" | "approved" | "rejected" | "suspended";
 export type GoRideKind = "now" | "scheduled" | "hire";
 export type GoRideStatus = "requested" | "accepted" | "in_progress" | "completed" | "cancelled";
+export type GoService = "bike" | "scooter" | "car";
 
 export type GoApplication = {
   id: string;
@@ -19,6 +20,8 @@ export type GoRide = {
   passenger_id: string;
   rider_id: string | null;
   kind: GoRideKind;
+  /** Set once the service-fare migration is applied. Older rows omit it. */
+  service?: GoService | null;
   status: GoRideStatus;
   pickup_text: string;
   pickup_lat: number | null;
@@ -46,10 +49,51 @@ export type GoRide = {
 
 export type GoPlace = { label: string; lat: number; lng: number };
 
-/** Mirrors public.go_fare in the database (the database value is the one charged). */
+/** Mirrors public.go_fare in the database (bike baseline; the database value is the one charged). */
 export function estimateFare(kind: GoRideKind, distanceKm: number | null, hireHours: number | null) {
   if (kind === "hire") return 250 * Math.max(1, hireHours ?? 1);
   return Math.max(70, Math.round(30 + 14 * (distanceKm ?? 0)));
+}
+
+export const RIDE_SERVICES: { id: GoService; label: string; icon: string; detail: string; pickupMin: number }[] = [
+  { id: "bike", label: "SheRides Bike", icon: "two_wheeler", detail: "1 seat · fastest", pickupMin: 3 },
+  { id: "scooter", label: "SheRides Scooter", icon: "electric_scooter", detail: "1 seat · easy hop", pickupMin: 5 },
+  { id: "car", label: "SheRides Car", icon: "directions_car", detail: "3 seats · more room", pickupMin: 7 },
+];
+
+export const SERVICE_LABEL: Record<GoService, string> = {
+  bike: "SheRides Bike",
+  scooter: "SheRides Scooter",
+  car: "SheRides Car",
+};
+
+/**
+ * Mirrors public.go_service_fare. Bike matches go_fare exactly.
+ * Scooter and car scale that distance rate; hire uses the same multipliers.
+ */
+export function estimateServiceFare(service: GoService, kind: GoRideKind, distanceKm: number | null, hireHours: number | null) {
+  if (kind === "hire") {
+    const hours = 250 * Math.max(1, hireHours ?? 1);
+    const multiplier = service === "car" ? 1.85 : service === "scooter" ? 1.15 : 1;
+    return Math.round(hours * multiplier);
+  }
+  const raw = 30 + 14 * (distanceKm ?? 0);
+  if (service === "car") return Math.max(180, Math.round(raw * 1.85));
+  if (service === "scooter") return Math.max(80, Math.round(raw * 1.15));
+  return Math.max(70, Math.round(raw));
+}
+
+/** Typical minutes until pickup, plus a road-time estimate once a destination exists. */
+export function estimatePickupMinutes(service: GoService, distanceKm: number | null) {
+  const base = RIDE_SERVICES.find((item) => item.id === service)?.pickupMin ?? 4;
+  if (distanceKm == null) return base;
+  return base + Math.min(8, Math.round(distanceKm / 4));
+}
+
+export function estimateTripMinutes(service: GoService, distanceKm: number | null) {
+  if (distanceKm == null) return null;
+  const kmh = service === "car" ? 22 : service === "scooter" ? 24 : 26;
+  return Math.max(4, Math.round((distanceKm / kmh) * 60));
 }
 
 /** Mirrors public.go_distance_km: straight line x 1.3 for Dhaka roads. */

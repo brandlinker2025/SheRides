@@ -10,6 +10,7 @@ import { requestRiderLocation } from "@/lib/geolocation";
 import {
   KIND_LABEL,
   RIDE_STATUS_LABEL,
+  SERVICE_LABEL,
   directionsLink,
   formatTaka,
   formatWhen,
@@ -181,7 +182,7 @@ export default function GoRidePage() {
           {ride.status === "requested" && <span className="w-3 h-3 rounded-full bg-white animate-pulse" />}
           {RIDE_STATUS_LABEL[ride.status]}
         </h1>
-        <p className="font-headline-md text-[22px] mt-1">{formatTaka(ride.fare)} · {ride.payment_method === "bkash" ? "bKash" : ride.payment_method === "nagad" ? "Nagad" : "Cash"}</p>
+        <p className="font-headline-md text-[22px] mt-1">{formatTaka(ride.fare)} · {ride.payment_method === "bkash" ? "bKash" : ride.payment_method === "nagad" ? "Nagad" : "Cash"}{ride.service ? ` · ${SERVICE_LABEL[ride.service]}` : ""}</p>
         {stepIndex >= 0 && (
           <div className="mt-4 grid grid-cols-4 gap-1.5">
             {STEPS.map((step, i) => (
