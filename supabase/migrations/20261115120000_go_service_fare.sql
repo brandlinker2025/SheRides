@@ -1,8 +1,7 @@
--- Vehicle label for a ride request. Every category uses the same distance slab.
--- Up to 5 km: ৳30/km (5 km = ৳150). Each km after that: ৳18. No car, CNG, or tier multiplier.
--- Waiting time (৳1.50/min) is not stored here; it is shown on the booking screen and
--- applies only while a ride is paused, delayed, or waiting at pickup.
--- The original go_request_ride signature stays so older clients still book.
+-- Stored vehicle rates. First 5 km are ৳30/km on every category (5 km = ৳150).
+-- Premium (EV, racing, 155cc) then ৳20/km. Economical (125cc/113cc scooters and light bikes) then ৳15/km.
+-- Waiting is ৳1.50 per minute and is not added into the distance fare.
+-- No car or CNG. The original go_request_ride signature stays so older clients still book.
 
 alter table public.go_rides
   add column if not exists service text not null default 'ev_bike';
@@ -11,6 +10,86 @@ alter table public.go_rides drop constraint if exists go_rides_service_check;
 alter table public.go_rides
   add constraint go_rides_service_check check (service in ('ev_bike', 'racing_bike', 'moto_155', 'scooter_light'));
 
+create table if not exists public.go_fare_rates (
+  service text primary key check (service in ('ev_bike', 'racing_bike', 'moto_155', 'scooter_light')),
+  label text not null,
+  tier text not null check (tier in ('premium', 'economical')),
+  slab_km numeric not null check (slab_km > 0),
+  base_per_km numeric not null check (base_per_km >= 0),
+  extra_per_km numeric not null check (extra_per_km >= 0),
+  waiting_per_minute numeric not null check (waiting_per_minute >= 0)
+);
+
+alter table public.go_fare_rates enable row level security;
+revoke all on table public.go_fare_rates from public, anon, authenticated;
+
+insert into public.go_fare_rates (service, label, tier, slab_km, base_per_km, extra_per_km, waiting_per_minute)
+values
+  ('ev_bike', 'EV Bikes', 'premium', 5, 30, 20, 1.50),
+  ('racing_bike', 'Racing Bikes', 'premium', 5, 30, 20, 1.50),
+  ('moto_155', 'Motorcycles (155cc)', 'premium', 5, 30, 20, 1.50),
+  ('scooter_light', 'Scooters & Light Bikes', 'economical', 5, 30, 15, 1.50)
+on conflict (service) do update set
+  label = excluded.label,
+  tier = excluded.tier,
+  slab_km = excluded.slab_km,
+  base_per_km = excluded.base_per_km,
+  extra_per_km = excluded.extra_per_km,
+  waiting_per_minute = excluded.waiting_per_minute;
+
+create or replace function public.go_distance_fare(p_service text, p_distance_km numeric)
+returns integer
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select round((
+    case
+      when coalesce(p_distance_km, 0) <= r.slab_km then r.base_per_km * coalesce(p_distance_km, 0)
+      else r.slab_km * r.base_per_km + r.extra_per_km * (coalesce(p_distance_km, 0) - r.slab_km)
+    end
+  )::numeric)::integer
+  from public.go_fare_rates r
+  where r.service = case
+    when lower(coalesce(p_service, '')) in ('ev_bike', 'racing_bike', 'moto_155', 'scooter_light') then lower(p_service)
+    else 'ev_bike'
+  end;
+$$;
+
+revoke all on function public.go_distance_fare(text, numeric) from public, anon;
+grant execute on function public.go_distance_fare(text, numeric) to authenticated;
+
+create or replace function public.go_list_fare_rates()
+returns table (
+  service text,
+  label text,
+  tier text,
+  slab_km numeric,
+  base_per_km numeric,
+  extra_per_km numeric,
+  waiting_per_minute numeric
+)
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select r.service, r.label, r.tier, r.slab_km, r.base_per_km, r.extra_per_km, r.waiting_per_minute
+  from public.go_fare_rates r
+  order by case r.service
+    when 'ev_bike' then 1
+    when 'racing_bike' then 2
+    when 'moto_155' then 3
+    else 4
+  end;
+$$;
+
+revoke all on function public.go_list_fare_rates() from public, anon;
+grant execute on function public.go_list_fare_rates() to authenticated;
+
+-- Kept immutable so this can replace the existing go_fare. It matches the premium
+-- row in go_fare_rates (৳30 then ৳20). Named vehicles are priced by go_service_fare.
 create or replace function public.go_fare(p_kind text, p_distance_km numeric, p_hire_hours integer)
 returns integer
 language sql
@@ -22,7 +101,7 @@ as $$
     else round((
       case
         when coalesce(p_distance_km, 0) <= 5 then 30 * coalesce(p_distance_km, 0)
-        else 150 + 18 * (coalesce(p_distance_km, 0) - 5)
+        else 150 + 20 * (coalesce(p_distance_km, 0) - 5)
       end
     )::numeric)::integer
   end;
@@ -36,11 +115,14 @@ create or replace function public.go_service_fare(
 )
 returns integer
 language sql
-immutable
+stable
+security definer
 set search_path = ''
 as $$
-  -- p_service is recorded on the ride. It does not change the amount.
-  select public.go_fare(p_kind, p_distance_km, p_hire_hours);
+  select case
+    when p_kind = 'hire' then 250 * greatest(1, coalesce(p_hire_hours, 1))
+    else public.go_distance_fare(p_service, p_distance_km)
+  end;
 $$;
 
 revoke all on function public.go_service_fare(text, text, numeric, integer) from public, anon;

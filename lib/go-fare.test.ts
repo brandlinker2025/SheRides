@@ -1,45 +1,39 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import {
-  RIDE_SERVICES,
-  WAITING_FEE_PER_MINUTE,
-  distanceFare,
-  estimateFare,
-  estimateServiceFare,
-  formatTaka,
-  waitingFee,
-} from "./go";
+import { FARE_RATES, distanceFare, estimateServiceFare, formatTaka, ratesFromCatalog, waitingFee } from "./go";
 
-test("5 km is exactly 150 BDT at 30 per km", () => {
-  assert.equal(distanceFare(5), 150);
-  assert.equal(estimateFare("now", 5, null), 150);
-  assert.equal(distanceFare(4), 120);
-  assert.equal(distanceFare(1), 30);
-});
-
-test("distance beyond 5 km is 18 BDT per km", () => {
-  assert.equal(distanceFare(8), 204);
-  assert.equal(distanceFare(6), 168);
-  assert.equal(distanceFare(5.5), 159);
-  assert.equal(estimateFare("scheduled", 8, null), 204);
-});
-
-test("every vehicle uses the same slab and there is no car tier", () => {
-  const ids = RIDE_SERVICES.map((item) => item.id);
-  assert.deepEqual(ids, ["ev_bike", "racing_bike", "moto_155", "scooter_light"]);
-  for (const service of ids) {
-    assert.equal(estimateServiceFare(service, "now", 5, null), 150);
-    assert.equal(estimateServiceFare(service, "now", 8, null), 204);
+test("5 km is 150 BDT on every category", () => {
+  for (const rate of FARE_RATES) {
+    assert.equal(distanceFare(5, rate.id), 150);
+    assert.equal(estimateServiceFare(rate.id, "now", 5, null), 150);
   }
-  assert.equal(JSON.stringify(RIDE_SERVICES).includes("car"), false);
-  assert.equal(JSON.stringify(RIDE_SERVICES).toLowerCase().includes("cng"), false);
 });
 
-test("waiting is 1.50 BDT per minute and stays separate from distance", () => {
-  assert.equal(WAITING_FEE_PER_MINUTE, 1.5);
-  assert.equal(waitingFee(1), 1.5);
-  assert.equal(waitingFee(10), 15);
+test("8 km is 210 on premium and 195 on economical", () => {
+  for (const id of ["ev_bike", "racing_bike", "moto_155"] as const) {
+    assert.equal(distanceFare(8, id), 210);
+    assert.equal(distanceFare(8, id), 150 + 3 * 20);
+  }
+  assert.equal(distanceFare(8, "scooter_light"), 195);
+  assert.equal(distanceFare(8, "scooter_light"), 150 + 3 * 15);
+});
+
+test("catalog rows override the local mirror and drop unknown vehicles", () => {
+  const rates = ratesFromCatalog([
+    { service: "scooter_light", label: "Scooters & Light Bikes", tier: "economical", slab_km: "5", base_per_km: "30", extra_per_km: "15", waiting_per_minute: "1.50" },
+    { service: "car", label: "Car", tier: "premium", slab_km: 5, base_per_km: 30, extra_per_km: 40, waiting_per_minute: 1.5 },
+    { service: "cng", label: "CNG", tier: "economical", slab_km: 5, base_per_km: 30, extra_per_km: 10, waiting_per_minute: 1.5 },
+  ]);
+  assert.deepEqual(rates.map((rate) => rate.id), ["scooter_light"]);
+  assert.equal(distanceFare(8, "scooter_light", rates), 195);
+});
+
+test("waiting is 1.50 per minute and stays off the distance fare", () => {
+  assert.equal(waitingFee(1, "ev_bike"), 1.5);
+  assert.equal(waitingFee(1, "scooter_light"), 1.5);
   assert.equal(formatTaka(waitingFee(1)), "৳1.50");
-  assert.equal(formatTaka(distanceFare(5)), "৳150");
-  assert.equal(distanceFare(5) + waitingFee(0), 150);
+  assert.equal(FARE_RATES.every((rate) => rate.waitingPerMinute === 1.5), true);
+  const catalog = JSON.stringify(FARE_RATES).toLowerCase();
+  assert.equal(catalog.includes("cng"), false);
+  assert.equal(catalog.includes("\"car\""), false);
 });

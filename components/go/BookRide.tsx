@@ -2,22 +2,20 @@
 
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Icon } from "@/components/ui/Icon";
 import {
-  FARE_PER_KM_BEYOND_SLAB,
-  FARE_PER_KM_WITHIN_SLAB,
-  RIDE_SERVICES,
+  FARE_RATES,
   SERVICE_LABEL,
-  SLAB_KM,
-  WAITING_FEE_PER_MINUTE,
   distanceFare,
   estimateFare,
   estimatePickupMinutes,
   estimateTripMinutes,
   formatTaka,
   goErrorMessage,
+  ratesFromCatalog,
   roadKm,
+  type FareRate,
   type GoPlace,
   type GoRideKind,
   type GoService,
@@ -45,18 +43,18 @@ function serviceRpcMissing(message: string) {
 
 function FareBreakdown({
   km,
-  serviceLabel,
+  rate,
   hireFare,
 }: {
   km: number | null;
-  serviceLabel: string;
+  rate: FareRate;
   hireFare: number | null;
 }) {
-  const distance = km != null ? distanceFare(km) : null;
-  const beyond = distance != null && km != null && km > SLAB_KM ? distance - SLAB_KM * FARE_PER_KM_WITHIN_SLAB : 0;
+  const distance = km != null ? distanceFare(km, rate.id, [rate]) : null;
+  const beyond = distance != null && km != null && km > rate.slabKm ? distance - rate.slabKm * rate.basePerKm : 0;
   return (
     <section aria-label="Fare breakdown" className="rounded-[22px] border border-white/25 bg-surface-container-lowest/80 px-4 py-4 backdrop-blur-xl">
-      <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-tertiary">{serviceLabel}</p>
+      <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-tertiary">{rate.label}</p>
       <h2 className="mt-1 text-sm font-semibold">Distance fare</h2>
       {distance == null || km == null ? (
         <p className="mt-1 text-3xl font-bold">—</p>
@@ -64,28 +62,28 @@ function FareBreakdown({
         <>
           <p className="mt-1 text-3xl font-bold">{formatTaka(distance)}</p>
           <ul className="mt-2 flex flex-col gap-1 text-sm text-secondary">
-            {km <= SLAB_KM ? (
+            {km <= rate.slabKm ? (
               <li>
-                {km.toFixed(2)} km × ৳{FARE_PER_KM_WITHIN_SLAB} = {formatTaka(distance)}
+                {km.toFixed(2)} km × ৳{rate.basePerKm} = {formatTaka(distance)}
               </li>
             ) : (
               <>
                 <li>
-                  First {SLAB_KM} km × ৳{FARE_PER_KM_WITHIN_SLAB} = {formatTaka(SLAB_KM * FARE_PER_KM_WITHIN_SLAB)}
+                  First {rate.slabKm} km × ৳{rate.basePerKm} = {formatTaka(rate.slabKm * rate.basePerKm)}
                 </li>
                 <li>
-                  {(km - SLAB_KM).toFixed(2)} km × ৳{FARE_PER_KM_BEYOND_SLAB} = {formatTaka(beyond)}
+                  {(km - rate.slabKm).toFixed(2)} km × ৳{rate.extraPerKm} = {formatTaka(beyond)}
                 </li>
               </>
             )}
           </ul>
         </>
       )}
-      {hireFare != null ? <p className="mt-2 text-sm text-secondary">Hourly hire {formatTaka(hireFare)}. The distance slab above is the ride-now price.</p> : null}
+      {hireFare != null ? <p className="mt-2 text-sm text-secondary">Hourly hire {formatTaka(hireFare)}. The distance fare above is the ride-now price.</p> : null}
       <div className="mt-4 border-t border-white/15 pt-3">
         <h2 className="text-sm font-semibold">Potential waiting fee</h2>
         <p className="text-2xl font-bold">
-          {formatTaka(WAITING_FEE_PER_MINUTE)} <span className="text-base font-semibold text-secondary">per minute</span>
+          {formatTaka(rate.waitingPerMinute)} <span className="text-base font-semibold text-secondary">per minute</span>
         </p>
         <p className="mt-1 text-sm text-secondary">
           Separate from the distance fare. Charged only if the ride is paused, delayed in traffic, or waiting for you at pickup.
@@ -107,6 +105,7 @@ export function BookRide({ pickup, drop, onPickup, onDrop, autoLocate = true }: 
   const router = useRouter();
   const [kind, setKind] = useState<GoRideKind>("now");
   const [service, setService] = useState<GoService>("ev_bike");
+  const [rates, setRates] = useState<FareRate[]>(FARE_RATES);
   const [when, setWhen] = useState("");
   const [hours, setHours] = useState(2);
   const [payment, setPayment] = useState<"cash" | "bkash" | "nagad">("cash");
@@ -116,8 +115,17 @@ export function BookRide({ pickup, drop, onPickup, onDrop, autoLocate = true }: 
   const [error, setError] = useState<string | null>(null);
 
   const km = useMemo(() => (pickup && drop ? roadKm(pickup, drop) : null), [pickup, drop]);
-  const distanceQuote = km != null && kind !== "hire" ? distanceFare(km) : null;
-  const hireFare = kind === "hire" ? estimateFare("hire", null, hours) : null;
+  const selectedRate = rates.find((rate) => rate.id === service) ?? rates[0];
+  const hireFare = kind === "hire" ? estimateFare("hire", null, hours, service, rates) : null;
+
+  useEffect(() => {
+    const supabase = createClient();
+    if (!supabase) return;
+    void supabase.rpc("go_list_fare_rates").then(({ data, error: loadError }) => {
+      if (loadError || !data) return;
+      setRates(ratesFromCatalog(data as Parameters<typeof ratesFromCatalog>[0]));
+    });
+  }, []);
   const canSubmit = Boolean(pickup) && (kind === "hire" || Boolean(drop)) && (kind !== "scheduled" || Boolean(when));
 
   async function submit() {
@@ -222,9 +230,9 @@ export function BookRide({ pickup, drop, onPickup, onDrop, autoLocate = true }: 
       </div>
 
       <div className="flex flex-col gap-2" role="listbox" aria-label="Choose a vehicle">
-        {RIDE_SERVICES.map((item, index) => {
+        {rates.map((item, index) => {
           const selected = service === item.id;
-          const fare = distanceQuote;
+          const fare = km != null && kind !== "hire" ? distanceFare(km, item.id, rates) : null;
           const pickupMin = estimatePickupMinutes(item.id, km);
           const tripMin = estimateTripMinutes(item.id, km);
           return (
@@ -304,7 +312,7 @@ export function BookRide({ pickup, drop, onPickup, onDrop, autoLocate = true }: 
         </div>
       )}
 
-      <FareBreakdown km={kind === "hire" ? null : km} serviceLabel={SERVICE_LABEL[service]} hireFare={hireFare} />
+      <FareBreakdown km={kind === "hire" ? null : km} rate={selectedRate} hireFare={hireFare} />
 
       {error && (
         <p className="text-sm text-error" role="alert">
