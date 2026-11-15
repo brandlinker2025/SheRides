@@ -4,15 +4,14 @@ export default function EntryPage() {
   return (
     <main className="flex min-h-dvh flex-col items-center justify-center bg-black px-6 text-white">
       <div className="w-full max-w-md text-center">
-        {/* Logo matching the illustration font */}
-        <div className="mb-8 flex flex-col items-center">
-          <div className="mb-2 text-6xl">🛵</div>
-          <div
-            className="text-6xl font-black tracking-tight text-[#6b21d4] sm:text-7xl"
-            style={{ fontFamily: "'Nunito', 'Poppins', system-ui, sans-serif", fontWeight: 900 }}
-          >
+        <div className="mb-10 flex flex-col items-center">
+          <div className="mb-3 text-7xl">🛵</div>
+          <div className="text-6xl font-black tracking-tight text-[#6b21d4] sm:text-7xl">
             SheRides
           </div>
+          <p className="mt-2 text-xs font-medium uppercase tracking-widest text-[#ffb95f]">
+            RIDE · CONNECT · EMPOWER
+          </p>
         </div>
 
         <h1 className="mb-2 text-2xl font-bold text-white/90">
