@@ -2,21 +2,28 @@ import Link from "next/link";
 
 export default function EntryPage() {
   return (
-    <main className="flex min-h-dvh flex-col items-center justify-center bg-[#131318] px-6 text-[#e4e1e9]">
+    <main className="flex min-h-dvh flex-col items-center justify-center bg-black px-6 text-white">
       <div className="w-full max-w-md text-center">
-        <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-[#ffb95f]">SheRides</div>
-        <h1 className="mb-3 text-4xl font-bold leading-tight">
-          Safe rides<br />
-          <span className="text-[#ddb7ff]">for women, by women</span>
+        {/* Logo-style header matching the provided illustration */}
+        <div className="mb-6 flex flex-col items-center">
+          <div className="mb-3 text-6xl">🛵</div>
+          <div className="text-5xl font-black tracking-tight text-[#6b21d4] sm:text-6xl" style={{ fontFamily: "system-ui, sans-serif" }}>
+            SheRides
+          </div>
+          <p className="mt-2 text-sm font-medium text-[#ffb95f]">For women, by women · মহিলাদের জন্য মহিলা</p>
+        </div>
+
+        <h1 className="mb-2 text-2xl font-bold leading-tight text-white/90">
+          Safe rides in Dhaka
         </h1>
-        <p className="mb-10 text-sm text-white/70">
-          বাংলাদেশে মহিলাদের জন্য নিরাপদ রাইড শেয়ারিং
+        <p className="mb-10 text-sm text-white/60">
+          নিরাপদ মহিলা ক্যাপ্টেনের সাথে রাইড করুন
         </p>
 
         <div className="flex flex-col gap-4">
           <Link
             href="/go?role=passenger"
-            className="flex h-16 items-center justify-center gap-3 rounded-full bg-gradient-to-br from-[#ddb7ff] to-[#a855f7] text-lg font-bold text-[#1a1a24] shadow-lg"
+            className="flex h-16 items-center justify-center gap-3 rounded-full bg-gradient-to-br from-[#ddb7ff] to-[#a855f7] text-lg font-bold text-[#1a1a24] shadow-lg active:scale-95 transition"
           >
             <span className="text-2xl">🚶‍♀️</span>
             Take a ride / রাইড নিন
@@ -24,16 +31,16 @@ export default function EntryPage() {
 
           <Link
             href="/go/apply?role=rider"
-            className="flex h-16 items-center justify-center gap-3 rounded-full border-2 border-[#ddb7ff]/40 bg-[#1f1f24] text-lg font-bold text-[#e4e1e9]"
+            className="flex h-16 items-center justify-center gap-3 rounded-full border-2 border-[#ddb7ff]/50 bg-[#1a1a1a] text-lg font-bold text-white active:scale-95 transition"
           >
             <span className="text-2xl">🛵</span>
             Become a Rider / রাইডার হন
           </Link>
         </div>
 
-        <p className="mt-8 text-xs text-white/40">
+        <p className="mt-10 text-xs text-white/40">
           Already have an account?{" "}
-          <Link href="/login" className="text-[#ddb7ff] underline">
+          <Link href="/login" className="text-[#ddb7ff] underline underline-offset-2">
             Sign in
           </Link>
         </p>
