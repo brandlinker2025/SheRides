@@ -29,6 +29,13 @@ export function TopNav() {
             <span className="hidden md:inline">Admin</span>
           </Link>
         )}
+        <Link
+          href="/partner"
+          className="h-10 px-2 sm:px-3 rounded-full flex items-center gap-1 text-on-primary hover:bg-white/10 transition-colors font-label-lg shrink-0"
+        >
+          <Icon name="handshake" size={22} />
+          <span className="hidden md:inline">Partner</span>
+        </Link>
         <ThemeToggle />
         <NotificationsBell />
         <button

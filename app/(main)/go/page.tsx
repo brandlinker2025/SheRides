@@ -214,6 +214,9 @@ function GoHub() {
           <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#ffb95f]">Sanctuary</p>
           <h1 className="text-2xl font-bold leading-tight text-[#e4e1e9]">Book A Ride</h1>
           <p className="text-sm text-white/70">Women riders only · an admin checks every captain</p>
+          <Link href="/partner" className="mt-1 inline-flex text-sm font-semibold text-[#ddb7ff]">
+            Become a ride partner
+          </Link>
         </div>
       </header>
       {notices}

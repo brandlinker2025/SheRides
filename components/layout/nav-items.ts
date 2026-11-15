@@ -14,6 +14,7 @@ export const sideNav: NavItem[] = [
   { href: "/go", label: "Book a Ride", icon: "two_wheeler" },
   { href: "/go?tab=rides", label: "My Rides", icon: "history", tab: "rides" },
   { href: "/go?tab=rider", label: "Rider Mode", icon: "sports_motorsports", tab: "rider" },
+  { href: "/partner", label: "Become a Partner", icon: "handshake" },
   { href: "/notifications", label: "Notifications", icon: "notifications" },
   { href: "/safety", label: "Safety Center", icon: "shield" },
   { href: "/profile", label: "Profile", icon: "person" },

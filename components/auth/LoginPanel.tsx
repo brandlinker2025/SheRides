@@ -447,12 +447,20 @@ export function LoginPanel({ admin = false }: { admin?: boolean }) {
             </Link>
           </p>
         ) : (
-          <p className="mt-6 text-sm text-white/70">
-            New to SheRides?{" "}
-            <Link href={joinHref} className="font-label-lg text-[#6c5ce7]">
-              Sign Up
-            </Link>
-          </p>
+          <>
+            <p className="mt-6 text-sm text-white/70">
+              New to SheRides?{" "}
+              <Link href={joinHref} className="font-label-lg text-[#6c5ce7]">
+                Sign Up
+              </Link>
+            </p>
+            <p className="mt-3 text-sm text-white/70">
+              Drive or ride with us?{" "}
+              <Link href="/partner" className="font-label-lg text-[#6c5ce7]">
+                Become a Partner
+              </Link>
+            </p>
+          </>
         )}
       </div>
     </AuthScene>

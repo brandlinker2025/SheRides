@@ -33,6 +33,9 @@ next-env.d.ts
 # testing
 /coverage
 
+# Local fallback for partner applications when Supabase is not configured.
+/data/
+
 # misc
 .DS_Store
 *.pem
