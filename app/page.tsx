@@ -9,7 +9,7 @@ export default function EntryPage() {
           <div className="text-6xl font-black tracking-tight text-[#6b21d4] sm:text-7xl">
             SheRides
           </div>
-          <p className="mt-2 text-xs font-medium uppercase tracking-widest text-[#ffb95f]">
+          <p className="mt-3 text-xs font-semibold uppercase tracking-[0.25em] text-[#ffb95f]">
             RIDE · CONNECT · EMPOWER
           </p>
         </div>
