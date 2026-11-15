@@ -3,21 +3,32 @@
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
+import { useLocale, type CopyKey } from "@/lib/locale";
 import { Icon } from "../ui/Icon";
 import { isNavActive, primaryNav } from "./nav-items";
 
-const FULL_LABEL: Record<string, string> = {
-  "/go": "Book a Ride",
-  "/go?tab=rides": "My Rides",
-  "/go?tab=rider": "Rider Mode",
-  "/notifications": "Notifications",
-  "/safety": "Safety Center",
-  "/profile": "Profile",
+const SHORT: Record<string, CopyKey> = {
+  "/go": "nav.book",
+  "/go?tab=rides": "nav.rides",
+  "/go?tab=rider": "nav.rider",
+  "/notifications": "nav.alerts",
+  "/places": "nav.places",
+  "/profile": "nav.profile",
+};
+
+const LONG: Record<string, CopyKey> = {
+  "/go": "nav.bookLong",
+  "/go?tab=rides": "nav.ridesLong",
+  "/go?tab=rider": "nav.riderLong",
+  "/notifications": "nav.alertsLong",
+  "/places": "nav.placesLong",
+  "/profile": "nav.profileLong",
 };
 
 function Items() {
   const pathname = usePathname();
   const tab = useSearchParams().get("tab");
+  const { t } = useLocale();
   return (
     <>
       {primaryNav.map((item) => {
@@ -26,14 +37,14 @@ function Items() {
           <Link
             key={item.href}
             href={item.href}
-            aria-label={FULL_LABEL[item.href] ?? item.label}
+            aria-label={t(LONG[item.href] ?? "nav.book")}
             aria-current={active ? "page" : undefined}
             className={`relative flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-full px-0.5 py-1 transition-all duration-300 active:scale-90 ${
               active ? "text-accent-magenta bg-accent-magenta/10" : "text-secondary hover:text-primary"
             }`}
           >
             <Icon name={item.icon} filled={active} className="text-[22px]" />
-            <span className="max-w-full truncate text-[10px] font-bold uppercase tracking-wide">{item.label}</span>
+            <span className="max-w-full truncate text-[10px] font-bold uppercase tracking-wide">{t(SHORT[item.href] ?? "nav.book")}</span>
           </Link>
         );
       })}

@@ -6,7 +6,7 @@ export const primaryNav: NavItem[] = [
   { href: "/go?tab=rides", label: "Rides", icon: "history", tab: "rides" },
   { href: "/go?tab=rider", label: "Rider", icon: "sports_motorsports", tab: "rider" },
   { href: "/notifications", label: "Alerts", icon: "notifications" },
-  { href: "/safety", label: "Safety", icon: "shield" },
+  { href: "/places", label: "Places", icon: "bookmark" },
   { href: "/profile", label: "Profile", icon: "person" },
 ];
 
@@ -16,7 +16,7 @@ export const sideNav: NavItem[] = [
   { href: "/go?tab=rider", label: "Rider Mode", icon: "sports_motorsports", tab: "rider" },
   { href: "/partner", label: "Become a Partner", icon: "handshake" },
   { href: "/notifications", label: "Notifications", icon: "notifications" },
-  { href: "/safety", label: "Safety Center", icon: "shield" },
+  { href: "/places", label: "Saved places", icon: "bookmark" },
   { href: "/profile", label: "Profile", icon: "person" },
 ];
 

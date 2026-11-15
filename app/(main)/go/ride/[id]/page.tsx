@@ -6,7 +6,6 @@ import { Avatar } from "@/components/ui/Avatar";
 import { BackLink } from "@/components/ui/BackLink";
 import { Icon } from "@/components/ui/Icon";
 import { useAuth } from "@/lib/auth-context";
-import { requestRiderLocation } from "@/lib/geolocation";
 import {
   KIND_LABEL,
   RIDE_STATUS_LABEL,
@@ -20,8 +19,10 @@ import {
   type GoRide,
 } from "@/lib/go";
 import { createClient } from "@/lib/supabase/client";
+import { FavouriteCaptain } from "@/components/go/FavouriteCaptain";
 import { LiveRideBoard, RideRating } from "@/components/go/RideFollowup";
 import { RideChat } from "@/components/go/RideChat";
+import { RideReceipt } from "@/components/go/RideReceipt";
 import { useDriverLocationSender } from "@/hooks/useDriverLocationSender";
 import { useRideTracking } from "@/hooks/useRideTracking";
 
@@ -42,6 +43,7 @@ export default function GoRidePage() {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [stops, setStops] = useState<{ id: string; label: string }[]>([]);
 
   const isPassenger = Boolean(ride && user && ride.passenger_id === user.id);
   const isRider = Boolean(ride && user && ride.rider_id === user.id);
@@ -69,6 +71,8 @@ export default function GoRidePage() {
     }
     const { data: p } = await supabase.from("profiles").select("full_name, avatar_url").eq("id", row.passenger_id).maybeSingle();
     setPassenger((p as Person | null) ?? null);
+    const stopsResult = await supabase.from("go_ride_stops").select("id, label, position").eq("ride_id", row.id).order("position");
+    setStops(stopsResult.error ? [] : ((stopsResult.data ?? []) as { id: string; label: string }[]));
     if (user && row.passenger_id === user.id) {
       const { data: s } = await supabase.from("go_ride_secrets").select("pin, share_token").eq("ride_id", row.id).maybeSingle();
       setSecret((s as { pin: string; share_token: string } | null) ?? null);
@@ -118,28 +122,6 @@ export default function GoRidePage() {
     if (done) setMessage(done);
     await load();
     return true;
-  }
-
-  async function sos() {
-    if (!ride) return;
-    let lat: number | null = null;
-    let lng: number | null = null;
-    try {
-      const pos = await requestRiderLocation();
-      lat = pos.coords.latitude;
-      lng = pos.coords.longitude;
-    } catch {
-      /* send without location */
-    }
-    const supabase = createClient();
-    if (!supabase) return;
-    const { error } = await supabase.rpc("submit_emergency_alert", {
-      p_problem_type: "harassment",
-      p_note: `SheRides ride ${ride.id.slice(0, 8)} — ${ride.pickup_text} → ${ride.drop_text ?? "hire"}`,
-      p_latitude: lat,
-      p_longitude: lng,
-    });
-    setMessage(error ? goErrorMessage(error) : "SOS sent. Admins have your location and ride details.");
   }
 
   async function shareTrip() {
@@ -220,6 +202,7 @@ export default function GoRidePage() {
             <p className="font-body-sm text-secondary">{rider.bike_model} · <span className="font-bold">{rider.bike_plate}</span></p>
             <p className="font-body-sm text-tertiary">{rider.rating != null ? `★ ${rider.rating}` : "New rider"} · {rider.completed_rides} rides</p>
           </div>
+          {isPassenger && ride.rider_id && <FavouriteCaptain riderId={ride.rider_id} name={rider.full_name} />}
         </div>
       )}
 
@@ -256,6 +239,9 @@ export default function GoRidePage() {
             </div>
           </div>
         )}
+        {stops.map((stop) => (
+          <p key={stop.id} className="flex gap-3"><Icon name="add_location_alt" className="text-[#ffb95f]" />Stop · {stop.label}</p>
+        ))}
         {ride.kind === "hire" && ride.hire_hours && <p className="flex gap-3"><Icon name="schedule" className="text-accent-magenta" />{ride.hire_hours} hour hire</p>}
         {ride.note && <p className="flex gap-3 text-secondary"><Icon name="sticky_note_2" />{ride.note}</p>}
         {isPassenger && ride.rider_lat != null && ride.rider_lng != null && active && (
@@ -307,17 +293,10 @@ export default function GoRidePage() {
         />
       )}
 
-      {active && (
-        <div className="grid grid-cols-2 gap-3">
-          {isPassenger && (
-            <button type="button" onClick={() => void shareTrip()} className="card-surface p-3 flex flex-col items-center gap-1 font-label-lg text-sm">
-              <Icon name="share_location" className="text-accent-magenta" /> Share trip
-            </button>
-          )}
-          <button type="button" onClick={() => void sos()} className={`rounded-[20px] p-3 flex flex-col items-center gap-1 font-label-lg text-sm bg-red-600 text-white shadow-lg ${isPassenger ? "" : "col-span-2"}`}>
-            <Icon name="emergency" filled /> SOS
-          </button>
-        </div>
+      {active && isPassenger && (
+        <button type="button" onClick={() => void shareTrip()} className="btn btn-secondary w-full">
+          <Icon name="share_location" className="text-[#ddb7ff]" /> Share trip
+        </button>
       )}
 
       {isRider && ride.status === "accepted" && (
@@ -330,15 +309,15 @@ export default function GoRidePage() {
             placeholder="• • • •"
             className="w-full text-center tracking-[0.5em] font-display-lg text-[28px] bg-soft-off-white border border-surface-border rounded-xl py-3"
           />
-          <button type="button" disabled={busy || pin.length !== 4} onClick={() => void call("go_start_ride", { p_ride_id: ride.id, p_pin: pin })} className="h-12 rounded-full bg-accent-magenta text-white font-label-lg">
-            Start ride
+          <button type="button" disabled={busy || pin.length !== 4} aria-busy={busy} onClick={() => void call("go_start_ride", { p_ride_id: ride.id, p_pin: pin })} className="btn btn-primary w-full">
+            {busy ? "Starting…" : "Start ride"}
           </button>
         </div>
       )}
 
       {isRider && ride.status === "in_progress" && (
-        <button type="button" disabled={busy} onClick={() => void call("go_complete_ride", { p_ride_id: ride.id }, `Ride complete. Collect ${formatTaka(ride.fare)}.`)} className="h-14 rounded-full bg-accent-magenta text-white font-label-lg">
-          Complete ride · collect {formatTaka(ride.fare)}
+        <button type="button" disabled={busy} aria-busy={busy} onClick={() => void call("go_complete_ride", { p_ride_id: ride.id }, `Ride complete. Collect ${formatTaka(ride.fare)}.`)} className="btn btn-primary h-14 w-full text-lg">
+          {busy ? "Completing…" : `Complete ride · collect ${formatTaka(ride.fare)}`}
         </button>
       )}
 
@@ -350,6 +329,10 @@ export default function GoRidePage() {
         />
       )}
 
+      {ride.status === "completed" && (
+        <RideReceipt ride={ride} passengerName={passenger?.full_name ?? null} riderName={rider?.full_name ?? null} />
+      )}
+
       {(ride.status === "requested" || ride.status === "accepted") && (isPassenger || isRider) && (
         <button
           type="button"
@@ -358,7 +341,7 @@ export default function GoRidePage() {
             const ok = await call("go_cancel_ride", { p_ride_id: ride.id, p_reason: isRider ? "Rider backed out" : "Passenger cancelled" });
             if (ok && isRider) router.push("/go?tab=rider");
           }}
-          className="h-12 rounded-full border border-error text-error font-label-lg"
+          className="btn btn-danger w-full"
         >
           {isRider ? "Can't make it — release this ride" : "Cancel ride"}
         </button>

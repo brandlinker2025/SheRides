@@ -101,7 +101,7 @@ export function NotificationsBell() {
           <div className="px-4 py-8 text-center">
             <p className="font-label-lg text-on-surface mb-1">No notifications yet.</p>
             <p className="font-body-sm text-tertiary">
-              Ride requests, approvals and safety alerts will show up here.
+              Ride requests and approvals will show up here.
             </p>
           </div>
         ) : null}

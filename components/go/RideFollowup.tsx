@@ -67,7 +67,7 @@ export function LiveRideBoard({
       </div>
       <div className="rounded-2xl border border-[#ffb95f]/25 bg-[#1a1a24] p-3">
         <p className="text-sm font-semibold">Sanctuary protocol</p>
-        <p className="mt-1 text-sm text-white/70">Use the SOS button and in-app chat on this page. Guardian links are not connected on this ride, so no family names are shown.</p>
+        <p className="mt-1 text-sm text-white/70">Use in-app chat on this page, and share the trip link with someone you trust. Family names are not stored on this ride.</p>
       </div>
     </section>
   );

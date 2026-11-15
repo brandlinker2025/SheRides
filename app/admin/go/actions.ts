@@ -28,6 +28,27 @@ export async function reviewGoApplication(applicationId: string, status: string,
   }
 }
 
+export async function reviewPartnerApplication(applicationId: string, status: string, notes: string) {
+  if (!UUID.test(applicationId) || !new Set(["approved", "rejected", "pending"]).has(status)) {
+    return { error: "Invalid request." };
+  }
+  try {
+    await requireAdmin();
+    const session = await createServerSupabase();
+    if (!session) return { error: "Supabase is not configured." };
+    const { error } = await session.rpc("admin_review_partner_application", {
+      p_id: applicationId,
+      p_status: status,
+      p_notes: notes.slice(0, 500),
+    });
+    if (error) return { error: error.message };
+    revalidatePath("/admin/go");
+    return {};
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : "Could not save this review." };
+  }
+}
+
 export async function adminCancelGoRide(rideId: string) {
   if (!UUID.test(rideId)) return { error: "Invalid request." };
   try {

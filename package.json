@@ -11,7 +11,7 @@
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "test": "npx --yes tsx --test lib/birthday.test.ts lib/geolocation.test.ts lib/notifications.test.ts lib/notification-sound.test.ts lib/camera-capture.test.ts lib/go-application.test.ts lib/go-fare.test.ts lib/partner-application.test.ts",
+    "test": "npx --yes tsx --test lib/birthday.test.ts lib/geolocation.test.ts lib/notifications.test.ts lib/notification-sound.test.ts lib/camera-capture.test.ts lib/go-application.test.ts lib/go-fare.test.ts lib/partner-application.test.ts lib/ride-extras.test.ts",
     "audit:prod": "npm audit --omit=dev",
     "check": "npm run lint && npm run typecheck && npm run build && npm run audit:prod"
   },
@@ -24,6 +24,7 @@
     "react-dom": "19.2.8"
   },
   "devDependencies": {
+    "@playwright/test": "^1.56.1",
     "@types/node": "22.19.11",
     "@types/react": "19.2.18",
     "@types/react-dom": "19.2.5",

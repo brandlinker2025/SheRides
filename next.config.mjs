@@ -40,10 +40,11 @@ const nextConfig = {
     ],
   },
   async redirects() {
-    // Social pages were removed. Old links, bookmarks and stored notifications land on ride booking.
-    // /rider-benefits?alert=<id> is the href inside existing SOS notifications: it must keep reaching the alert detail.
+    // Social pages and the SOS center were removed. Old links land on ride booking or admin review.
     return [
-      { source: "/rider-benefits", destination: "/safety", permanent: false },
+      { source: "/safety", destination: "/go", permanent: false },
+      { source: "/rider-benefits", destination: "/go", permanent: false },
+      { source: "/admin/emergency-alerts", destination: "/admin/go", permanent: false },
       ...["home", "explore", "messages", "groups", "events", "rides", "saved"].map((segment) => ({
         source: `/${segment}/:path*`,
         destination: "/go",
@@ -82,7 +83,7 @@ const nextConfig = {
         ],
       },
       {
-        source: "/:path(go|notifications|safety|profile|admin|verification|verify-phone|pending-approval)/:sub*",
+        source: "/:path(go|notifications|places|profile|admin|verification|verify-phone|pending-approval)/:sub*",
         headers: [{ key: "Cache-Control", value: "no-store, must-revalidate" }],
       },
     ];

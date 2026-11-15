@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { EarningsPanel } from "@/components/go/EarningsPanel";
 import { Avatar } from "@/components/ui/Avatar";
 import { Icon } from "@/components/ui/Icon";
 import { useAuth } from "@/lib/auth-context";
@@ -140,7 +141,8 @@ export function RiderMode() {
           </p>
         </div>
       </div>
-      {message && <p className="font-body-sm text-error">{message}</p>}
+      {message && <p className="font-body-sm text-error" role="alert">{message}</p>}
+      <EarningsPanel />
 
       {mine.length > 0 && (
         <section>
@@ -194,7 +196,7 @@ export function RiderMode() {
                     type="button"
                     disabled={busyId === ride.id}
                     onClick={() => void accept(ride)}
-                    className="h-12 rounded-full bg-accent-magenta text-white font-label-lg"
+                    className="btn btn-primary w-full"
                   >
                     {busyId === ride.id ? "Accepting…" : "Accept ride"}
                   </button>

@@ -88,7 +88,7 @@ export function ProfileView({ rider, isSelf }: ProfileViewProps) {
                   {rider.role === "admin" && (
                     <button type="button" onClick={() => router.push("/admin")} className="flex-1 md:flex-none px-6 py-2.5 border border-outline rounded-lg font-label-lg">Admin panel</button>
                   )}
-                  <button type="button" onClick={() => setEditing(true)} className="flex-1 md:flex-none px-6 py-2.5 bg-accent-magenta text-white rounded-lg font-label-lg">Edit profile</button>
+                  <button type="button" onClick={() => setEditing(true)} className="btn btn-primary flex-1 md:flex-none">Edit profile</button>
                 </>
               ) : null}
             </div>
@@ -108,7 +108,7 @@ export function ProfileView({ rider, isSelf }: ProfileViewProps) {
           {[
             { href: "/go", icon: "two_wheeler", label: "Book a ride" },
             { href: "/go?tab=rides", icon: "history", label: "My rides" },
-            { href: "/safety", icon: "shield", label: "Safety Center" },
+            { href: "/places", icon: "bookmark", label: "Saved places" },
           ].map((item) => (
             <Link key={item.href} href={item.href} className="card-surface card-hover p-5 flex items-center gap-3">
               <Icon name={item.icon} className="text-accent-magenta" />

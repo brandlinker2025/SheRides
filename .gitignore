@@ -32,6 +32,9 @@ next-env.d.ts
 
 # testing
 /coverage
+/test-results/
+/playwright-report/
+/blob-report/
 
 # Local fallback for partner applications when Supabase is not configured.
 /data/

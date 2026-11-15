@@ -24,9 +24,11 @@ import {
   type GoService,
 } from "@/lib/go";
 import { createClient } from "@/lib/supabase/client";
+import { normalizePromoCode, rpcMissing } from "@/lib/ride-extras";
 import { PickupSpot } from "./PickupSpot";
 import { PlaceInput } from "./PlaceInput";
 import { RideMap } from "./RideMap";
+import { SavedPlacesBar } from "./SavedPlacesBar";
 
 const KINDS: { id: GoRideKind; label: string; bn: string }[] = [
   { id: "now", label: "Ride now", bn: "এখনই" },
@@ -122,6 +124,9 @@ export function BookRide({ pickup, drop, onPickup, onDrop, autoLocate = true }: 
   const [payment, setPayment] = useState<"cash" | "bkash" | "nagad">("cash");
   const [note, setNote] = useState("");
   const onPickupNote = useCallback((value: string) => setNote(value), []);
+  const [promo, setPromo] = useState("");
+  const [promoNote, setPromoNote] = useState<string | null>(null);
+  const [stop, setStop] = useState<GoPlace | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -160,6 +165,28 @@ export function BookRide({ pickup, drop, onPickup, onDrop, autoLocate = true }: 
     const supabase = createClient();
     if (!supabase) return setError("Ride booking is not connected yet.");
     setBusy(true);
+    const code = normalizePromoCode(promo);
+    let quoted: string | null = null;
+    if (code) {
+      const previewFare =
+        kind === "hire" ? hireFare : km != null ? (catalogLive ? distanceFare(km, service, rates) : legacyDistanceFare(km)) : null;
+      if (previewFare == null) {
+        setBusy(false);
+        return setError("Add a destination before using a promo code.");
+      }
+      const quote = await supabase.rpc("go_quote_promo", { p_code: code, p_fare: previewFare, p_kind: kind });
+      if (quote.error) {
+        setBusy(false);
+        return setError(
+          rpcMissing(quote.error.message)
+            ? "Promo codes start working after the database update is applied."
+            : goErrorMessage(quote.error),
+        );
+      }
+      const quotedFare = (quote.data as { fare?: number } | null)?.fare;
+      setPromoNote(quotedFare != null ? `Code ${code} brings this ride to ৳${quotedFare}.` : `Code ${code} is valid.`);
+      quoted = code;
+    }
     const preference = `Vehicle: ${SERVICE_LABEL[service]}`;
     const payload = {
       p_kind: kind,
@@ -183,17 +210,59 @@ export function BookRide({ pickup, drop, onPickup, onDrop, autoLocate = true }: 
       setFareSource("legacy");
       result = await supabase.rpc("go_request_ride", legacyPayload);
     }
-    setBusy(false);
     if (result.error || !result.data) {
+      setBusy(false);
       setError(goErrorMessage(result.error));
       return;
     }
-    router.push(`/go/ride/${String(result.data)}`);
+    const rideId = String(result.data);
+    if (quoted) {
+      const redeemed = await supabase.rpc("go_redeem_promo", { p_ride_id: rideId, p_code: quoted });
+      if (redeemed.error && !rpcMissing(redeemed.error.message)) {
+        setBusy(false);
+        setError(`${goErrorMessage(redeemed.error)} The ride was still requested at the full fare.`);
+        router.push(`/go/ride/${rideId}`);
+        return;
+      }
+    }
+    if (stop) {
+      await supabase.rpc("go_add_ride_stop", {
+        p_ride_id: rideId,
+        p_label: stop.label,
+        p_lat: stop.lat,
+        p_lng: stop.lng,
+      });
+    }
+    setBusy(false);
+    router.push(`/go/ride/${rideId}`);
+  }
+
+  async function checkPromo() {
+    setError(null);
+    setPromoNote(null);
+    const code = normalizePromoCode(promo);
+    if (code.length < 4) return setError("Enter the promo code.");
+    const previewFare =
+      kind === "hire" ? hireFare : km != null ? (catalogLive ? distanceFare(km, service, rates) : legacyDistanceFare(km)) : null;
+    if (previewFare == null) return setError("Add a destination so the code can be checked against the fare.");
+    const supabase = createClient();
+    if (!supabase) return setError("Ride booking is not connected yet.");
+    const quote = await supabase.rpc("go_quote_promo", { p_code: code, p_fare: previewFare, p_kind: kind });
+    if (quote.error) {
+      return setError(
+        rpcMissing(quote.error.message)
+          ? "Promo codes start working after the database update is applied."
+          : goErrorMessage(quote.error),
+      );
+    }
+    const row = quote.data as { discount?: number; fare?: number } | null;
+    setPromoNote(row?.fare != null ? `${code} saves ৳${row.discount ?? 0}. Estimated fare ৳${row.fare}.` : `${code} is valid.`);
   }
 
   return (
     <div className="flex flex-col gap-3">
       <div className="rounded-3xl border border-white/10 bg-[#1f1f24]/95 p-4 shadow-2xl backdrop-blur-xl">
+        <SavedPlacesBar onPick={(place) => (pickup ? onDrop(place) : onPickup(place))} />
         <div className="relative flex flex-col gap-3 pl-5">
           <span className="absolute bottom-6 left-[7px] top-6 w-px bg-gradient-to-b from-[#5eead4] to-[#ddb7ff]" aria-hidden="true" />
           <PlaceInput
@@ -211,6 +280,13 @@ export function BookRide({ pickup, drop, onPickup, onDrop, autoLocate = true }: 
             value={drop}
             onChange={onDrop}
             placeholder="Drop-off area or place"
+          />
+          <PlaceInput
+            label="Add a stop (optional)"
+            icon="add_location_alt"
+            value={stop}
+            onChange={setStop}
+            placeholder="A stop on the way. Fare stays pickup to final drop."
           />
         </div>
 
@@ -340,6 +416,21 @@ export function BookRide({ pickup, drop, onPickup, onDrop, autoLocate = true }: 
         </div>
       </div>
 
+      <div className="flex gap-2">
+        <input
+          value={promo}
+          onChange={(event) => setPromo(event.target.value.toUpperCase())}
+          maxLength={16}
+          placeholder="Promo code"
+          aria-label="Promo code"
+          className="h-12 min-w-0 flex-1 rounded-full border border-white/10 bg-[#121217] px-4 text-sm font-semibold uppercase text-white"
+        />
+        <button type="button" onClick={() => void checkPromo()} className="btn btn-ghost h-12 min-h-12 px-4 text-sm">
+          Check code
+        </button>
+      </div>
+      {promoNote && <p className="text-sm text-[#ddb7ff]" role="status">{promoNote}</p>}
+
       <FareBreakdown km={kind === "hire" ? null : km} rate={selectedRate} hireFare={hireFare} hours={hours} catalogLive={catalogLive} />
 
       {error && (
@@ -351,7 +442,8 @@ export function BookRide({ pickup, drop, onPickup, onDrop, autoLocate = true }: 
         type="button"
         disabled={busy || !canSubmit}
         onClick={() => void submit()}
-        className="h-14 rounded-full bg-gradient-to-br from-[#ddb7ff] to-[#a855f7] text-lg font-bold text-[#1a1a24] disabled:opacity-40"
+        aria-busy={busy}
+        className="btn btn-primary h-14 w-full text-lg disabled:opacity-40"
       >
         {busy ? "Requesting…" : kind === "now" ? "Request SheRides" : kind === "hire" ? "Request Hire" : "Schedule Ride"}
       </button>
