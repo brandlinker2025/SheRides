@@ -6,12 +6,11 @@ const icons: NonNullable<MetadataRoute.Manifest["icons"]> = [
   { src: "/icons/icon-512.png", sizes: "512x512", type: "image/png", purpose: "any" },
   { src: "/icons/icon-192-maskable.png", sizes: "192x192", type: "image/png", purpose: "maskable" },
   { src: "/icons/icon-512-maskable.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
-  { src: "/icon.svg", sizes: "any", type: "image/svg+xml", purpose: "any" },
 ];
 
 const shared = {
-  background_color: "#0f1024",
-  theme_color: "#6c5ce7",
+  background_color: "#1B1324",
+  theme_color: "#460377",
   display: "standalone" as const,
   display_override: ["standalone", "minimal-ui"] as NonNullable<MetadataRoute.Manifest["display_override"]>,
   lang: "en",

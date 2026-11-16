@@ -2,6 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { GoAppStatus, GoRideKind, GoRideStatus } from "@/lib/go";
 
 export type RiderOverview = {
+  pendingPassengers: number;
   pendingRiders: number;
   approvedRiders: number;
   suspendedRiders: number;
@@ -27,8 +28,9 @@ export async function loadRiderOverview(supabase: SupabaseClient): Promise<Rider
   const riderApps = (status: GoAppStatus) =>
     supabase.from("go_applications").select("id", { count: "exact", head: true }).eq("role", "rider").eq("status", status);
 
-  const [pending, approved, suspended, online, live, completed, apps, rides] = await Promise.all([
+  const [pending, pendingPassengers, approved, suspended, online, live, completed, apps, rides] = await Promise.all([
     riderApps("pending"),
+    supabase.from("go_applications").select("id", { count: "exact", head: true }).eq("role", "passenger").eq("status", "pending"),
     riderApps("approved"),
     riderApps("suspended"),
     supabase
@@ -51,9 +53,10 @@ export async function loadRiderOverview(supabase: SupabaseClient): Promise<Rider
       .limit(5),
   ]);
 
-  const failed = [pending, approved, suspended, online, live, completed, apps, rides].find((r) => r.error);
+  const failed = [pending, pendingPassengers, approved, suspended, online, live, completed, apps, rides].find((r) => r.error);
 
   return {
+    pendingPassengers: pendingPassengers.count ?? 0,
     pendingRiders: pending.count ?? 0,
     approvedRiders: approved.count ?? 0,
     suspendedRiders: suspended.count ?? 0,

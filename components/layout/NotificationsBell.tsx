@@ -80,7 +80,7 @@ export function NotificationsBell() {
       ref={panelRef}
       role="dialog"
       aria-label="Notifications"
-      className="fixed right-3 top-[4.5rem] z-[80] w-[min(24rem,calc(100vw-1.5rem))] max-h-[min(28rem,70vh)] flex flex-col rounded-xl border border-surface-border bg-surface-container-lowest shadow-premium overflow-hidden"
+      className="fixed right-3 top-[5.25rem] z-[80] w-[min(24rem,calc(100vw-1.5rem))] max-h-[min(28rem,70vh)] flex flex-col rounded-xl border border-surface-border bg-surface-container-lowest shadow-premium overflow-hidden"
     >
       <div className="flex items-center justify-between gap-3 px-4 py-3 border-b border-surface-border">
         <h2 className="font-headline-md text-body-lg text-on-surface">Notifications</h2>

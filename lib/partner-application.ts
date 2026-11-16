@@ -1,4 +1,5 @@
 import { normalizeBdPhone } from "@/lib/phone";
+import { ENABLE_CAR } from "@/lib/features";
 
 /** Public recruitment lead. No NID, licence image, password, or payment data. */
 export const VEHICLE_TYPES = ["car", "bike_scooter", "none"] as const;
@@ -48,6 +49,10 @@ function cleanText(value: unknown) {
   return typeof value === "string" ? value.replace(/[\u0000-\u001F\u007F]/g, "").trim() : "";
 }
 
+export function offeredVehicleTypes(): VehicleType[] {
+  return ENABLE_CAR ? [...VEHICLE_TYPES] : VEHICLE_TYPES.filter((type) => type !== "car");
+}
+
 export function validatePartnerApplication(input: unknown): PartnerValidation {
   if (!input || typeof input !== "object") return { ok: false, field: "name" };
   const body = input as Record<string, unknown>;
@@ -63,6 +68,7 @@ export function validatePartnerApplication(input: unknown): PartnerValidation {
   if (area.length < 2 || area.length > 80) return { ok: false, field: "area" };
 
   const vehicleType = body.vehicleType;
+  if (vehicleType === "car" && !ENABLE_CAR) return { ok: false, field: "vehicle" };
   if (vehicleType !== "car" && vehicleType !== "bike_scooter" && vehicleType !== "none") {
     return { ok: false, field: "vehicle" };
   }

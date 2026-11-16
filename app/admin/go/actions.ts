@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { reviewInputError } from "@/lib/approval";
 import { requireAdmin } from "@/lib/supabase/require-admin";
 import { createServerSupabase } from "@/lib/supabase/server";
 
@@ -9,6 +10,8 @@ const STATUSES = new Set(["approved", "rejected", "suspended", "pending"]);
 
 export async function reviewGoApplication(applicationId: string, status: string, notes: string) {
   if (!UUID.test(applicationId) || !STATUSES.has(status)) return { error: "Invalid request." };
+  const invalid = reviewInputError(status, notes);
+  if (invalid) return { error: invalid };
   try {
     await requireAdmin();
     // The review RPC checks auth.uid() is an admin, so it must run with the admin's own session.
@@ -32,6 +35,8 @@ export async function reviewPartnerApplication(applicationId: string, status: st
   if (!UUID.test(applicationId) || !new Set(["approved", "rejected", "pending"]).has(status)) {
     return { error: "Invalid request." };
   }
+  const invalid = reviewInputError(status, notes);
+  if (invalid) return { error: invalid };
   try {
     await requireAdmin();
     const session = await createServerSupabase();

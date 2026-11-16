@@ -12,7 +12,8 @@ export default async function AdminDashboardPage() {
   const [stats, riders] = await Promise.all([loadAdminStats(supabase), loadRiderOverview(supabase)]);
 
   const cards = [
-    { label: "Riders waiting review", value: riders.pendingRiders, href: "/admin/go", icon: "hourglass_top" },
+    { label: "Passengers waiting to book", value: riders.pendingPassengers, href: "/admin/go#passengers", icon: "hail" },
+    { label: "Captains waiting review", value: riders.pendingRiders, href: "/admin/go#captains", icon: "hourglass_top" },
     { label: "Approved riders", value: riders.approvedRiders, href: "/admin/go", icon: "sports_motorsports" },
     { label: "Riders online now", value: riders.onlineRiders, href: "/admin/go", icon: "wifi_tethering" },
     { label: "Live rides", value: riders.liveRides, href: "/admin/go", icon: "two_wheeler" },
@@ -28,6 +29,22 @@ export default async function AdminDashboardPage() {
       </div>
       {riders.error && (
         <div className="mb-6 p-4 rounded-lg bg-error-container text-on-error-container font-body-sm">{riders.error}</div>
+      )}
+      {riders.pendingPassengers > 0 && (
+        <Link
+          href="/admin/go#passengers"
+          className="mb-4 flex items-start gap-3 rounded-xl border border-[#ffc440]/50 bg-[#ffc440]/10 p-4 hover:bg-[#ffc440]/15 transition-colors"
+        >
+          <Icon name="hail" filled className="text-[#ffb95f] mt-0.5" />
+          <span>
+            <span className="block font-label-lg text-on-surface">
+              {riders.pendingPassengers === 1
+                ? "1 passenger is stuck on Book rides · Pending"
+                : `${riders.pendingPassengers} passengers are stuck on Book rides · Pending`}
+            </span>
+            <span className="block font-body-sm text-secondary mt-1">Approve them in the queue so they can book. They get a notification either way.</span>
+          </span>
+        </Link>
       )}
       {riders.pendingRiders > 0 && (
         <Link

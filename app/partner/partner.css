@@ -22,9 +22,9 @@ body:has(.partner-root) .panda-install-prompt {
 }
 
 .partner-cta {
-  background-image: linear-gradient(135deg, #f4b8d4 0%, #b76dff 46%, #6366f1 100%);
-  color: #ffffff;
-  box-shadow: 0 0 24px rgba(183, 109, 255, 0.38);
+  background: #FF6772;
+  color: #460377;
+  box-shadow: 0 0 24px rgba(255, 103, 114, 0.35);
 }
 
 .partner-cta:hover {

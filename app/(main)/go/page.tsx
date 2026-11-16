@@ -7,7 +7,6 @@ import { RideDeck } from "@/components/go/BookRide";
 import { RiderMode } from "@/components/go/RiderMode";
 import { Icon } from "@/components/ui/Icon";
 import { useAuth } from "@/lib/auth-context";
-import { useLocale } from "@/lib/locale";
 import {
   KIND_LABEL,
   RIDE_STATUS_LABEL,
@@ -30,7 +29,6 @@ const STATUS_STYLE: Record<string, string> = {
 };
 
 function ApplyCard({ role, app }: { role: GoRole; app: GoApplication | undefined }) {
-  const { t } = useLocale();
   const rider = role === "rider";
   const status = app?.status;
   return (
@@ -47,13 +45,12 @@ function ApplyCard({ role, app }: { role: GoRole; app: GoApplication | undefined
       </div>
       {status === "pending" && (
         <div className="rounded-2xl border border-[#ffb95f]/40 bg-[#1a1a24] p-4 text-[#e4e1e9]" role="status">
-          <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#ffb95f]">{t("wait.title")}</p>
-          <p className="mt-1 text-base font-bold">{t("wait.title")}</p>
-          <p className="mt-2 text-sm text-white/70">{t("wait.body")}</p>
-          <p className="mt-3 text-xs text-white/45">
+          <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#ffb95f]">{rider ? "CAPTAIN REVIEW" : "BOOKING REVIEW"}</p>
+          <p className="mt-1 text-base font-bold">{rider ? "An admin is reviewing your captain application" : "An admin needs to approve booking"}</p>
+          <p className="mt-2 text-sm text-white/70">
             {rider
-              ? "The online switch and ride requests stay closed until an admin approves this rider application."
-              : "Booking stays closed until an admin approves this passenger application."}
+              ? "You cannot go online or receive rides until this is approved. You will get a notification when it is decided."
+              : "Booking stays closed until an admin approves you. You will get a notification when you can book."}
           </p>
         </div>
       )}
@@ -74,7 +71,8 @@ function MyRides() {
   const { user } = useAuth();
   const [rides, setRides] = useState<GoRide[] | null>(null);
   const [ridesError, setRidesError] = useState<string | null>(null);
-  useEffect(() => {
+  const [cancelError, setCancelError] = useState<string | null>(null);
+  const reload = useCallback(() => {
     const supabase = createClient();
     if (!user) return;
     if (!supabase) {
@@ -97,13 +95,53 @@ function MyRides() {
         setRides((data ?? []) as GoRide[]);
       });
   }, [user]);
+  useEffect(() => {
+    reload();
+  }, [reload]);
+
+  async function cancelRide(id: string) {
+    const supabase = createClient();
+    if (!supabase) return;
+    setCancelError(null);
+    const { error } = await supabase.rpc("go_cancel_ride", { p_ride_id: id, p_reason: "Passenger cancelled the pre-book" });
+    if (error) {
+      setCancelError(goErrorMessage(error));
+      return;
+    }
+    reload();
+  }
 
   if (ridesError) return <p className="card-surface p-6 font-body-sm text-error" role="alert">{ridesError}</p>;
   if (!rides) return <div className="skeleton h-40" />;
   if (!rides.length) return <p className="card-surface p-8 text-center font-body-sm text-secondary">No rides yet.</p>;
+  const upcoming = rides.filter((ride) => ride.kind === "scheduled" && (ride.status === "requested" || ride.status === "accepted") && ride.passenger_id === user?.id);
+  const rest = rides.filter((ride) => !upcoming.some((item) => item.id === ride.id));
   return (
     <div className="flex flex-col gap-3">
-      {rides.map((ride) => (
+      {cancelError && <p className="card-surface p-4 text-sm text-error" role="alert">{cancelError}</p>}
+      {upcoming.length > 0 && (
+        <section className="flex flex-col gap-3">
+          <h2 className="text-sm font-bold uppercase tracking-[0.14em] text-[#FFB804]">Upcoming pre-booked rides</h2>
+          {upcoming.map((ride) => (
+            <article key={ride.id} className="card-surface flex flex-col gap-3 p-4">
+              <Link href={`/go/ride/${ride.id}`} className="flex items-center gap-4">
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#FF6772]/15 text-[#FF6772]">
+                  <Icon name="event" />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="font-label-lg truncate">{ride.drop_text ?? ride.pickup_text}</p>
+                  <p className="font-body-sm text-tertiary">{formatWhen(ride.scheduled_at)} · {RIDE_STATUS_LABEL[ride.status]}</p>
+                </div>
+                <p className="font-label-lg">{formatTaka(ride.fare)}</p>
+              </Link>
+              <button type="button" onClick={() => void cancelRide(ride.id)} className="btn btn-danger h-10 min-h-10 self-start px-4 text-sm">
+                Cancel pre-book
+              </button>
+            </article>
+          ))}
+        </section>
+      )}
+      {rest.map((ride) => (
         <Link key={ride.id} href={`/go/ride/${ride.id}`} className="card-surface card-hover p-4 flex items-center gap-4">
           <span className="w-11 h-11 rounded-full bg-accent-magenta/10 text-accent-magenta flex items-center justify-center shrink-0">
             <Icon name={ride.passenger_id === user?.id ? "hail" : "sports_motorsports"} />

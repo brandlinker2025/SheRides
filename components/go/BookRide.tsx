@@ -8,6 +8,7 @@ import {
   FARE_RATES,
   SERVICE_LABEL,
   FLEET_COPY,
+  bookableRates,
   distanceFare,
   estimateFare,
   estimatePickupMinutes,
@@ -32,7 +33,7 @@ import { SavedPlacesBar } from "./SavedPlacesBar";
 
 const KINDS: { id: GoRideKind; label: string; bn: string }[] = [
   { id: "now", label: "Ride now", bn: "এখনই" },
-  { id: "scheduled", label: "Schedule", bn: "সিডিউল" },
+  { id: "scheduled", label: "Pre-book", bn: "প্রি-বুক" },
   { id: "hire", label: "Hire", bn: "হায়ার" },
 ];
 
@@ -41,6 +42,17 @@ function minDateTime() {
   d.setSeconds(0, 0);
   const local = new Date(d.getTime() - d.getTimezoneOffset() * 60000);
   return local.toISOString().slice(0, 16);
+}
+
+function maxDateTime() {
+  const d = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+  const local = new Date(d.getTime() - d.getTimezoneOffset() * 60000);
+  return local.toISOString().slice(0, 16);
+}
+
+function joinDateTime(date: string, time: string) {
+  if (!date || !time) return "";
+  return `${date}T${time}`;
 }
 
 function serviceRpcMissing(message: string) {
@@ -117,7 +129,7 @@ export function BookRide({ pickup, drop, onPickup, onDrop, autoLocate = true }: 
   const router = useRouter();
   const [kind, setKind] = useState<GoRideKind>("now");
   const [service, setService] = useState<GoService>("ev_bike");
-  const [rates, setRates] = useState<FareRate[]>(FARE_RATES);
+  const [rates, setRates] = useState<FareRate[]>(() => bookableRates(FARE_RATES));
   const [fareSource, setFareSource] = useState<"unknown" | "catalog" | "legacy">("unknown");
   const [when, setWhen] = useState("");
   const [hours, setHours] = useState(2);
@@ -146,7 +158,7 @@ export function BookRide({ pickup, drop, onPickup, onDrop, autoLocate = true }: 
         setFareSource("legacy");
         return;
       }
-      const next = ratesFromCatalog(data as Parameters<typeof ratesFromCatalog>[0]);
+      const next = bookableRates(ratesFromCatalog(data as Parameters<typeof ratesFromCatalog>[0]));
       if (!next.length) {
         setFareSource("legacy");
         return;
@@ -308,18 +320,39 @@ export function BookRide({ pickup, drop, onPickup, onDrop, autoLocate = true }: 
         </div>
 
         {kind !== "now" && (
-          <label className="mt-3 block">
-            <span className="mb-1.5 block text-sm font-semibold text-white/70">
-              {kind === "hire" ? "Start time (optional)" : "Pickup date & time"}
-            </span>
-            <input
-              type="datetime-local"
-              min={minDateTime()}
-              value={when}
-              onChange={(event) => setWhen(event.target.value)}
-              className="w-full rounded-xl border border-white/10 bg-[#121217] px-4 py-3 text-white"
-            />
-          </label>
+          <div className="mt-3 rounded-2xl border border-[#FF6772]/40 bg-[#1B1324] p-4">
+            <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#FFB804]">
+              {kind === "hire" ? "Hire start" : "Pre-book"}
+            </p>
+            <p className="mt-1 text-sm font-semibold text-[#F0EBF6]">
+              {kind === "hire" ? "When should the captain start?" : "Choose a future pickup. You can cancel it until a captain is on the way."}
+            </p>
+            <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
+              <label className="block">
+                <span className="mb-1 block text-xs font-semibold text-white/70">Date</span>
+                <input
+                  type="date"
+                  required={kind === "scheduled"}
+                  min={minDateTime().slice(0, 10)}
+                  max={maxDateTime().slice(0, 10)}
+                  value={when.slice(0, 10)}
+                  onChange={(event) => setWhen(joinDateTime(event.target.value, when.slice(11, 16) || "09:00"))}
+                  className="h-12 w-full rounded-xl border border-white/15 bg-[#121217] px-3 text-[#F0EBF6] [color-scheme:dark]"
+                />
+              </label>
+              <label className="block">
+                <span className="mb-1 block text-xs font-semibold text-white/70">Time</span>
+                <input
+                  type="time"
+                  required={kind === "scheduled"}
+                  value={when.slice(11, 16)}
+                  onChange={(event) => setWhen(joinDateTime(when.slice(0, 10) || minDateTime().slice(0, 10), event.target.value))}
+                  className="h-12 w-full rounded-xl border border-white/15 bg-[#121217] px-3 text-[#F0EBF6] [color-scheme:dark]"
+                />
+              </label>
+            </div>
+            {when && <p className="mt-2 text-sm text-[#FFB804]">{new Date(when).toLocaleString("en-BD", { timeZone: "Asia/Dhaka", dateStyle: "medium", timeStyle: "short" })} · Dhaka time</p>}
+          </div>
         )}
         {kind === "hire" && (
           <div className="mt-3 flex items-center gap-3">

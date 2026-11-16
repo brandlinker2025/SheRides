@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState, type FormEvent } from "react";
 import type { EmailOtpType } from "@supabase/supabase-js";
-import { BrandLogo } from "@/components/ui/BrandLogo";
+import { Logo } from "@/components/ui/Logo";
 import { Icon } from "@/components/ui/Icon";
 import { createClient } from "@/lib/supabase/client";
 
@@ -100,7 +100,7 @@ function CallbackInner() {
     <main className="min-h-dvh flex items-center justify-center px-4 py-10 bg-[#0b0b1a] text-white">
       <div className="w-full max-w-md rounded-3xl border border-white/10 bg-white/[0.04] p-7 shadow-2xl">
         <div className="mb-6 flex justify-center">
-          <BrandLogo />
+          <Logo variant="lockup" height={140} priority />
         </div>
 
         {stage === "checking" && (

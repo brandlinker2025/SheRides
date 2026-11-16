@@ -27,7 +27,7 @@ const butterpop = localFont({
 });
 
 const siteUrl = "https://sherides.online";
-const ogImage = `${siteUrl}/sherides-panda-og.jpg`;
+const ogImage = "/og.jpg";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -37,6 +37,13 @@ export const metadata: Metadata = {
   applicationName: "SheRides",
   manifest: "/manifest.webmanifest",
   icons: {
+    icon: [
+      { url: "/favicon.ico" },
+      { url: "/icons/icon-16.png", sizes: "16x16", type: "image/png" },
+      { url: "/icons/icon-32.png", sizes: "32x32", type: "image/png" },
+      { url: "/icons/icon-48.png", sizes: "48x48", type: "image/png" },
+      { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
+    ],
     apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
   },
   alternates: {
@@ -47,7 +54,7 @@ export const metadata: Metadata = {
     description: "Safe rides by women, for women. Book now, pre-book, or hire by the hour.",
     url: siteUrl,
     siteName: "SheRides",
-    images: [{ url: ogImage, width: 1536, height: 806, alt: "SheRides — women-only ride sharing in Bangladesh" }],
+    images: [{ url: ogImage, width: 1200, height: 630, alt: "SheRides — women-only ride sharing in Bangladesh" }],
     locale: "en_US",
     type: "website",
   },
@@ -68,7 +75,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#6c5ce7",
+  themeColor: "#460377",
   width: "device-width",
   initialScale: 1,
 };
@@ -77,8 +84,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={`${inter.variable} ${montserrat.variable} ${butterpop.variable}`}>
       <head>
-        <link rel="icon" href="/icon.svg" type="image/svg+xml" />
-        <link rel="icon" href="/icons/icon-192.png" type="image/png" sizes="192x192" />
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="icon" href="/icons/icon-32.png" type="image/png" sizes="32x32" />
+        <link rel="icon" href="/icons/icon-16.png" type="image/png" sizes="16x16" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <link

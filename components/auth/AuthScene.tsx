@@ -6,7 +6,7 @@ import type { ReactNode } from "react";
 import { Icon } from "@/components/ui/Icon";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { InteractivePanda } from "./InteractivePanda";
-import { HelmetMark } from "./auth-marks";
+import { Logo } from "@/components/ui/Logo";
 import type { PandaMood } from "./panda-types";
 import "./auth-panda.css";
 
@@ -31,19 +31,7 @@ export function AuthScene({ children, mood, speech, admin = false }: AuthScenePr
       <div className="relative z-10 flex min-h-screen flex-col">
         <header className="flex items-center justify-between gap-3 px-4 py-3 sm:px-8">
           <Link href="/" aria-label="SheRides home" className="flex min-w-0 items-center gap-2.5">
-            <HelmetMark className="h-9 w-9 shrink-0 text-[#6c5ce7] sm:h-10 sm:w-10" />
-            <span className="min-w-0">
-              <span
-                className="block truncate text-[32px] leading-none text-[#6c5ce7] sm:text-[38px]"
-                style={{ fontFamily: "var(--font-butterpop), Georgia, serif" }}
-              >
-                SheRides
-                {admin ? <span className="ml-2 text-[18px] text-white/80">Admin</span> : null}
-              </span>
-              <span className="mt-1 hidden text-[10px] font-semibold tracking-[0.22em] text-white/70 uppercase sm:block">
-                Ride · Connect · Empower
-              </span>
-            </span>
+            <Logo variant="lockup" height={148} priority suffix={admin ? "Admin" : undefined} />
           </Link>
 
           <ThemeToggle className="text-white hover:bg-white/10" />

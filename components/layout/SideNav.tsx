@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
-import { img } from "@/lib/images";
+import { Logo } from "@/components/ui/Logo";
 import { PandaNavBackdrop } from "@/components/brand/PandaNavBackdrop";
 import { Avatar } from "../ui/Avatar";
 import { Icon } from "../ui/Icon";
@@ -27,7 +27,7 @@ export function SideNav() {
   const { t } = useLocale();
 
   return (
-    <nav aria-label="Main navigation" className="hidden lg:flex flex-col h-dvh fixed left-0 top-0 w-64 shadow-xl z-40 border-r border-white/10 pt-[96px] pb-6 overflow-hidden">
+    <nav aria-label="Main navigation" className="hidden lg:flex flex-col h-dvh fixed left-0 top-0 w-64 shadow-xl z-40 border-r border-white/10 pt-[6.5rem] pb-6 overflow-hidden">
       <PandaNavBackdrop />
       <div className="relative z-10 px-gutter mb-6">
         {user ? (
@@ -43,15 +43,7 @@ export function SideNav() {
             </div>
           </Link>
         ) : (
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-full bg-accent-magenta flex items-center justify-center overflow-hidden shrink-0">
-              <img src={img.logo} alt="SheRides crest" className="w-full h-full object-cover" />
-            </div>
-            <div>
-              <h2 className="font-label-lg text-label-lg text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">SheRides</h2>
-              <p className="font-body-sm text-body-sm text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">Rides by women, for women</p>
-            </div>
-          </div>
+          <Logo variant="mark" height={84} />
         )}
       </div>
 

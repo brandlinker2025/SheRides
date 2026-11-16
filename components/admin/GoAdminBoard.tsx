@@ -304,7 +304,7 @@ export function GoAdminBoard({
 }) {
   const router = useRouter();
   const [role, setRole] = useState<Role>("rider");
-  const [filter, setFilter] = useState<Filter>("pending");
+  const [filter, setFilter] = useState<Filter>("approved");
   const [query, setQuery] = useState("");
   const riders = applications.filter((a) => a.role === "rider");
   const passengers = applications.filter((a) => a.role === "passenger");
@@ -330,11 +330,70 @@ export function GoAdminBoard({
     ridesByRider.set(ride.rider_id, list);
   }
 
+  const pendingPassengers = passengers.filter((a) => a.status === "pending");
+  const pendingRiders = riders.filter((a) => a.status === "pending");
+  const pendingPartners = partners.filter((lead) => lead.status === "pending");
+  const reviewedPartners = partners.filter((lead) => lead.status !== "pending");
+
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-8">
+      <section id="queue" className="flex flex-col gap-4">
+        <div>
+          <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#ffb95f]">One queue</p>
+          <h2 className="text-xl font-bold text-[#e4e1e9]">Waiting for a decision</h2>
+          <p className="text-sm text-white/65">
+            Approve or reject passengers who want to book, captains who want to ride, and partner leads. A rejection needs a short reason. The member gets an in-app notification.
+          </p>
+        </div>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+          {[
+            { href: "#passengers", label: "Passengers to book", value: pendingPassengers.length },
+            { href: "#captains", label: "Captains to ride", value: pendingRiders.length },
+            { href: "#partners", label: "Partner leads", value: pendingPartners.length },
+          ].map((card) => (
+            <a key={card.href} href={card.href} className="card-surface p-4">
+              <p className="font-display-lg text-[30px] font-bold">{card.value}</p>
+              <p className="font-label-caps text-[10px] text-tertiary">{card.label.toUpperCase()}</p>
+            </a>
+          ))}
+        </div>
+      </section>
+
+      <section id="passengers" className="flex flex-col gap-3">
+        <h2 className="text-lg font-bold">Passengers — book rides ({pendingPassengers.length})</h2>
+        <p className="text-sm text-white/60">These members are stuck on Book rides · Pending until you approve them.</p>
+        {pendingPassengers.map((app) => (
+          <VerificationRow key={app.id} app={app} rides={ridesByRider.get(app.user_id) ?? []} />
+        ))}
+        {pendingPassengers.length === 0 && <p className="card-surface p-6 text-center text-sm text-white/60">No passengers waiting to book.</p>}
+      </section>
+
+      <section id="captains" className="flex flex-col gap-3">
+        <h2 className="text-lg font-bold">Captains — give rides ({pendingRiders.length})</h2>
+        <p className="text-sm text-white/60">Compare the live selfie with the NID, then approve only if the applicant is a woman and the face matches.</p>
+        {pendingRiders.map((app) => (
+          <VerificationRow key={app.id} app={app} rides={ridesByRider.get(app.user_id) ?? []} />
+        ))}
+        {pendingRiders.length === 0 && <p className="card-surface p-6 text-center text-sm text-white/60">No captain applications waiting.</p>}
+      </section>
+
+      <section id="partners" className="flex flex-col gap-3">
+        <h2 className="text-lg font-bold">Partner leads ({pendingPartners.length})</h2>
+        <p className="text-sm text-white/60">Leads from /partner. Approving a lead does not create a login. If she already has a SheRides account on that mobile number, she is notified.</p>
+        {partnerNote ? (
+          <p className="card-surface p-4 text-sm text-error" role="alert">
+            Partner review is not available yet. Apply supabase/migrations/20261116030000_partner_review_and_ride_extras.sql. {partnerNote}
+          </p>
+        ) : pendingPartners.length === 0 ? (
+          <p className="card-surface p-6 text-center text-sm text-white/60">No partner leads waiting.</p>
+        ) : (
+          pendingPartners.map((lead) => <PartnerLeadRow key={lead.id} lead={lead} />)
+        )}
+      </section>
+
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
-          { label: "Riders waiting", value: riders.filter((a) => a.status === "pending").length, icon: "hourglass_top" },
+          { label: "Riders waiting", value: pendingRiders.length, icon: "hourglass_top" },
           { label: "Approved riders", value: riders.filter((a) => a.status === "approved").length, icon: "sports_motorsports" },
           { label: "Suspended riders", value: riders.filter((a) => a.status === "suspended").length, icon: "block" },
           { label: "Live rides", value: liveRides, icon: "two_wheeler" },
@@ -377,7 +436,7 @@ export function GoAdminBoard({
       </div>
 
       <nav className="flex gap-2 overflow-x-auto hide-scrollbar">
-        {(["pending", "approved", "rejected", "suspended"] as Filter[]).map((f) => (
+        {(["approved", "rejected", "suspended"] as Filter[]).map((f) => (
           <button
             key={f}
             type="button"
@@ -393,9 +452,9 @@ export function GoAdminBoard({
 
       <section className="flex flex-col gap-3">
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#ffb95f]">High assurance protocol</p>
-          <h2 className="text-xl font-bold text-[#e4e1e9]">Trust & Safety Ops Center</h2>
-          <p className="text-sm text-white/60">NID and selfie review. Counts below are the applications loaded for this admin, not a live city dashboard.</p>
+          <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#ffb95f]">History</p>
+          <h2 className="text-xl font-bold text-[#e4e1e9]">Already reviewed</h2>
+          <p className="text-sm text-white/60">Search approved, rejected, and suspended applications. New decisions are made in the queue above.</p>
         </div>
         <div className="flex flex-col gap-3">
           {shown.map((app) => (
@@ -406,19 +465,11 @@ export function GoAdminBoard({
       </section>
 
       <section className="flex flex-col gap-3">
-        <div>
-          <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#ffb95f]">Recruitment</p>
-          <h2 className="text-xl font-bold">Partner applications</h2>
-          <p className="text-sm text-white/60">Leads from /partner. No NID, licence image, password, or card data is stored here.</p>
-        </div>
-        {partnerNote ? (
-          <p className="card-surface p-4 text-sm text-error" role="alert">
-            Partner review is not available yet. Apply supabase/migrations/20261116030000_partner_review_and_ride_extras.sql. {partnerNote}
-          </p>
-        ) : partners.length === 0 ? (
-          <p className="card-surface p-6 text-center text-sm text-white/60">No partner applications yet.</p>
+        <h2 className="text-lg font-bold">Reviewed partner leads</h2>
+        {reviewedPartners.length === 0 ? (
+          <p className="card-surface p-6 text-center text-sm text-white/60">No partner leads have been decided yet.</p>
         ) : (
-          partners.map((lead) => <PartnerLeadRow key={lead.id} lead={lead} />)
+          reviewedPartners.map((lead) => <PartnerLeadRow key={lead.id} lead={lead} />)
         )}
       </section>
 

@@ -3,7 +3,7 @@
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { PandaStandaloneFrame } from "@/components/brand/PandaStandaloneFrame";
-import { BrandLogo } from "@/components/ui/BrandLogo";
+import { Logo } from "@/components/ui/Logo";
 import { Icon } from "@/components/ui/Icon";
 import { RIDE_STATUS_LABEL, mapsLink, type GoRideStatus } from "@/lib/go";
 import { createClient } from "@/lib/supabase/client";
@@ -56,7 +56,7 @@ export default function TrackTripPage() {
   return (
     <PandaStandaloneFrame>
       <section className="bg-surface-container-lowest rounded-[24px] shadow-premium p-6 sm:p-8 flex flex-col gap-5 max-w-lg mx-auto">
-        <BrandLogo className="text-[38px]" />
+        <Logo variant="lockup" height={120} priority />
         {state === "loading" && <div className="skeleton h-40" />}
         {state === "unavailable" && (
           <p className="font-body-md text-secondary">Trip tracking is not connected right now. Ask the rider to send the link again in a moment.</p>
