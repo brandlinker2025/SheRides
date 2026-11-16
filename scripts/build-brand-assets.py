@@ -32,7 +32,10 @@ SOURCES = {
 PURPLE = (76, 29, 149, 255)  # refined after sampling if needed
 PINK = (244, 184, 212, 255)
 YELLOW = (255, 196, 64, 255)
-INK = (19, 16, 28, 255)
+INK = (27, 19, 36, 255)  # Night Ink #1B1324
+# Light text for logos that sit on Night Ink. Illustration pixels are not recolored.
+WORDMARK_ON_DARK = (240, 235, 246)  # Lavender Mist #F0EBF6
+TAGLINE_ON_DARK = (255, 184, 4)  # Scooter Yellow #FFB804
 
 
 def upscale(im: Image.Image, factor: int = 2) -> Image.Image:
@@ -146,6 +149,66 @@ def opaque_launcher(badge: Image.Image, size: int) -> Image.Image:
     return canvas.convert("RGB")
 
 
+def content_bands(alpha: np.ndarray) -> list[tuple[int, int]]:
+    content = (alpha > 30).sum(axis=1) > 12
+    bands: list[tuple[int, int]] = []
+    start = None
+    for y, on in enumerate(content):
+        if on and start is None:
+            start = y
+        elif not on and start is not None:
+            bands.append((start, y - 1))
+            start = None
+    if start is not None:
+        bands.append((start, len(content) - 1))
+    return bands
+
+
+def paint_text_band(arr: np.ndarray, y0: int, y1: int, color: tuple[int, int, int]) -> None:
+    """Replace RGB of existing text pixels. Alpha stays so the edges stay sharp."""
+    band = arr[y0 : y1 + 1]
+    mask = band[:, :, 3] > 0
+    band[:, :, 0][mask] = color[0]
+    band[:, :, 1][mask] = color[1]
+    band[:, :, 2][mask] = color[2]
+
+
+def recolor_stacked_text(im: Image.Image) -> Image.Image:
+    """Lockup and mark: the lower content bands are the wordmark and tagline."""
+    arr = np.array(im.convert("RGBA"))
+    bands = content_bands(arr[:, :, 3])
+    if len(bands) >= 3:
+        paint_text_band(arr, *bands[-2], WORDMARK_ON_DARK)
+        paint_text_band(arr, *bands[-1], TAGLINE_ON_DARK)
+    elif len(bands) == 2:
+        paint_text_band(arr, *bands[-1], WORDMARK_ON_DARK)
+    return Image.fromarray(arr, "RGBA")
+
+
+def recolor_badge_text(im: Image.Image) -> Image.Image:
+    """Dark badge: recolor only the wordmark and tagline inside the ring."""
+    arr = np.array(im.convert("RGBA"))
+    alpha = arr[:, :, 3]
+    ys, xs = np.where(alpha > 128)
+    if len(xs) == 0:
+        return im
+    cx = (xs.min() + xs.max()) / 2
+    cy = (ys.min() + ys.max()) / 2
+    rad = (xs.max() - xs.min()) / 2
+    height, width = alpha.shape
+    yy, xx = np.mgrid[0:height, 0:width]
+    inside = np.hypot(xx - cx, yy - cy) < rad * 0.86
+    red, green, blue = arr[:, :, 0].astype(np.int16), arr[:, :, 1].astype(np.int16), arr[:, :, 2].astype(np.int16)
+    purple_ink = (alpha > 16) & (green < 40) & (blue + 8 >= red) & (np.maximum(red, blue) > 10) & (red < 140)
+    wordmark = inside & purple_ink & (yy > cy + rad * 0.32) & (yy < cy + rad * 0.62)
+    tagline = inside & purple_ink & (yy >= cy + rad * 0.62) & (yy < cy + rad * 0.78)
+    for mask, color in ((wordmark, WORDMARK_ON_DARK), (tagline, TAGLINE_ON_DARK)):
+        arr[:, :, 0][mask] = color[0]
+        arr[:, :, 1][mask] = color[1]
+        arr[:, :, 2][mask] = color[2]
+    return Image.fromarray(arr, "RGBA")
+
+
 def open_graph(lockup: Image.Image) -> Image.Image:
     w, h = 1200, 630
     canvas = Image.new("RGBA", (w, h), INK)
@@ -193,7 +256,12 @@ def main() -> None:
         save_pair(cut, BRAND / f"{stem}.png")
         built[stem] = cut
 
-    save_pair(drop_tagline(built["lockup-on-dark"]), BRAND / "mark-on-dark.png")
+    # Dark surfaces need a light wordmark. Only the text bands change.
+    lockup_dark = recolor_stacked_text(built["lockup-on-dark"])
+    save_pair(lockup_dark, BRAND / "lockup-on-dark.png")
+    built["lockup-on-dark"] = lockup_dark
+    save_pair(recolor_badge_text(built["badge-on-dark"]), BRAND / "badge-on-dark.png")
+    save_pair(drop_tagline(lockup_dark), BRAND / "mark-on-dark.png")
     save_pair(drop_tagline(built["lockup-on-light"]), BRAND / "mark-on-light.png")
 
     badge = built["badge-on-light"]

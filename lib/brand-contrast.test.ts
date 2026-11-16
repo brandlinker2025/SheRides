@@ -29,4 +29,7 @@ test("coral buttons use deep purple text at WCAG AA", () => {
   assert.ok(contrast("#460377", "#F0EBF6") >= 4.5);
   assert.ok(contrast("#7E1CA8", "#F0EBF6") >= 4.5);
   assert.ok(contrast("#05BAA4", "#1B1324") >= 4.5);
+  // Dark-logo text colors: Lavender Mist wordmark and Scooter Yellow tagline on Night Ink.
+  assert.ok(contrast("#F0EBF6", "#1B1324") >= 4.5);
+  assert.ok(contrast("#FFB804", "#1B1324") >= 4.5);
 });
