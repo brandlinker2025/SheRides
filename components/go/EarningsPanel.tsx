@@ -40,17 +40,17 @@ export function EarningsPanel() {
     <section className="card-surface p-5" aria-label={t("earnings.title")}>
       <div className="flex items-baseline justify-between gap-3">
         <h3 className="text-lg font-bold">{t("earnings.title")}</h3>
-        <p className="text-sm text-white/60">{summary.completed} completed</p>
+        <p className="text-sm text-[var(--sr-muted)]">{summary.completed} completed</p>
       </div>
       <div className="mt-3 grid grid-cols-3 gap-2">
         {cells.map(([label, amount]) => (
           <div key={label} className="rounded-2xl bg-black/25 px-2 py-3 text-center">
-            <p className="text-[10px] font-bold uppercase tracking-wider text-[#ffb95f]">{label}</p>
-            <p className="mt-1 text-base font-bold text-[#ddb7ff]">{formatTaka(amount)}</p>
+            <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--sr-gold-ink)]">{label}</p>
+            <p className="mt-1 text-base font-bold text-[var(--sr-heading)]">{formatTaka(amount)}</p>
           </div>
         ))}
       </div>
-      <p className="mt-3 text-xs text-white/50">Cash and wallet fares already recorded on completed rides. This is not a payout.</p>
+      <p className="mt-3 text-xs text-[var(--sr-faint)]">Cash and wallet fares already recorded on completed rides. This is not a payout.</p>
     </section>
   );
 }

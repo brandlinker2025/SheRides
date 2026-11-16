@@ -286,7 +286,7 @@ export function DownloadInstall({ target }: { target: Target }) {
               {active && platform === "android" ? (
                 <a
                   href="https://sherides.online/sherides.apk"
-                  className="flex h-12 items-center justify-center rounded-full bg-accent-magenta px-6 font-label-lg text-label-lg text-on-primary shadow-magenta transition-transform hover:scale-[1.02] active:scale-95"
+                  className="flex h-12 items-center justify-center rounded-full bg-accent-magenta px-6 font-label-lg text-label-lg text-[#460377] shadow-magenta transition-transform hover:scale-[1.02] active:scale-95"
                 >
                   Download Android app
                 </a>
@@ -295,7 +295,7 @@ export function DownloadInstall({ target }: { target: Target }) {
                   type="button"
                   onClick={() => void install()}
                   disabled={busy || standalone || justInstalled}
-                  className="flex h-12 items-center justify-center rounded-full bg-accent-magenta px-6 font-label-lg text-label-lg text-on-primary shadow-magenta transition-transform hover:scale-[1.02] active:scale-95 disabled:opacity-60"
+                  className="flex h-12 items-center justify-center rounded-full bg-accent-magenta px-6 font-label-lg text-label-lg text-[#460377] shadow-magenta transition-transform hover:scale-[1.02] active:scale-95 disabled:opacity-60"
                 >
                   {standalone || justInstalled ? "Installed" : busy ? "Installing…" : installLabel}
                 </button>
@@ -341,7 +341,7 @@ export function DownloadInstall({ target }: { target: Target }) {
         </p>
         <a
           href="https://sherides.online/sherides.apk"
-          className="inline-flex h-12 items-center justify-center rounded-full bg-accent-magenta px-6 font-label-lg text-label-lg text-on-primary shadow-magenta"
+          className="inline-flex h-12 items-center justify-center rounded-full bg-accent-magenta px-6 font-label-lg text-label-lg text-[#460377] shadow-magenta"
         >
           Download Android app
         </a>
@@ -377,7 +377,7 @@ export function DownloadInstall({ target }: { target: Target }) {
           <button
             type="button"
             onClick={() => void install()}
-            className="mt-4 inline-flex h-11 items-center rounded-full bg-accent-magenta px-5 font-label-lg text-on-primary shadow-magenta"
+            className="mt-4 inline-flex h-11 items-center rounded-full bg-accent-magenta px-5 font-label-lg text-[#460377] shadow-magenta"
           >
             Install {selected.name} now
           </button>
@@ -444,7 +444,7 @@ export function DownloadInstall({ target }: { target: Target }) {
             </p>
             <ol className="mb-10 space-y-6 font-body-md text-on-surface">
               <li className="flex gap-4">
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-accent-magenta font-label-lg text-on-primary">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-accent-magenta font-label-lg text-[#460377]">
                   1
                 </span>
                 <span className="pt-1.5">
@@ -453,7 +453,7 @@ export function DownloadInstall({ target }: { target: Target }) {
                 </span>
               </li>
               <li className="flex gap-4">
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-accent-magenta font-label-lg text-on-primary">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-accent-magenta font-label-lg text-[#460377]">
                   2
                 </span>
                 <span className="pt-1.5">
@@ -463,7 +463,7 @@ export function DownloadInstall({ target }: { target: Target }) {
                 </span>
               </li>
               <li className="flex gap-4">
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-accent-magenta font-label-lg text-on-primary">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-accent-magenta font-label-lg text-[#460377]">
                   3
                 </span>
                 <span className="pt-1.5">
@@ -471,7 +471,7 @@ export function DownloadInstall({ target }: { target: Target }) {
                 </span>
               </li>
               <li className="flex gap-4">
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-accent-magenta font-label-lg text-on-primary">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-accent-magenta font-label-lg text-[#460377]">
                   4
                 </span>
                 <span className="pt-1.5">

@@ -137,7 +137,7 @@ export default function VerificationPage() {
             <span className="font-body-sm text-secondary block">Driving licence, registration paper, or NID. JPEG/PNG/WebP/PDF, max 10 MB.</span>
             {file && <span className="font-body-sm text-green-700 truncate">✓ {file.name}</span>}
             <div className="flex gap-2">
-              <button type="button" onClick={() => setCameraOpen(true)} className="flex-1 h-12 rounded-full bg-accent-magenta text-white font-label-lg">
+              <button type="button" onClick={() => setCameraOpen(true)} className="flex-1 h-12 rounded-full bg-accent-magenta text-[#460377] font-label-lg">
                 {file ? "Retake photo" : "Take photo"}
               </button>
               <button type="button" onClick={() => uploadRef.current?.click()} className="flex-1 h-12 rounded-full border border-surface-border bg-surface font-label-lg">
@@ -170,7 +170,7 @@ export default function VerificationPage() {
             }}
           />
           {error && <p className="text-error font-body-sm" role="alert">{error}</p>}
-          <button type="submit" disabled={busy} className="h-[56px] bg-accent-magenta text-white font-label-lg rounded-full shadow-magenta disabled:opacity-60">
+          <button type="submit" disabled={busy} className="h-[56px] bg-accent-magenta text-[#460377] font-label-lg rounded-full shadow-magenta disabled:opacity-60">
             {busy ? "Submitting securely..." : "Submit for Admin Approval"}
           </button>
         </form>

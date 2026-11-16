@@ -27,7 +27,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               alt=""
               fill
               sizes="(min-width: 1024px) 70vw, 100vw"
-              className="object-cover object-[45%_40%] opacity-[0.2] sm:opacity-[0.26]"
+              className="object-cover object-[45%_40%] opacity-[0.08] sm:opacity-[0.1]"
             />
             <div className="absolute inset-0 panda-app-veil" />
           </div>

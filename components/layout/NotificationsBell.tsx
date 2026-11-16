@@ -133,14 +133,14 @@ export function NotificationsBell() {
       <button
         type="button"
         onClick={() => setOpen((value) => !value)}
-        className="w-10 h-10 rounded-full flex items-center justify-center text-on-primary hover:bg-white/10 transition-colors relative"
+        className="w-10 h-10 rounded-full flex items-center justify-center text-[var(--sr-ink)] hover:bg-[#4FD8FF]/20 transition-colors relative"
         aria-label={unread > 0 ? `Notifications, ${unread} unread` : "Notifications"}
         aria-expanded={open}
         aria-haspopup="dialog"
       >
         <Icon name="notifications" filled={open || unread > 0} />
         {unread > 0 ? (
-          <span className="absolute top-1.5 right-1.5 min-w-[1.05rem] h-[1.05rem] px-1 rounded-full bg-accent-magenta text-white text-[10px] leading-[1.05rem] font-label-lg text-center">
+          <span className="absolute top-1.5 right-1.5 min-w-[1.05rem] h-[1.05rem] px-1 rounded-full bg-accent-magenta text-[#460377] text-[10px] leading-[1.05rem] font-label-lg text-center">
             {unread > 9 ? "9+" : unread}
           </span>
         ) : null}

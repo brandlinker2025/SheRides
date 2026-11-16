@@ -252,24 +252,24 @@ export function LoginPanel({ admin = false }: { admin?: boolean }) {
 
   return (
     <AuthScene admin={admin} mood={panda.mood} track={panda.track}>
-      <div className="w-full rounded-[28px] border border-[#6c5ce7]/50 bg-[rgba(12,10,14,0.82)] p-6 shadow-[0_20px_50px_rgba(0,0,0,0.35),0_0_0_1px_rgba(108,92,231,0.12)] backdrop-blur-xl sm:p-8">
+      <div className="w-full rounded-[28px] border border-[#460377]/15 bg-white/92 p-6 shadow-[0_20px_50px_-24px_rgba(40,140,180,0.35)] backdrop-blur-xl sm:p-8">
         <h1
-          className="mb-1 text-[34px] leading-none text-[#6c5ce7] sm:text-[42px]"
+          className="mb-1 text-[34px] leading-none text-[#460377] sm:text-[42px]"
           style={{ fontFamily: "var(--font-butterpop), Georgia, serif" }}
         >
           {admin ? "Admin Sign In" : "Welcome Back!"}
         </h1>
-        <p className="mb-6 text-sm text-white/70">
+        <p className="mb-6 text-sm text-[var(--sr-muted)]">
           {admin ? "Restricted access for authorized SheRides administrators." : "Log in to your SheRides account"}
         </p>
         <form className="flex flex-col gap-4" onSubmit={(event) => void handleSubmit(event)} noValidate={!admin}>
             <label className="block">
-              <span className="mb-1.5 block text-sm text-white/70">{admin ? "Email" : "Mobile number or email"}</span>
+              <span className="mb-1.5 block text-sm text-[var(--sr-muted)]">{admin ? "Email" : "Mobile number or email"}</span>
               <span className="relative block">
                 <Icon
                   name={admin ? "mail" : "smartphone"}
                   size={18}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 text-white/45"
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--sr-faint)]"
                 />
                 <input
                   type={admin ? "email" : "text"}
@@ -298,11 +298,11 @@ export function LoginPanel({ admin = false }: { admin?: boolean }) {
               </span>
             </label>
             {resetMode ? (
-              <div className="flex flex-col gap-4 rounded-2xl border border-[#6c5ce7]/30 bg-black/30 p-4">
+              <div className="flex flex-col gap-4 rounded-2xl border border-[#460377]/20 bg-black/30 p-4">
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <p className="font-label-lg text-white">Reset password with SMS</p>
-                    <p className="text-xs text-white/60">A code will be sent to {identifier.trim() || "your mobile"}.</p>
+                    <p className="font-label-lg text-[var(--sr-ink)]">Reset password with SMS</p>
+                    <p className="text-xs text-[var(--sr-muted)]">A code will be sent to {identifier.trim() || "your mobile"}.</p>
                     <p className="mt-1 text-xs text-[#2ee6c5]">
                       Free option: if you linked an email in Edit profile, close this, type that email instead of your number and tap Forgot password.
                     </p>
@@ -314,7 +314,7 @@ export function LoginPanel({ admin = false }: { admin?: boolean }) {
                       setError(null);
                       setResetMessage(null);
                     }}
-                    className="text-white/60 hover:text-white"
+                    className="text-[var(--sr-muted)] hover:text-[var(--sr-heading)]"
                     aria-label="Back to sign in"
                   >
                     <Icon name="close" size={20} />
@@ -324,7 +324,7 @@ export function LoginPanel({ admin = false }: { admin?: boolean }) {
                   <>
                     <PhoneOtpFields code={resetCode} onCodeChange={setResetCode} disabled={busy} />
                     <label className="relative block">
-                      <Icon name="lock_reset" size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/45" />
+                      <Icon name="lock_reset" size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--sr-faint)]" />
                       <input
                         type={showPassword ? "text" : "password"}
                         autoComplete="new-password"
@@ -338,7 +338,7 @@ export function LoginPanel({ admin = false }: { admin?: boolean }) {
                       type="button"
                       disabled={busy}
                       onClick={() => void submitNewPassword()}
-                      className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-accent-magenta text-white font-label-lg disabled:opacity-60"
+                      className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-accent-magenta text-[#460377] font-label-lg disabled:opacity-60"
                     >
                       <Icon name="key" size={20} />
                       {busy ? "Saving..." : "Save new password & sign in"}
@@ -347,7 +347,7 @@ export function LoginPanel({ admin = false }: { admin?: boolean }) {
                       type="button"
                       disabled={busy}
                       onClick={() => void sendResetCode()}
-                      className="text-sm text-[#6c5ce7] hover:underline disabled:opacity-60"
+                      className="text-sm text-[#460377] hover:underline disabled:opacity-60"
                     >
                       Didn&apos;t get it? Send a new code
                     </button>
@@ -357,7 +357,7 @@ export function LoginPanel({ admin = false }: { admin?: boolean }) {
                     type="button"
                     disabled={busy || !normalizeBdPhone(identifier)}
                     onClick={() => void sendResetCode()}
-                    className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-accent-magenta text-white font-label-lg disabled:opacity-60"
+                    className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-accent-magenta text-[#460377] font-label-lg disabled:opacity-60"
                   >
                     <Icon name="sms" size={20} />
                     {busy ? "Sending..." : "Send code by SMS"}
@@ -366,7 +366,7 @@ export function LoginPanel({ admin = false }: { admin?: boolean }) {
               </div>
             ) : null}
             <label className={`relative block ${resetMode ? "hidden" : ""}`}>
-              <Icon name="lock" size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/45" />
+              <Icon name="lock" size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--sr-faint)]" />
               <input
                 type={showPassword ? "text" : "password"}
                 required={admin}
@@ -389,7 +389,7 @@ export function LoginPanel({ admin = false }: { admin?: boolean }) {
                     return nextValue;
                   });
                 }}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-white/55 transition-colors hover:text-[#6c5ce7]"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--sr-faint)] transition-colors hover:text-[#460377]"
                 aria-label={showPassword ? "Hide password" : "Show password"}
               >
                 <Icon name={showPassword ? "visibility_off" : "visibility"} size={20} />
@@ -399,12 +399,12 @@ export function LoginPanel({ admin = false }: { admin?: boolean }) {
               <button
                 type="button"
                 onClick={() => void (admin ? handleAdminForgotPassword() : handleMemberForgotPassword())}
-                className="text-sm text-[#6c5ce7] hover:underline"
+                className="text-sm text-[#460377] hover:underline"
               >
                 Forgot password?
               </button>
             </div>
-            {resetMessage && <p className="text-sm text-[#6c5ce7]">{resetMessage}</p>}
+            {resetMessage && <p className="text-sm text-[#460377]">{resetMessage}</p>}
             {error && (
               <p className="text-sm text-[#ff8a80]" role="alert">
                 {error}
@@ -414,7 +414,7 @@ export function LoginPanel({ admin = false }: { admin?: boolean }) {
               <button
                 type="submit"
                 disabled={busy}
-                className="inline-flex h-[56px] items-center justify-center gap-2 rounded-full bg-[#6c5ce7] font-label-lg text-white shadow-magenta transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#5b4bdb] active:scale-[0.98] disabled:pointer-events-none disabled:opacity-60"
+                className="inline-flex h-[56px] items-center justify-center gap-2 rounded-full bg-[#FF6772] font-label-lg text-[#460377] shadow-magenta transition-all duration-200 hover:-translate-y-0.5 hover:brightness-105 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-60"
               >
                 <Icon name="login" size={20} />
                 {busy ? "Signing in..." : "Sign In to Admin"}
@@ -427,23 +427,23 @@ export function LoginPanel({ admin = false }: { admin?: boolean }) {
             )}
           </form>
         {admin ? (
-          <p className="mt-6 text-sm text-white/70">
+          <p className="mt-6 text-sm text-[var(--sr-muted)]">
             Rider or passenger?{" "}
-            <Link href="/login" className="font-label-lg text-[#6c5ce7]">
+            <Link href="/login" className="font-label-lg text-[#460377]">
               User Sign In
             </Link>
           </p>
         ) : (
           <>
-            <p className="mt-6 text-sm text-white/70">
+            <p className="mt-6 text-sm text-[var(--sr-muted)]">
               New to SheRides?{" "}
-              <Link href={joinHref} className="font-label-lg text-[#6c5ce7]">
+              <Link href={joinHref} className="font-label-lg text-[#460377]">
                 Sign Up
               </Link>
             </p>
-            <p className="mt-3 text-sm text-white/70">
+            <p className="mt-3 text-sm text-[var(--sr-muted)]">
               Drive or ride with us?{" "}
-              <Link href="/partner" className="font-label-lg text-[#6c5ce7]">
+              <Link href="/partner" className="font-label-lg text-[#460377]">
                 Become a Partner
               </Link>
             </p>

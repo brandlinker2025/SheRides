@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     title: "SheRides",
-    statusBarStyle: "black-translucent",
+    statusBarStyle: "default",
   },
   icons: {
     apple: { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },

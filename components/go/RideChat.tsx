@@ -113,9 +113,9 @@ export function RideChat({
           {messages.map((m) => {
             const mine = m.sender_id === myId;
             return (
-              <div key={m.id} className={`max-w-[85%] rounded-2xl px-4 py-2 font-body-sm ${mine ? "self-end bg-accent-magenta text-white" : "self-start bg-soft-off-white text-on-surface"}`}>
+              <div key={m.id} className={`max-w-[85%] rounded-2xl px-4 py-2 font-body-sm ${mine ? "self-end bg-accent-magenta text-[#460377]" : "self-start bg-soft-off-white text-on-surface"}`}>
                 <p className="whitespace-pre-wrap break-words">{m.body}</p>
-                <p className={`text-[11px] mt-0.5 ${mine ? "text-white/75" : "text-tertiary"}`}>
+                <p className={`text-[11px] mt-0.5 ${mine ? "text-[var(--sr-muted)]" : "text-tertiary"}`}>
                   {mine ? "You" : otherName} · {new Date(m.created_at).toLocaleTimeString("en-BD", { hour: "numeric", minute: "2-digit" })}
                 </p>
               </div>
@@ -158,7 +158,7 @@ export function RideChat({
               type="submit"
               disabled={busy || !text.trim()}
               aria-label="Send message"
-              className="w-12 h-12 shrink-0 rounded-full bg-accent-magenta text-white inline-flex items-center justify-center disabled:opacity-50"
+              className="w-12 h-12 shrink-0 rounded-full bg-accent-magenta text-[#460377] inline-flex items-center justify-center disabled:opacity-50"
             >
               <Icon name="send" />
             </button>

@@ -318,7 +318,7 @@ export function CameraCapture({
   };
 
   const dialog = (
-    <div role="dialog" aria-modal="true" aria-label={title} className="fixed inset-0 z-50 flex flex-col select-none overflow-hidden bg-[#0b0b1a] text-white">
+    <div role="dialog" aria-modal="true" aria-label={title} className="fixed inset-0 z-50 flex flex-col select-none overflow-hidden bg-[var(--sr-page)] text-[var(--sr-ink)]">
       {/* Camera / preview area */}
       <div ref={stageRef} className="relative flex-1 min-h-0 overflow-hidden">
         {shot ? (
@@ -332,11 +332,11 @@ export function CameraCapture({
               </span>
               <div className="space-y-2">
                 <p className="font-headline-md text-[20px] font-bold">Allow camera</p>
-                <p className="font-body-sm text-white/75 leading-relaxed">
+                <p className="font-body-sm text-[var(--sr-muted)] leading-relaxed">
                   {guide === "face"
                     ? "SheRides uses your front camera only to take your verification selfie."
                     : "SheRides uses your camera only to photograph your document."}{" "}
-                  Your phone will ask next — tap <strong className="text-white">Allow</strong>.
+                  Your phone will ask next — tap <strong className="text-[var(--sr-ink)]">Allow</strong>.
                 </p>
               </div>
               <button
@@ -370,7 +370,7 @@ export function CameraCapture({
                 />
                 {countdown !== null && (
                   <div className="pointer-events-none absolute inset-0 flex items-center justify-center" aria-live="assertive">
-                    <span key={countdown} className="sr-pop text-7xl font-bold leading-none text-white drop-shadow-[0_4px_16px_rgba(0,0,0,0.85)]">
+                    <span key={countdown} className="sr-pop text-7xl font-bold leading-none text-[var(--sr-heading)] drop-shadow-[0_4px_16px_rgba(0,0,0,0.85)]">
                       {countdown}
                     </span>
                   </div>
@@ -402,7 +402,7 @@ export function CameraCapture({
             {!ready && (
               <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-black">
                 <span className="h-10 w-10 rounded-full border-2 border-white/25 border-t-white animate-spin" />
-                <p className="font-body-sm text-white/80">Opening camera…</p>
+                <p className="font-body-sm text-[var(--sr-ink)]">Opening camera…</p>
               </div>
             )}
             {ready && stage.w > 0 && <GuideOverlay w={stage.w} h={stage.h} guide={guide} />}
@@ -417,7 +417,7 @@ export function CameraCapture({
         )}
 
         {/* Top bar (over the camera) */}
-        <div className="absolute inset-x-0 top-0 z-20 flex items-center gap-2 bg-[#0b0b1a] px-3 pt-[max(0.75rem,env(safe-area-inset-top))] pb-3">
+        <div className="absolute inset-x-0 top-0 z-20 flex items-center gap-2 bg-[var(--sr-page)] px-3 pt-[max(0.75rem,env(safe-area-inset-top))] pb-3">
           <button
             type="button"
             onClick={() => {
@@ -427,14 +427,14 @@ export function CameraCapture({
               onClose();
             }}
             aria-label="Close camera"
-            className="h-11 w-11 shrink-0 inline-flex items-center justify-center rounded-full bg-black/40 backdrop-blur"
+            className="h-11 w-11 shrink-0 inline-flex items-center justify-center rounded-full bg-white/90 backdrop-blur"
           >
             <Icon name="close" />
           </button>
           <div className="flex-1 min-w-0 text-center">
             <p className="font-label-lg truncate">{shot ? "Check your photo" : title}</p>
             {!shot && !error && !askFirst && (
-              <p className="text-[12px] text-white/75 truncate">
+              <p className="text-[12px] text-[var(--sr-muted)] truncate">
                 {isFace ? "Look straight at the camera" : "Whole card inside the frame · 1.58 : 1"}
               </p>
             )}
@@ -444,7 +444,7 @@ export function CameraCapture({
               type="button"
               onClick={() => setCurrent((c) => (c === "user" ? "environment" : "user"))}
               aria-label="Switch camera"
-              className="h-11 w-11 shrink-0 inline-flex items-center justify-center rounded-full bg-black/40 backdrop-blur"
+              className="h-11 w-11 shrink-0 inline-flex items-center justify-center rounded-full bg-white/90 backdrop-blur"
             >
               <Icon name="cameraswitch" />
             </button>
@@ -459,14 +459,14 @@ export function CameraCapture({
 
       {/* Bottom controls. The selfie shutter lives under the oval, not in this bar. */}
       {!(isFace && !shot && !error && !askFirst) && (
-      <div className="relative z-20 shrink-0 bg-[#0b0b1a] px-6 pt-4 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
+      <div className="relative z-20 shrink-0 bg-[var(--sr-page)] px-6 pt-4 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
         {shot ? (
           <div className="flex flex-col items-center gap-3">
-            <p className="font-body-sm text-white/80 text-center">
+            <p className="font-body-sm text-[var(--sr-ink)] text-center">
               {isFace ? "Is your whole face clear and in focus?" : "Can you read every line on the card? No glare?"}
             </p>
             <div className="flex w-full max-w-sm gap-3">
-              <button type="button" onClick={releaseShot} className="flex-1 h-14 rounded-full bg-white/10 border border-white/25 font-label-lg inline-flex items-center justify-center gap-2">
+              <button type="button" onClick={releaseShot} className="flex-1 h-14 rounded-full bg-[var(--sr-chip)] border border-white/25 font-label-lg inline-flex items-center justify-center gap-2">
                 <Icon name="refresh" size={20} /> Retake
               </button>
               <button
@@ -484,7 +484,7 @@ export function CameraCapture({
         ) : (
           !isFace && !error && !askFirst && (
             <div className="flex flex-col items-center gap-4">
-              <ul className="flex flex-wrap justify-center gap-x-4 gap-y-1 text-[12px] text-white/75">
+              <ul className="flex flex-wrap justify-center gap-x-4 gap-y-1 text-[12px] text-[var(--sr-muted)]">
                 {(isFace
                   ? ["Bright light on your face", "No mask, cap or sunglasses", "Hold the phone at eye level"]
                   : ["Card flat on a dark surface", "All 4 corners visible", "No glare or blur"]
@@ -510,7 +510,7 @@ export function CameraCapture({
                   onClick={() => setTimerOn((v) => !v)}
                   aria-pressed={timerOn}
                   aria-label="3 second timer"
-                  className={`justify-self-end h-11 px-3 rounded-full inline-flex items-center gap-1 text-[13px] font-label-lg border ${timerOn ? "bg-white text-black border-white" : "border-white/30 text-white/85"}`}
+                  className={`justify-self-end h-11 px-3 rounded-full inline-flex items-center gap-1 text-[13px] font-label-lg border ${timerOn ? "bg-white text-black border-white" : "border-white/30 text-[var(--sr-ink)]"}`}
                 >
                   <Icon name="timer" size={18} /> 3s
                 </button>
@@ -575,7 +575,7 @@ function CameraErrorPanel({
   return (
     <div className="absolute inset-0 flex items-center justify-center overflow-y-auto bg-black">
       <div className="max-w-sm px-6 py-20 text-center flex flex-col items-center gap-4">
-        <span className="h-16 w-16 rounded-full bg-white/10 inline-flex items-center justify-center">
+        <span className="h-16 w-16 rounded-full bg-[var(--sr-chip)] inline-flex items-center justify-center">
           <Icon name={blocked || error.kind === "denied" ? "no_photography" : "videocam_off"} size={32} />
         </span>
         <p className="font-body-md leading-relaxed" role="alert">{error.message}</p>
@@ -591,14 +591,14 @@ function CameraErrorPanel({
             <button type="button" onClick={() => bridge.openAppSettings?.()} className="h-14 w-full rounded-full bg-accent-magenta font-label-lg inline-flex items-center justify-center gap-2">
               <Icon name="settings" size={20} /> Open settings
             </button>
-            <p className="font-body-sm text-white/75">
-              Tap <strong className="text-white">Permissions → Camera → Allow</strong>, then come back. The camera connects by itself.
+            <p className="font-body-sm text-[var(--sr-muted)]">
+              Tap <strong className="text-[var(--sr-ink)]">Permissions → Camera → Allow</strong>, then come back. The camera connects by itself.
             </p>
           </>
         )}
 
         {blocked && !bridge?.openAppSettings && (
-          <ol className="w-full text-left font-body-sm text-white/85 space-y-2 rounded-2xl bg-white/5 p-4 list-decimal pl-8">
+          <ol className="w-full text-left font-body-sm text-[var(--sr-ink)] space-y-2 rounded-2xl bg-white/70 p-4 list-decimal pl-8">
             {inApp ? (
               <>
                 <li>Open phone <strong>Settings → Apps</strong> (Oppo / Realme: <strong>Settings → Apps → App management</strong>)</li>

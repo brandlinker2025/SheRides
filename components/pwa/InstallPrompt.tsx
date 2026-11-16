@@ -67,11 +67,11 @@ export function InstallPrompt() {
   if (!event || hidden || !isMobile || coversAForm) return null;
 
   return (
-    <div className={`panda-install-prompt fixed left-4 right-4 z-[70] max-w-sm rounded-xl bg-deep-charcoal p-4 text-on-primary shadow-premium-hover flex items-center gap-3 animate-fade-in-up ${aboveAppNav ? "bottom-24" : "bottom-4"}`}>
+    <div className={`panda-install-prompt fixed left-4 right-4 z-[70] max-w-sm rounded-xl bg-white shadow-[var(--sr-shadow)] p-4 text-[var(--sr-ink)] shadow-premium-hover flex items-center gap-3 animate-fade-in-up ${aboveAppNav ? "bottom-24" : "bottom-4"}`}>
       <Logo variant="badge" height={40} />
       <div className="flex-1 min-w-0">
         <p className="font-label-lg text-label-lg">Install SheRides</p>
-        <p className="font-body-sm text-body-sm text-white/70">Add to your home screen for ride-ready access.</p>
+        <p className="font-body-sm text-body-sm text-[var(--sr-muted)]">Add to your home screen for ride-ready access.</p>
       </div>
       <button
         type="button"
@@ -83,7 +83,7 @@ export function InstallPrompt() {
       >
         Install
       </button>
-      <button type="button" onClick={dismiss} className="text-white/60 hover:text-white transition-colors" aria-label="Dismiss">
+      <button type="button" onClick={dismiss} className="text-[var(--sr-muted)] hover:text-[var(--sr-heading)] transition-colors" aria-label="Dismiss">
         <Icon name="close" size={18} />
       </button>
     </div>

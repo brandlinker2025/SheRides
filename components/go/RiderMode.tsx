@@ -170,9 +170,9 @@ export function RiderMode() {
           <div className="mb-6 flex flex-col gap-3">
             {open.filter((ride) => ride.kind === "scheduled").map((ride) => (
               <article key={ride.id} className="card-surface flex flex-col gap-2 border border-[#FFB804]/30 p-4">
-                <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#FFB804]">{formatWhen(ride.scheduled_at)}</p>
+                <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--sr-gold-ink)]">{formatWhen(ride.scheduled_at)}</p>
                 <p className="font-label-lg">{ride.passenger?.full_name ?? "Passenger"} · {formatTaka(ride.fare)}</p>
-                <p className="text-sm text-white/70">{ride.pickup_text}{ride.drop_text ? ` → ${ride.drop_text}` : ""}</p>
+                <p className="text-sm text-[var(--sr-muted)]">{ride.pickup_text}{ride.drop_text ? ` → ${ride.drop_text}` : ""}</p>
                 <button type="button" disabled={busyId === ride.id} onClick={() => void accept(ride)} className="btn btn-primary h-11 min-h-11 text-sm">
                   {busyId === ride.id ? "Accepting…" : "Accept pre-book"}
                 </button>

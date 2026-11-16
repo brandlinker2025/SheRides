@@ -9,8 +9,8 @@ const icons: NonNullable<MetadataRoute.Manifest["icons"]> = [
 ];
 
 const shared = {
-  background_color: "#1B1324",
-  theme_color: "#460377",
+  background_color: "#E8F6FF",
+  theme_color: "#E8F6FF",
   display: "standalone" as const,
   display_override: ["standalone", "minimal-ui"] as NonNullable<MetadataRoute.Manifest["display_override"]>,
   lang: "en",

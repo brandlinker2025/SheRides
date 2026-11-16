@@ -58,7 +58,7 @@ export function AuthSocialButtons({ onError, redirectTo }: AuthSocialButtonsProp
         type="button"
         disabled={busy !== null}
         onClick={() => void startOAuth("google")}
-        className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/5 text-sm font-semibold text-white transition-colors hover:border-white/30 hover:bg-white/10 disabled:opacity-60"
+        className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-[var(--sr-line)] bg-white/70 text-sm font-semibold text-[var(--sr-ink)] transition-colors hover:border-[#460377]/25 hover:bg-[#4FD8FF]/20 disabled:opacity-60"
       >
         <GoogleMark className="h-5 w-5" />
         {busy === "google" ? "Checking…" : "Google"}
@@ -67,7 +67,7 @@ export function AuthSocialButtons({ onError, redirectTo }: AuthSocialButtonsProp
         type="button"
         disabled={busy !== null}
         onClick={() => void startOAuth("facebook")}
-        className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/5 text-sm font-semibold text-white transition-colors hover:border-white/30 hover:bg-white/10 disabled:opacity-60"
+        className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-[var(--sr-line)] bg-white/70 text-sm font-semibold text-[var(--sr-ink)] transition-colors hover:border-[#460377]/25 hover:bg-[#4FD8FF]/20 disabled:opacity-60"
       >
         <FacebookMark className="h-5 w-5" />
         {busy === "facebook" ? "Checking…" : "Facebook"}
@@ -78,7 +78,7 @@ export function AuthSocialButtons({ onError, redirectTo }: AuthSocialButtonsProp
 
 export function AuthOrDivider() {
   return (
-    <div className="flex items-center gap-3 text-xs tracking-[0.18em] text-white/45 uppercase">
+    <div className="flex items-center gap-3 text-xs tracking-[0.18em] text-[var(--sr-faint)] uppercase">
       <span className="h-px flex-1 bg-white/15" />
       or
       <span className="h-px flex-1 bg-white/15" />

@@ -118,14 +118,14 @@ function DocThumb({ doc }: { doc: { label: string; url: string } | undefined }) 
   return (
     <a href={doc.url} target="_blank" rel="noreferrer" className="block">
       {pdf ? (
-        <span className="flex aspect-[4/5] w-full items-center justify-center rounded-xl border border-white/10 bg-black/40 text-sm font-bold text-[#ffb95f]">
+        <span className="flex aspect-[4/5] w-full items-center justify-center rounded-xl border border-[var(--sr-line)] bg-white/90 text-sm font-bold text-[var(--sr-gold-ink)]">
           PDF
         </span>
       ) : (
         /* eslint-disable-next-line @next/next/no-img-element */
-        <img src={doc.url} alt={doc.label} className="aspect-[4/5] w-full rounded-xl object-cover border border-white/10 bg-black/40" />
+        <img src={doc.url} alt={doc.label} className="aspect-[4/5] w-full rounded-xl object-cover border border-[var(--sr-line)] bg-white/90" />
       )}
-      <span className="mt-1 block text-[10px] font-semibold uppercase tracking-wide text-white/50">{doc.label}</span>
+      <span className="mt-1 block text-[10px] font-semibold uppercase tracking-wide text-[var(--sr-faint)]">{doc.label}</span>
     </a>
   );
 }
@@ -155,42 +155,42 @@ function VerificationRow({ app, rides }: { app: AdminGoApplication; rides: Admin
   const extraDocs = app.docs.filter((doc) => doc.label !== "Live selfie" && doc.label !== "NID front");
 
   return (
-    <article className="flex flex-col gap-4 rounded-2xl border border-white/10 bg-[#1f1f24] p-4 text-[#e4e1e9]">
+    <article className="flex flex-col gap-4 rounded-2xl border border-[var(--sr-line)] bg-[var(--sr-card-solid)] shadow-[var(--sr-shadow)] p-4 text-[var(--sr-ink)]">
       <div className="flex items-start justify-between gap-3">
         <div>
           <h3 className="text-lg font-bold">{app.full_name}</h3>
-          <p className="text-sm text-white/60">{app.profile?.full_name ?? "No profile name"} · {new Date(app.created_at).toLocaleString("en-BD", { timeZone: "Asia/Dhaka" })}</p>
+          <p className="text-sm text-[var(--sr-muted)]">{app.profile?.full_name ?? "No profile name"} · {new Date(app.created_at).toLocaleString("en-BD", { timeZone: "Asia/Dhaka" })}</p>
         </div>
         <div className="text-right">
-          <p className="text-[10px] font-bold uppercase tracking-wider text-white/45">Case</p>
-          <p className="font-mono text-sm text-[#ddb7ff]">#{app.id.slice(0, 8)}</p>
+          <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--sr-faint)]">Case</p>
+          <p className="font-mono text-sm text-[var(--sr-heading)]">#{app.id.slice(0, 8)}</p>
         </div>
       </div>
-      <p className="text-xs text-white/55">Compare the live selfie with the NID yourself. This card does not score liveness, gender, or a government match.</p>
+      <p className="text-xs text-[var(--sr-faint)]">Compare the live selfie with the NID yourself. This card does not score liveness, gender, or a government match.</p>
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <p className="mb-1 text-[10px] font-bold uppercase tracking-wider text-[#ffb95f]">Live selfie</p>
+          <p className="mb-1 text-[10px] font-bold uppercase tracking-wider text-[var(--sr-gold-ink)]">Live selfie</p>
           <DocThumb doc={selfie} />
         </div>
         <div>
-          <p className="mb-1 text-[10px] font-bold uppercase tracking-wider text-[#ffb95f]">NID</p>
+          <p className="mb-1 text-[10px] font-bold uppercase tracking-wider text-[var(--sr-gold-ink)]">NID</p>
           <DocThumb doc={nidFront} />
         </div>
       </div>
       <button type="button" onClick={() => setShowNid((value) => !value)} className="text-left">
-        <span className="block text-[10px] font-bold uppercase tracking-wide text-white/45">NID number · tap to {showNid ? "hide" : "show"}</span>
+        <span className="block text-[10px] font-bold uppercase tracking-wide text-[var(--sr-faint)]">NID number · tap to {showNid ? "hide" : "show"}</span>
         <span className="font-mono text-sm">{showNid ? app.nid_number : maskNid(app.nid_number)}</span>
       </button>
       {app.role === "rider" && (
-        <p className="text-sm text-white/70">{app.bike_model ?? "Bike not given"} · {app.bike_plate ?? "no plate"}</p>
+        <p className="text-sm text-[var(--sr-muted)]">{app.bike_model ?? "Bike not given"} · {app.bike_plate ?? "no plate"}</p>
       )}
       {app.emergency_contact_name && (
-        <p className="text-sm text-white/70">Emergency contact on file: {app.emergency_contact_name}. The phone stays hidden on this card.</p>
+        <p className="text-sm text-[var(--sr-muted)]">Emergency contact on file: {app.emergency_contact_name}. The phone stays hidden on this card.</p>
       )}
       <div className="flex flex-wrap items-center gap-2">
         <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold capitalize ${CHIP[app.status]}`}>{app.status}</span>
         {extraDocs.map((doc) => (
-          <a key={doc.label} href={doc.url} target="_blank" rel="noreferrer" className="text-sm font-semibold text-[#ddb7ff]">
+          <a key={doc.label} href={doc.url} target="_blank" rel="noreferrer" className="text-sm font-semibold text-[var(--sr-heading)]">
             {doc.label}
           </a>
         ))}
@@ -200,12 +200,12 @@ function VerificationRow({ app, rides }: { app: AdminGoApplication; rides: Admin
         onChange={(event) => setNotes(event.target.value)}
         maxLength={500}
         placeholder="Note (required to reject)"
-        className="w-full rounded-xl border border-white/10 bg-[#0e0e13] px-3 py-2 text-sm text-[#e4e1e9]"
+        className="w-full rounded-xl border border-[var(--sr-line)] bg-[var(--sr-inset)] px-3 py-2 text-sm text-[var(--sr-ink)]"
       />
       {error && <p className="text-sm text-[#ffb4ab]">{error}</p>}
       <div className="flex flex-wrap gap-2">
         {app.status !== "approved" && (
-          <button type="button" disabled={busy} onClick={() => void act("approved")} className="h-11 rounded-full bg-gradient-to-br from-[#A855F7] to-[#6366F1] px-4 text-sm font-semibold text-white">
+          <button type="button" disabled={busy} onClick={() => void act("approved")} className="h-11 rounded-full bg-[#FF6772] px-4 text-sm font-semibold text-[#460377]">
             Approve & Activate {app.role === "rider" ? "Rider" : "Passenger"}
           </button>
         )}
@@ -255,15 +255,15 @@ function PartnerLeadRow({ lead }: { lead: AdminPartnerLead }) {
       <div className="flex items-start justify-between gap-3">
         <div>
           <h3 className="text-lg font-bold">{lead.full_name}</h3>
-          <p className="text-sm text-white/70">{lead.phone} · {lead.area}</p>
-          <p className="text-sm text-white/60">
+          <p className="text-sm text-[var(--sr-muted)]">{lead.phone} · {lead.area}</p>
+          <p className="text-sm text-[var(--sr-muted)]">
             {VEHICLE[lead.vehicle_type] ?? lead.vehicle_type} · {lead.commitment === "full_time" ? "Full time" : "Part time"}
           </p>
         </div>
         <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold capitalize ${CHIP[lead.status]}`}>{lead.status}</span>
       </div>
-      {lead.note && <p className="text-sm text-white/70">{lead.note}</p>}
-      <p className="text-xs text-white/45">
+      {lead.note && <p className="text-sm text-[var(--sr-muted)]">{lead.note}</p>}
+      <p className="text-xs text-[var(--sr-faint)]">
         Approving this recruitment lead does not create a login and does not let her go online. She still needs an approved in-app rider application.
       </p>
       <input
@@ -272,7 +272,7 @@ function PartnerLeadRow({ lead }: { lead: AdminPartnerLead }) {
         maxLength={500}
         placeholder="Note (required to reject)"
         aria-label={`Note for ${lead.full_name}`}
-        className="w-full rounded-xl border border-white/10 bg-[#0e0e13] px-3 py-2 text-sm"
+        className="w-full rounded-xl border border-[var(--sr-line)] bg-[var(--sr-inset)] px-3 py-2 text-sm"
       />
       {error && <p className="text-sm text-[#ffb4ab]" role="alert">{error}</p>}
       <div className="flex flex-wrap gap-2">
@@ -339,9 +339,9 @@ export function GoAdminBoard({
     <div className="flex flex-col gap-8">
       <section id="queue" className="flex flex-col gap-4">
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#ffb95f]">One queue</p>
-          <h2 className="text-xl font-bold text-[#e4e1e9]">Waiting for a decision</h2>
-          <p className="text-sm text-white/65">
+          <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--sr-gold-ink)]">One queue</p>
+          <h2 className="text-xl font-bold text-[var(--sr-ink)]">Waiting for a decision</h2>
+          <p className="text-sm text-[var(--sr-muted)]">
             Approve or reject passengers who want to book, captains who want to ride, and partner leads. A rejection needs a short reason. The member gets an in-app notification.
           </p>
         </div>
@@ -361,31 +361,31 @@ export function GoAdminBoard({
 
       <section id="passengers" className="flex flex-col gap-3">
         <h2 className="text-lg font-bold">Passengers — book rides ({pendingPassengers.length})</h2>
-        <p className="text-sm text-white/60">These members are stuck on Book rides · Pending until you approve them.</p>
+        <p className="text-sm text-[var(--sr-muted)]">These members are stuck on Book rides · Pending until you approve them.</p>
         {pendingPassengers.map((app) => (
           <VerificationRow key={app.id} app={app} rides={ridesByRider.get(app.user_id) ?? []} />
         ))}
-        {pendingPassengers.length === 0 && <p className="card-surface p-6 text-center text-sm text-white/60">No passengers waiting to book.</p>}
+        {pendingPassengers.length === 0 && <p className="card-surface p-6 text-center text-sm text-[var(--sr-muted)]">No passengers waiting to book.</p>}
       </section>
 
       <section id="captains" className="flex flex-col gap-3">
         <h2 className="text-lg font-bold">Captains — give rides ({pendingRiders.length})</h2>
-        <p className="text-sm text-white/60">Compare the live selfie with the NID, then approve only if the applicant is a woman and the face matches.</p>
+        <p className="text-sm text-[var(--sr-muted)]">Compare the live selfie with the NID, then approve only if the applicant is a woman and the face matches.</p>
         {pendingRiders.map((app) => (
           <VerificationRow key={app.id} app={app} rides={ridesByRider.get(app.user_id) ?? []} />
         ))}
-        {pendingRiders.length === 0 && <p className="card-surface p-6 text-center text-sm text-white/60">No captain applications waiting.</p>}
+        {pendingRiders.length === 0 && <p className="card-surface p-6 text-center text-sm text-[var(--sr-muted)]">No captain applications waiting.</p>}
       </section>
 
       <section id="partners" className="flex flex-col gap-3">
         <h2 className="text-lg font-bold">Partner leads ({pendingPartners.length})</h2>
-        <p className="text-sm text-white/60">Leads from /partner. Approving a lead does not create a login. If she already has a SheRides account on that mobile number, she is notified.</p>
+        <p className="text-sm text-[var(--sr-muted)]">Leads from /partner. Approving a lead does not create a login. If she already has a SheRides account on that mobile number, she is notified.</p>
         {partnerNote ? (
           <p className="card-surface p-4 text-sm text-error" role="alert">
             Partner review is not available yet. Apply supabase/migrations/20261116030000_partner_review_and_ride_extras.sql. {partnerNote}
           </p>
         ) : pendingPartners.length === 0 ? (
-          <p className="card-surface p-6 text-center text-sm text-white/60">No partner leads waiting.</p>
+          <p className="card-surface p-6 text-center text-sm text-[var(--sr-muted)]">No partner leads waiting.</p>
         ) : (
           pendingPartners.map((lead) => <PartnerLeadRow key={lead.id} lead={lead} />)
         )}
@@ -417,7 +417,7 @@ export function GoAdminBoard({
                 role="tab"
                 aria-selected={role === r}
                 onClick={() => setRole(r)}
-                className={`h-10 px-5 rounded-full font-label-lg text-sm ${role === r ? "bg-accent-magenta text-white" : "text-secondary"}`}
+                className={`h-10 px-5 rounded-full font-label-lg text-sm ${role === r ? "bg-accent-magenta text-[#460377]" : "text-secondary"}`}
               >
                 {r === "rider" ? "Riders" : "Passenger ID checks"}
                 {waiting > 0 ? ` (${waiting})` : ""}
@@ -442,7 +442,7 @@ export function GoAdminBoard({
             type="button"
             onClick={() => setFilter(f)}
             className={`h-10 px-4 rounded-full font-label-lg text-sm capitalize whitespace-nowrap border ${
-              filter === f ? "bg-accent-magenta text-white border-accent-magenta" : "border-surface-border bg-surface-container-lowest"
+              filter === f ? "bg-accent-magenta text-[#460377] border-accent-magenta" : "border-surface-border bg-surface-container-lowest"
             }`}
           >
             {f} ({counts[f]})
@@ -452,22 +452,22 @@ export function GoAdminBoard({
 
       <section className="flex flex-col gap-3">
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#ffb95f]">History</p>
-          <h2 className="text-xl font-bold text-[#e4e1e9]">Already reviewed</h2>
-          <p className="text-sm text-white/60">Search approved, rejected, and suspended applications. New decisions are made in the queue above.</p>
+          <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--sr-gold-ink)]">History</p>
+          <h2 className="text-xl font-bold text-[var(--sr-ink)]">Already reviewed</h2>
+          <p className="text-sm text-[var(--sr-muted)]">Search approved, rejected, and suspended applications. New decisions are made in the queue above.</p>
         </div>
         <div className="flex flex-col gap-3">
           {shown.map((app) => (
             <VerificationRow key={app.id} app={app} rides={ridesByRider.get(app.user_id) ?? []} />
           ))}
         </div>
-        {!shown.length && <p className="rounded-2xl bg-[#1f1f24] p-8 text-center text-sm text-white/60">No {role === "rider" ? "rider" : "passenger"} applications in this list.</p>}
+        {!shown.length && <p className="rounded-2xl bg-[var(--sr-card-solid)] shadow-[var(--sr-shadow)] p-8 text-center text-sm text-[var(--sr-muted)]">No {role === "rider" ? "rider" : "passenger"} applications in this list.</p>}
       </section>
 
       <section className="flex flex-col gap-3">
         <h2 className="text-lg font-bold">Reviewed partner leads</h2>
         {reviewedPartners.length === 0 ? (
-          <p className="card-surface p-6 text-center text-sm text-white/60">No partner leads have been decided yet.</p>
+          <p className="card-surface p-6 text-center text-sm text-[var(--sr-muted)]">No partner leads have been decided yet.</p>
         ) : (
           reviewedPartners.map((lead) => <PartnerLeadRow key={lead.id} lead={lead} />)
         )}

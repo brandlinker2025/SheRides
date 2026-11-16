@@ -28,24 +28,24 @@ export function RideReceipt({
         </button>
       </div>
       <dl className="mt-3 grid grid-cols-2 gap-x-3 gap-y-2 text-sm">
-        <dt className="text-white/50">When</dt>
+        <dt className="text-[var(--sr-faint)]">When</dt>
         <dd className="text-right">{formatWhen(ride.completed_at)}</dd>
-        <dt className="text-white/50">Trip</dt>
+        <dt className="text-[var(--sr-faint)]">Trip</dt>
         <dd className="text-right">{KIND_LABEL[ride.kind]}{serviceLabel(ride.service) ? ` · ${serviceLabel(ride.service)}` : ""}</dd>
-        <dt className="text-white/50">From</dt>
+        <dt className="text-[var(--sr-faint)]">From</dt>
         <dd className="text-right">{ride.pickup_text}</dd>
-        <dt className="text-white/50">To</dt>
+        <dt className="text-[var(--sr-faint)]">To</dt>
         <dd className="text-right">{ride.drop_text ?? "Hourly hire"}</dd>
-        <dt className="text-white/50">Passenger</dt>
+        <dt className="text-[var(--sr-faint)]">Passenger</dt>
         <dd className="text-right">{passengerName ?? "—"}</dd>
-        <dt className="text-white/50">Captain</dt>
+        <dt className="text-[var(--sr-faint)]">Captain</dt>
         <dd className="text-right">{riderName ?? "—"}</dd>
-        <dt className="text-white/50">Pay</dt>
+        <dt className="text-[var(--sr-faint)]">Pay</dt>
         <dd className="text-right">{ride.payment_method === "bkash" ? "bKash" : ride.payment_method === "nagad" ? "Nagad" : "Cash"}</dd>
         <dt className="font-semibold">Total</dt>
-        <dd className="text-right text-lg font-bold text-[#ddb7ff]">{formatTaka(ride.fare)}</dd>
+        <dd className="text-right text-lg font-bold text-[var(--sr-heading)]">{formatTaka(ride.fare)}</dd>
       </dl>
-      <p className="mt-3 text-xs text-white/45">SheRides receipt · {ride.id.slice(0, 8)} · Not a tax invoice.</p>
+      <p className="mt-3 text-xs text-[var(--sr-faint)]">SheRides receipt · {ride.id.slice(0, 8)} · Not a tax invoice.</p>
     </section>
   );
 }

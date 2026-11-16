@@ -230,6 +230,12 @@ def open_graph(lockup: Image.Image) -> Image.Image:
 
 
 def main() -> None:
+    raise SystemExit(
+        "Refusing to rebuild logos. public/brand/sherides-official.png is the only lockup: "
+        "the official illustration, deep-purple wordmark, and deep-purple tagline, with the "
+        "black field removed and pixel colours left untouched. Do not recolor a light-text variant."
+    )
+
     ORIGINAL.mkdir(parents=True, exist_ok=True)
     for name, upload in SOURCES.items():
         src = UPLOADS / upload

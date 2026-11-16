@@ -98,10 +98,10 @@ export function FavouriteCaptain({ riderId, name }: { riderId: string; name: str
   return (
     <div className="flex flex-col items-end gap-1">
       <button type="button" onClick={() => void toggle()} disabled={busy} aria-pressed={saved} className="btn btn-ghost h-10 min-h-10 px-3 text-xs">
-        <Icon name="favorite" filled={saved} size={18} className={saved ? "text-[#f4b8d4]" : ""} />
+        <Icon name="favorite" filled={saved} size={18} className={saved ? "text-[var(--sr-heading)]" : ""} />
         {saved ? t("fav.saved") : t("fav.save")}
       </button>
-      {note && <p className="max-w-[14rem] text-right text-xs text-white/55">{note}</p>}
+      {note && <p className="max-w-[14rem] text-right text-xs text-[var(--sr-faint)]">{note}</p>}
     </div>
   );
 }

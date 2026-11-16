@@ -13,7 +13,7 @@ type PhoneOtpFieldsProps = {
 export function PhoneOtpFields({ code, onCodeChange, onFocus, onBlur, disabled }: PhoneOtpFieldsProps) {
   return (
     <label className="block">
-      <span className="mb-1.5 block text-sm text-white/70">Verification code</span>
+      <span className="mb-1.5 block text-sm text-[var(--sr-muted)]">Verification code</span>
       <input
         inputMode="numeric"
         autoComplete="one-time-code"

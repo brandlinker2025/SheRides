@@ -75,15 +75,15 @@ function FareBreakdown({
   const distance = km != null ? (catalogLive ? distanceFare(km, rate.id, [rate]) : legacyDistanceFare(km)) : null;
   const beyond = distance != null && km != null && km > rate.slabKm ? distance - rate.slabKm * rate.basePerKm : 0;
   return (
-    <section aria-label="Fare breakdown" className="rounded-3xl border border-white/10 bg-[#1f1f24]/95 px-4 py-4 text-[#e4e1e9] backdrop-blur-xl">
-      <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-[#ffb95f]">{catalogLive ? rate.label : "Standard rate"}</p>
+    <section aria-label="Fare breakdown" className="rounded-3xl border border-[var(--sr-line)] bg-[var(--sr-card)] px-4 py-4 text-[var(--sr-ink)] backdrop-blur-xl">
+      <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-[var(--sr-gold-ink)]">{catalogLive ? rate.label : "Standard rate"}</p>
       <h2 className="mt-1 text-sm font-semibold">Transparent Fare / স্বচ্ছ ভাড়া</h2>
       {distance == null || km == null ? (
         <p className="mt-1 text-3xl font-bold">—</p>
       ) : catalogLive ? (
         <>
-          <p className="mt-1 text-3xl font-bold text-[#ddb7ff]">{formatTaka(distance)}</p>
-          <ul className="mt-2 flex flex-col gap-1 text-sm text-white/70">
+          <p className="mt-1 text-3xl font-bold text-[var(--sr-heading)]">{formatTaka(distance)}</p>
+          <ul className="mt-2 flex flex-col gap-1 text-sm text-[var(--sr-muted)]">
             {km <= rate.slabKm ? (
               <li>
                 {km.toFixed(2)} km × ৳{rate.basePerKm.toFixed(2)} = {formatTaka(distance)}
@@ -102,14 +102,14 @@ function FareBreakdown({
         </>
       ) : (
         <>
-          <p className="mt-1 text-3xl font-bold text-[#ddb7ff]">{formatTaka(distance)}</p>
-          <p className="mt-2 text-sm text-white/70">
+          <p className="mt-1 text-3xl font-bold text-[var(--sr-heading)]">{formatTaka(distance)}</p>
+          <p className="mt-2 text-sm text-[var(--sr-muted)]">
             {km.toFixed(2)} km · ৳30 + ৳14/km · minimum ৳70
           </p>
         </>
       )}
       {hireFare != null ? (
-        <p className="mt-2 text-sm text-white/60">
+        <p className="mt-2 text-sm text-[var(--sr-muted)]">
           Hire total {formatTaka(hireFare)} ({hours} h × ৳250)
         </p>
       ) : null}
@@ -273,10 +273,10 @@ export function BookRide({ pickup, drop, onPickup, onDrop, autoLocate = true }: 
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="rounded-3xl border border-white/10 bg-[#1f1f24]/95 p-4 shadow-2xl backdrop-blur-xl">
+      <div className="rounded-3xl border border-[var(--sr-line)] bg-[var(--sr-card)] p-4 shadow-2xl backdrop-blur-xl">
         <SavedPlacesBar onPick={(place) => (pickup ? onDrop(place) : onPickup(place))} />
         <div className="relative flex flex-col gap-3 pl-5">
-          <span className="absolute bottom-6 left-[7px] top-6 w-px bg-gradient-to-b from-[#5eead4] to-[#ddb7ff]" aria-hidden="true" />
+          <span className="absolute bottom-6 left-[7px] top-6 w-px bg-gradient-to-b from-[#05BAA4] to-[#460377]" aria-hidden="true" />
           <PlaceInput
             label="Pickup / পিকআপ"
             icon="trip_origin"
@@ -310,8 +310,8 @@ export function BookRide({ pickup, drop, onPickup, onDrop, autoLocate = true }: 
               onClick={() => setKind(item.id)}
               className={`h-9 flex-1 rounded-full border text-sm font-semibold ${
                 kind === item.id
-                  ? "border-transparent bg-gradient-to-br from-[#ddb7ff] to-[#a855f7] text-[#1a1a24]"
-                  : "border-white/10 bg-[#121217] text-white/70"
+                  ? "border-transparent bg-[#FF6772] text-[#460377]"
+                  : "border-[var(--sr-line)] bg-white text-[var(--sr-muted)]"
               }`}
             >
               {item.label}
@@ -320,16 +320,16 @@ export function BookRide({ pickup, drop, onPickup, onDrop, autoLocate = true }: 
         </div>
 
         {kind !== "now" && (
-          <div className="mt-3 rounded-2xl border border-[#FF6772]/40 bg-[#1B1324] p-4">
-            <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#FFB804]">
+          <div className="mt-3 rounded-2xl border border-[#FF6772]/40 bg-[#EAF7FF] p-4">
+            <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--sr-gold-ink)]">
               {kind === "hire" ? "Hire start" : "Pre-book"}
             </p>
-            <p className="mt-1 text-sm font-semibold text-[#F0EBF6]">
+            <p className="mt-1 text-sm font-semibold text-[var(--sr-ink)]">
               {kind === "hire" ? "When should the captain start?" : "Choose a future pickup. You can cancel it until a captain is on the way."}
             </p>
             <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
               <label className="block">
-                <span className="mb-1 block text-xs font-semibold text-white/70">Date</span>
+                <span className="mb-1 block text-xs font-semibold text-[var(--sr-muted)]">Date</span>
                 <input
                   type="date"
                   required={kind === "scheduled"}
@@ -337,30 +337,30 @@ export function BookRide({ pickup, drop, onPickup, onDrop, autoLocate = true }: 
                   max={maxDateTime().slice(0, 10)}
                   value={when.slice(0, 10)}
                   onChange={(event) => setWhen(joinDateTime(event.target.value, when.slice(11, 16) || "09:00"))}
-                  className="h-12 w-full rounded-xl border border-white/15 bg-[#121217] px-3 text-[#F0EBF6] [color-scheme:dark]"
+                  className="h-12 w-full rounded-xl border border-[var(--sr-line)] bg-white px-3 text-[var(--sr-ink)] [color-scheme:light]"
                 />
               </label>
               <label className="block">
-                <span className="mb-1 block text-xs font-semibold text-white/70">Time</span>
+                <span className="mb-1 block text-xs font-semibold text-[var(--sr-muted)]">Time</span>
                 <input
                   type="time"
                   required={kind === "scheduled"}
                   value={when.slice(11, 16)}
                   onChange={(event) => setWhen(joinDateTime(when.slice(0, 10) || minDateTime().slice(0, 10), event.target.value))}
-                  className="h-12 w-full rounded-xl border border-white/15 bg-[#121217] px-3 text-[#F0EBF6] [color-scheme:dark]"
+                  className="h-12 w-full rounded-xl border border-[var(--sr-line)] bg-white px-3 text-[var(--sr-ink)] [color-scheme:light]"
                 />
               </label>
             </div>
-            {when && <p className="mt-2 text-sm text-[#FFB804]">{new Date(when).toLocaleString("en-BD", { timeZone: "Asia/Dhaka", dateStyle: "medium", timeStyle: "short" })} · Dhaka time</p>}
+            {when && <p className="mt-2 text-sm text-[var(--sr-gold-ink)]">{new Date(when).toLocaleString("en-BD", { timeZone: "Asia/Dhaka", dateStyle: "medium", timeStyle: "short" })} · Dhaka time</p>}
           </div>
         )}
         {kind === "hire" && (
           <div className="mt-3 flex items-center gap-3">
-            <button type="button" onClick={() => setHours((value) => Math.max(1, value - 1))} className="h-11 w-11 rounded-full border border-white/10 text-xl font-bold text-white" aria-label="Fewer hours">
+            <button type="button" onClick={() => setHours((value) => Math.max(1, value - 1))} className="h-11 w-11 rounded-full border border-[var(--sr-line)] text-xl font-bold text-[var(--sr-heading)]" aria-label="Fewer hours">
               −
             </button>
             <span className="w-16 text-center text-2xl font-bold">{hours} h</span>
-            <button type="button" onClick={() => setHours((value) => Math.min(12, value + 1))} className="h-11 w-11 rounded-full border border-white/10 text-xl font-bold text-white" aria-label="More hours">
+            <button type="button" onClick={() => setHours((value) => Math.min(12, value + 1))} className="h-11 w-11 rounded-full border border-[var(--sr-line)] text-xl font-bold text-[var(--sr-heading)]" aria-label="More hours">
               +
             </button>
           </div>
@@ -371,11 +371,11 @@ export function BookRide({ pickup, drop, onPickup, onDrop, autoLocate = true }: 
 
       <div>
         <div className="mb-2 flex items-center justify-between gap-3">
-          <h2 className="text-lg font-bold text-[#e4e1e9]">Sanctuary Fleet / ফ্লিট</h2>
-          <span className="text-xs font-semibold text-[#ffb95f]">100% Female Captains</span>
+          <h2 className="text-lg font-bold text-[var(--sr-ink)]">Sanctuary Fleet / ফ্লিট</h2>
+          <span className="text-xs font-semibold text-[var(--sr-gold-ink)]">100% Female Captains</span>
         </div>
         {fareSource !== "catalog" && (
-          <p className="mb-2 text-xs text-white/55">
+          <p className="mb-2 text-xs text-[var(--sr-faint)]">
             Bike choice is saved as a preference. The charged fare is the standard rate until fleet pricing is turned on.
           </p>
         )}
@@ -402,19 +402,19 @@ export function BookRide({ pickup, drop, onPickup, onDrop, autoLocate = true }: 
                 transition={{ delay: index * 0.04, duration: 0.25 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => setService(item.id)}
-                className={`flex items-center gap-3 rounded-2xl px-3 py-3 text-left text-[#e4e1e9] ${
-                  selected ? "bg-[#2a292f] ring-2 ring-[#ddb7ff]/50" : "bg-[#1f1f24]"
+                className={`flex items-center gap-3 rounded-2xl px-3 py-3 text-left text-[var(--sr-ink)] ${
+                  selected ? "bg-[var(--sr-chip)] ring-2 ring-[#460377]/35" : "bg-[var(--sr-card-solid)] shadow-[var(--sr-shadow)]"
                 }`}
               >
-                <span className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full ${selected ? "bg-[#ddb7ff]/20 text-[#ddb7ff]" : "bg-[#35343a] text-white/70"}`}>
+                <span className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full ${selected ? "bg-[#460377]/10 text-[var(--sr-heading)]" : "bg-[var(--sr-chip)] text-[var(--sr-muted)]"}`}>
                   <Icon name={item.icon} />
                 </span>
                 <span className="min-w-0 flex-1">
                   <span className="flex flex-wrap items-center gap-2">
                     <span className="font-bold">{copy.title}</span>
-                    <span className="rounded-full bg-[#ffb95f]/20 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#ffb95f]">{copy.badge}</span>
+                    <span className="rounded-full bg-[#ffb95f]/20 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[var(--sr-gold-ink)]">{copy.badge}</span>
                   </span>
-                  <span className="mt-0.5 block text-xs text-white/70">
+                  <span className="mt-0.5 block text-xs text-[var(--sr-muted)]">
                     {pickupMin} min away
                     {tripMin != null ? ` · ${tripMin} min` : ""}
                     {" · "}
@@ -422,7 +422,7 @@ export function BookRide({ pickup, drop, onPickup, onDrop, autoLocate = true }: 
                   </span>
                 </span>
                 <span className="shrink-0 text-right">
-                  <span className="block text-lg font-extrabold text-[#ddb7ff]">{fare != null ? formatTaka(fare) : "—"}</span>
+                  <span className="block text-lg font-extrabold text-[var(--sr-heading)]">{fare != null ? formatTaka(fare) : "—"}</span>
                 </span>
               </motion.button>
             );
@@ -430,18 +430,18 @@ export function BookRide({ pickup, drop, onPickup, onDrop, autoLocate = true }: 
         </div>
       </div>
 
-      <div className="flex items-center justify-between gap-3 rounded-2xl bg-[#1f1f24] p-3 text-[#e4e1e9]">
+      <div className="flex items-center justify-between gap-3 rounded-2xl bg-[var(--sr-card-solid)] shadow-[var(--sr-shadow)] p-3 text-[var(--sr-ink)]">
         <div className="min-w-0">
-          <p className="text-[10px] font-bold uppercase tracking-wider text-white/45">Payment / পেমেন্ট</p>
+          <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--sr-faint)]">Payment / পেমেন্ট</p>
           <p className="truncate text-sm font-semibold">{payment === "bkash" ? "bKash" : payment === "nagad" ? "Nagad" : "Cash"}</p>
         </div>
-        <div className="flex shrink-0 rounded-full bg-[#2a292f] p-1">
+        <div className="flex shrink-0 rounded-full bg-[var(--sr-chip)] p-1">
           {(["bkash", "nagad", "cash"] as const).map((method) => (
             <button
               key={method}
               type="button"
               onClick={() => setPayment(method)}
-              className={`rounded-full px-3 py-1 text-xs font-semibold ${payment === method ? "bg-[#ddb7ff] text-[#1a1a24]" : "text-white/70"}`}
+              className={`rounded-full px-3 py-1 text-xs font-semibold ${payment === method ? "bg-[#FF6772] text-[#460377]" : "text-[var(--sr-muted)]"}`}
             >
               {method === "bkash" ? "bKash" : method === "nagad" ? "Nagad" : "Cash"}
             </button>
@@ -456,18 +456,18 @@ export function BookRide({ pickup, drop, onPickup, onDrop, autoLocate = true }: 
           maxLength={16}
           placeholder="Promo code"
           aria-label="Promo code"
-          className="h-12 min-w-0 flex-1 rounded-full border border-white/10 bg-[#121217] px-4 text-sm font-semibold uppercase text-white"
+          className="h-12 min-w-0 flex-1 rounded-full border border-[var(--sr-line)] bg-white px-4 text-sm font-semibold uppercase text-[var(--sr-ink)]"
         />
         <button type="button" onClick={() => void checkPromo()} className="btn btn-ghost h-12 min-h-12 px-4 text-sm">
           Check code
         </button>
       </div>
-      {promoNote && <p className="text-sm text-[#ddb7ff]" role="status">{promoNote}</p>}
+      {promoNote && <p className="text-sm text-[var(--sr-heading)]" role="status">{promoNote}</p>}
 
       <FareBreakdown km={kind === "hire" ? null : km} rate={selectedRate} hireFare={hireFare} hours={hours} catalogLive={catalogLive} />
 
       {error && (
-        <p className="text-sm text-red-400" role="alert">
+        <p className="text-sm text-red-700" role="alert">
           {error}
         </p>
       )}
@@ -481,7 +481,7 @@ export function BookRide({ pickup, drop, onPickup, onDrop, autoLocate = true }: 
         {busy ? "Requesting…" : kind === "now" ? "Request SheRides" : kind === "hire" ? "Request Hire" : "Schedule Ride"}
       </button>
       {!canSubmit && (
-        <p className="text-center text-sm text-white/50">
+        <p className="text-center text-sm text-[var(--sr-faint)]">
           {pickup ? "Add destination to see fare" : "Allow location or type pickup"}
         </p>
       )}
@@ -502,11 +502,11 @@ export function RideDeck({ children, below, showForm = true, initialPickup = nul
   const [drop, setDrop] = useState<GoPlace | null>(initialDrop);
 
   return (
-    <div className="relative flex h-[calc(100dvh-72px-6rem)] w-full flex-col bg-[#131318] text-[#e4e1e9] lg:grid lg:h-[calc(100dvh-72px)] lg:grid-cols-[minmax(320px,420px)_1fr]">
+    <div className="relative flex h-[calc(100dvh-72px-6rem)] w-full flex-col bg-transparent text-[var(--sr-ink)] lg:grid lg:h-[calc(100dvh-72px)] lg:grid-cols-[minmax(320px,420px)_1fr]">
       <div className="absolute inset-0 z-0 lg:relative lg:order-2 lg:h-full">
         <RideMap pickup={pickup} drop={drop} />
       </div>
-      <div className="relative z-10 mt-auto max-h-[78%] overflow-y-auto rounded-t-3xl border border-white/10 bg-[#131318]/95 p-4 pb-4 shadow-2xl backdrop-blur-xl lg:order-1 lg:mt-0 lg:max-h-none lg:overflow-y-auto lg:rounded-none lg:border-0 lg:bg-transparent lg:p-6 lg:pb-6 lg:shadow-none">
+      <div className="relative z-10 mt-auto max-h-[78%] overflow-y-auto rounded-t-3xl border border-[var(--sr-line)] bg-white/92 p-4 pb-4 shadow-2xl backdrop-blur-xl lg:order-1 lg:mt-0 lg:max-h-none lg:overflow-y-auto lg:rounded-none lg:border-0 lg:bg-transparent lg:p-6 lg:pb-6 lg:shadow-none">
         {children}
         {showForm ? (
           <BookRide pickup={pickup} drop={drop} onPickup={setPickup} onDrop={setDrop} autoLocate={!initialPickup} />

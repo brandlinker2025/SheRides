@@ -27,19 +27,19 @@ export function SideNav() {
   const { t } = useLocale();
 
   return (
-    <nav aria-label="Main navigation" className="hidden lg:flex flex-col h-dvh fixed left-0 top-0 w-64 shadow-xl z-40 border-r border-white/10 pt-[6.5rem] pb-6 overflow-hidden">
+    <nav aria-label="Main navigation" className="hidden lg:flex flex-col h-dvh fixed left-0 top-0 w-64 shadow-xl z-40 border-r border-[var(--sr-line)] pt-[6.5rem] pb-6 overflow-hidden">
       <PandaNavBackdrop />
       <div className="relative z-10 px-gutter mb-6">
         {user ? (
-          <Link href="/profile" className="flex items-center gap-3 min-w-0 rounded-2xl p-2 -m-2 bg-black/35 backdrop-blur-md border border-white/10 hover:bg-black/50 transition-colors">
+          <Link href="/profile" className="flex items-center gap-3 min-w-0 rounded-2xl p-2 -m-2 bg-white/80 backdrop-blur-md border border-[var(--sr-line)] hover:bg-white transition-colors">
             <div className="avatar-ring w-12 h-12 rounded-full overflow-hidden shrink-0">
               <Avatar src={user.avatar} alt={user.fullName} size={48} className="h-full w-full object-cover" />
             </div>
             <div className="min-w-0">
-              <h2 className="font-label-lg text-label-lg text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)] truncate">
+              <h2 className="font-label-lg text-label-lg text-[var(--sr-ink)]  truncate">
                 {user.fullName || "Rider"}
               </h2>
-              <p className="font-body-sm text-body-sm text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">View profile</p>
+              <p className="font-body-sm text-body-sm text-[var(--sr-ink)] ">View profile</p>
             </div>
           </Link>
         ) : (

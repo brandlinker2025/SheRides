@@ -3,9 +3,9 @@ import { Logo } from "@/components/ui/Logo";
 
 export default function EntryPage() {
   return (
-    <main className="relative flex min-h-dvh flex-col items-center justify-center overflow-hidden bg-[#1B1324] px-6 py-16 text-[#F0EBF6]">
+    <main className="relative flex min-h-dvh flex-col items-center justify-center overflow-hidden bg-transparent px-6 py-16 text-[var(--sr-ink)]">
       <div className="pointer-events-none absolute -left-24 top-0 h-80 w-80 rounded-full bg-[#FF6772]/20 blur-3xl" aria-hidden="true" />
-      <div className="pointer-events-none absolute right-0 top-1/3 h-72 w-72 rounded-full bg-[#460377]/55 blur-3xl" aria-hidden="true" />
+      <div className="pointer-events-none absolute right-0 top-1/3 h-72 w-72 rounded-full bg-[#4FD8FF]/45 blur-3xl" aria-hidden="true" />
       <div className="pointer-events-none absolute bottom-0 right-1/4 h-48 w-48 rounded-full bg-[#FFB804]/15 blur-3xl" aria-hidden="true" />
       <div className="relative flex w-full max-w-lg flex-col items-center text-center">
         <h1 className="w-full">
@@ -19,9 +19,9 @@ export default function EntryPage() {
             Become a partner / পার্টনার হন
           </Link>
         </div>
-        <p className="mt-10 text-sm text-white/60">
+        <p className="mt-10 text-sm text-[var(--sr-muted)]">
           Already have an account?{" "}
-          <Link href="/login" className="font-semibold text-[#FF6772] underline decoration-[#FF6772]/40 underline-offset-4">
+          <Link href="/login" className="font-semibold text-[var(--sr-rose-ink)] underline decoration-[#FF6772]/40 underline-offset-4">
             Sign in
           </Link>
         </p>

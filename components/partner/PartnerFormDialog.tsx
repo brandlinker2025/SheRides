@@ -8,7 +8,7 @@ import { offeredVehicleTypes, validatePartnerApplication, type Commitment, type 
 import type { PartnerCopy } from "./copy";
 
 const fieldClass =
-  "h-[52px] w-full rounded-full border border-white/10 bg-[#1a1a24]/90 px-5 text-base text-[#e4e1e9] placeholder:text-white/35 focus:border-[#f4b8d4] focus:outline-none";
+  "h-[52px] w-full rounded-full border border-[var(--sr-line)] bg-[var(--sr-card)] px-5 text-base text-[var(--sr-ink)] placeholder:text-[var(--sr-faint)] focus:border-[#460377] focus:outline-none";
 
 type PartnerFormDialogProps = {
   open: boolean;
@@ -91,19 +91,19 @@ export function PartnerFormDialog({ open, vehicle, copy, onClose }: PartnerFormD
         if (event.target === dialogRef.current) onClose();
       }}
     >
-      <div className="max-h-[92dvh] overflow-y-auto rounded-t-[2rem] border border-white/10 bg-[#1a1a24] p-5 shadow-[0_8px_32px_-4px_rgba(0,0,0,0.6)] md:rounded-[2rem] md:p-7">
+      <div className="max-h-[92dvh] overflow-y-auto rounded-t-[2rem] border border-[var(--sr-line)] bg-[var(--sr-card-solid)] p-5 shadow-[var(--sr-shadow)] md:rounded-[2rem] md:p-7">
         <div className="mb-5 flex items-start justify-between gap-4">
           <div>
             <Logo variant="badge" height={36} />
-            <h2 id={titleId} className="mt-1 text-[22px] font-bold leading-8 text-white">
+            <h2 id={titleId} className="mt-1 text-[22px] font-bold leading-8 text-[var(--sr-heading)]">
               {done ? copy.successTitle : copy.title}
             </h2>
-            <p className="mt-1 text-sm leading-5 text-white/70">{done ? copy.successBody : copy.sub}</p>
+            <p className="mt-1 text-sm leading-5 text-[var(--sr-muted)]">{done ? copy.successBody : copy.sub}</p>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-white/80 hover:bg-white/10"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-[var(--sr-ink)] hover:bg-[#4FD8FF]/20"
             aria-label={copy.close}
           >
             <Icon name="close" />
@@ -169,10 +169,10 @@ export function PartnerFormDialog({ open, vehicle, copy, onClose }: PartnerFormD
                     <label
                       key={option}
                       onClick={() => setVehicleType(option)}
-                      className={`flex min-h-12 cursor-pointer items-center justify-center rounded-full border px-3 text-center text-sm font-semibold has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-[#f4b8d4] ${
+                      className={`flex min-h-12 cursor-pointer items-center justify-center rounded-full border px-3 text-center text-sm font-semibold has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-[#460377] ${
                         selected
                           ? "border-transparent bg-[#FF6772] text-[#460377]"
-                          : "border-white/10 bg-[#1f1f24] text-white/75"
+                          : "border-[var(--sr-line)] bg-[var(--sr-card-solid)] shadow-[var(--sr-shadow)] text-[var(--sr-muted)]"
                       }`}
                     >
                       <input
@@ -199,8 +199,8 @@ export function PartnerFormDialog({ open, vehicle, copy, onClose }: PartnerFormD
                     <label
                       key={option}
                       onClick={() => setCommitment(option)}
-                      className={`flex min-h-12 cursor-pointer items-center justify-center rounded-full border px-3 text-sm font-semibold has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-[#f4b8d4] ${
-                        selected ? "border-transparent bg-[#b76dff] text-[#2c0051]" : "border-white/10 bg-[#1f1f24] text-white/75"
+                      className={`flex min-h-12 cursor-pointer items-center justify-center rounded-full border px-3 text-sm font-semibold has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-[#460377] ${
+                        selected ? "border-transparent bg-[#FF6772] text-[#460377]" : "border-[var(--sr-line)] bg-[var(--sr-card-solid)] shadow-[var(--sr-shadow)] text-[var(--sr-muted)]"
                       }`}
                     >
                       <input
@@ -220,10 +220,10 @@ export function PartnerFormDialog({ open, vehicle, copy, onClose }: PartnerFormD
 
             <label className="flex flex-col gap-1.5 text-sm font-semibold">
               <span>
-                {copy.note} <span className="font-normal text-white/45">({copy.noteHint})</span>
+                {copy.note} <span className="font-normal text-[var(--sr-faint)]">({copy.noteHint})</span>
               </span>
               <textarea
-                className="min-h-24 w-full rounded-[1.25rem] border border-white/10 bg-[#1a1a24]/90 px-5 py-3 text-base text-[#e4e1e9] placeholder:text-white/35 focus:border-[#f4b8d4] focus:outline-none"
+                className="min-h-24 w-full rounded-[1.25rem] border border-[var(--sr-line)] bg-[var(--sr-card)] px-5 py-3 text-base text-[var(--sr-ink)] placeholder:text-[var(--sr-faint)] focus:border-[#460377] focus:outline-none"
                 name="note"
                 maxLength={500}
                 value={note}

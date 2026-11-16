@@ -87,7 +87,7 @@ export function VerificationReviewTable({ rows }: { rows: AdminVerificationRow[]
             <button type="button" disabled={busyId === row.id} onClick={() => void review(row, false)} className="h-11 px-4 rounded-lg border border-error text-error font-label-lg disabled:opacity-60">
               Reject
             </button>
-            <button type="button" disabled={busyId === row.id || !row.document_signed_url} onClick={() => void review(row, true)} className="h-11 px-5 rounded-lg bg-accent-magenta text-white font-label-lg disabled:opacity-60">
+            <button type="button" disabled={busyId === row.id || !row.document_signed_url} onClick={() => void review(row, true)} className="h-11 px-5 rounded-lg bg-accent-magenta text-[#460377] font-label-lg disabled:opacity-60">
               {busyId === row.id ? "Saving..." : "Approve rider"}
             </button>
           </div>

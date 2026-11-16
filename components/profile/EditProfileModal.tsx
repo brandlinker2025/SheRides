@@ -221,7 +221,7 @@ export function EditProfileModal({ onClose }: { onClose: () => void }) {
         </div>
         {progress && <p className="mt-3 font-body-sm text-accent-magenta">{progress}</p>}
         {error && <p className="mt-3 font-body-sm text-error">{error}</p>}
-        <button type="submit" disabled={busy} className="mt-6 w-full h-12 bg-accent-magenta text-white rounded-lg font-label-lg transition-all duration-200 hover:shadow-magenta hover:-translate-y-0.5 active:scale-95 disabled:opacity-60 disabled:pointer-events-none">{busy ? "Saving..." : "Save profile"}</button>
+        <button type="submit" disabled={busy} className="mt-6 w-full h-12 bg-accent-magenta text-[#460377] rounded-lg font-label-lg transition-all duration-200 hover:shadow-magenta hover:-translate-y-0.5 active:scale-95 disabled:opacity-60 disabled:pointer-events-none">{busy ? "Saving..." : "Save profile"}</button>
       </form>
       {positioning ? <ImagePositioner file={positioning.file} kind={positioning.kind} onCancel={() => setPositioning(null)} onConfirm={(prepared) => { const kind = positioning.kind; setPositioning(null); void upload(kind, prepared); }} /> : null}
     </div>

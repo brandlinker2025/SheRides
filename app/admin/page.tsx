@@ -35,7 +35,7 @@ export default async function AdminDashboardPage() {
           href="/admin/go#passengers"
           className="mb-4 flex items-start gap-3 rounded-xl border border-[#ffc440]/50 bg-[#ffc440]/10 p-4 hover:bg-[#ffc440]/15 transition-colors"
         >
-          <Icon name="hail" filled className="text-[#ffb95f] mt-0.5" />
+          <Icon name="hail" filled className="text-[var(--sr-gold-ink)] mt-0.5" />
           <span>
             <span className="block font-label-lg text-on-surface">
               {riders.pendingPassengers === 1
