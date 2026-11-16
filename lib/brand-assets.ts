@@ -1,6 +1,8 @@
 /**
  * 2× PNG masters. The mark is the official curly wordmark cropped from the
  * tagline lockups (variants 4 and 5). Variant 1 (bold wordmark) is not used.
+ * Dark files keep the illustration and use a light wordmark plus yellow tagline
+ * so the type stays readable on Night Ink. Light files keep the original purple type.
  */
 export const brandAssets = {
   mark: {
