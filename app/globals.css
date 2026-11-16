@@ -296,6 +296,88 @@ html[data-theme="light"] .btn-secondary {
   background-color: rgb(var(--color-accent) / 0.12);
 }
 
+.ride-map .maplibregl-canvas:focus {
+  outline: none;
+}
+
+.ride-pin {
+  position: relative;
+  width: 22px;
+  height: 30px;
+  pointer-events: auto;
+}
+
+.ride-pin span {
+  display: block;
+  width: 16px;
+  height: 16px;
+  margin: 0 auto;
+  border: 2px solid #fff;
+  border-radius: 999px;
+  box-shadow: 0 6px 16px rgba(27, 19, 36, 0.45);
+}
+
+.ride-pin i {
+  display: block;
+  width: 2px;
+  height: 12px;
+  margin: 0 auto;
+  background: #460377;
+  border-radius: 1px;
+}
+
+.ride-pin-pickup span {
+  background: #ff6772;
+}
+
+.ride-pin-drop span {
+  background: #ffb804;
+}
+
+.ride-pin-stop span {
+  background: #460377;
+  box-shadow: 0 0 0 3px #ffb804;
+}
+
+.ride-pin-you span {
+  background: #f0ebf6;
+  border-color: #460377;
+}
+
+.ride-pin-captain span {
+  width: 18px;
+  height: 18px;
+  background: #ffb804;
+  box-shadow: 0 0 0 6px rgba(255, 184, 4, 0.35);
+}
+
+.ride-pin-captain::before {
+  content: "";
+  position: absolute;
+  left: 2px;
+  top: -2px;
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255, 184, 4, 0.8);
+  border-radius: 999px;
+  animation: ride-pin-pulse 1.8s ease-out infinite;
+}
+
+.ride-pin.is-stale {
+  opacity: 0.55;
+}
+
+@keyframes ride-pin-pulse {
+  from {
+    transform: scale(0.7);
+    opacity: 0.85;
+  }
+  to {
+    transform: scale(1.7);
+    opacity: 0;
+  }
+}
+
 .material-symbols-outlined {
   font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
   user-select: none;

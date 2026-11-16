@@ -22,6 +22,7 @@ import { createClient } from "@/lib/supabase/client";
 import { FavouriteCaptain } from "@/components/go/FavouriteCaptain";
 import { LiveRideBoard, RideRating } from "@/components/go/RideFollowup";
 import { RideChat } from "@/components/go/RideChat";
+import { RideMap } from "@/components/go/RideMap";
 import { RideReceipt } from "@/components/go/RideReceipt";
 import { useDriverLocationSender } from "@/hooks/useDriverLocationSender";
 import { useRideTracking } from "@/hooks/useRideTracking";
@@ -43,7 +44,7 @@ export default function GoRidePage() {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [stops, setStops] = useState<{ id: string; label: string }[]>([]);
+  const [stops, setStops] = useState<{ id: string; label: string; lat: number; lng: number }[]>([]);
 
   const isPassenger = Boolean(ride && user && ride.passenger_id === user.id);
   const isRider = Boolean(ride && user && ride.rider_id === user.id);
@@ -71,8 +72,8 @@ export default function GoRidePage() {
     }
     const { data: p } = await supabase.from("profiles").select("full_name, avatar_url").eq("id", row.passenger_id).maybeSingle();
     setPassenger((p as Person | null) ?? null);
-    const stopsResult = await supabase.from("go_ride_stops").select("id, label, position").eq("ride_id", row.id).order("position");
-    setStops(stopsResult.error ? [] : ((stopsResult.data ?? []) as { id: string; label: string }[]));
+    const stopsResult = await supabase.from("go_ride_stops").select("id, label, lat, lng, position").eq("ride_id", row.id).order("position");
+    setStops(stopsResult.error ? [] : ((stopsResult.data ?? []) as { id: string; label: string; lat: number; lng: number }[]));
     if (user && row.passenger_id === user.id) {
       const { data: s } = await supabase.from("go_ride_secrets").select("pin, share_token").eq("ride_id", row.id).maybeSingle();
       setSecret((s as { pin: string; share_token: string } | null) ?? null);
@@ -180,6 +181,26 @@ export default function GoRidePage() {
           </div>
         )}
       </header>
+
+      <RideMap
+        className="h-[320px] w-full"
+        interactive={false}
+        pickup={ride.pickup_lat != null && ride.pickup_lng != null ? { label: ride.pickup_text, lat: ride.pickup_lat, lng: ride.pickup_lng } : null}
+        drop={ride.drop_lat != null && ride.drop_lng != null && ride.drop_text ? { label: ride.drop_text, lat: ride.drop_lat, lng: ride.drop_lng } : null}
+        stops={stops.map((stop) => ({ label: stop.label, lat: stop.lat, lng: stop.lng }))}
+        captain={
+          active && ride.rider_lat != null && ride.rider_lng != null
+            ? { lat: ride.rider_lat, lng: ride.rider_lng, stale: live.isStale }
+            : null
+        }
+        approach={
+          active && ride.rider_lat != null && ride.rider_lng != null && ride.status === "accepted" && ride.pickup_lat != null && ride.pickup_lng != null
+            ? { from: { lat: ride.rider_lat, lng: ride.rider_lng }, to: { lat: ride.pickup_lat, lng: ride.pickup_lng } }
+            : active && ride.rider_lat != null && ride.rider_lng != null && ride.status === "in_progress" && ride.drop_lat != null && ride.drop_lng != null
+              ? { from: { lat: ride.rider_lat, lng: ride.rider_lng }, to: { lat: ride.drop_lat, lng: ride.drop_lng } }
+              : null
+        }
+      />
 
       {isPassenger && secret && active && (
         <div className="card-surface p-5 flex items-center gap-4">

@@ -27,6 +27,13 @@ export function PlaceInput({ label, icon, value, onChange, allowCurrentLocation,
   const skipSearch = useRef(false);
 
   useEffect(() => {
+    if (!value || value.label === text) return;
+    skipSearch.current = true;
+    setText(value.label);
+    setOpen(false);
+  }, [value, text]);
+
+  useEffect(() => {
     if (skipSearch.current) {
       skipSearch.current = false;
       return;
