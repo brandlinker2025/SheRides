@@ -26,6 +26,8 @@ import {
 } from "@/lib/go";
 import { createClient } from "@/lib/supabase/client";
 import { normalizePromoCode, rpcMissing } from "@/lib/ride-extras";
+import type { RouteQuote } from "@/lib/map/route";
+import { routeKey } from "@/lib/map/route";
 import { PickupSpot } from "./PickupSpot";
 import { PlaceInput } from "./PlaceInput";
 import { RideMap } from "./RideMap";
@@ -61,12 +63,16 @@ function serviceRpcMissing(message: string) {
 
 function FareBreakdown({
   km,
+  minutes,
+  estimated,
   rate,
   hireFare,
   hours,
   catalogLive,
 }: {
   km: number | null;
+  minutes: number | null;
+  estimated: boolean;
   rate: FareRate;
   hireFare: number | null;
   hours: number;
@@ -78,6 +84,11 @@ function FareBreakdown({
     <section aria-label="Fare breakdown" className="rounded-3xl border border-white/10 bg-[#1f1f24]/95 px-4 py-4 text-[#e4e1e9] backdrop-blur-xl">
       <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-[#ffb95f]">{catalogLive ? rate.label : "Standard rate"}</p>
       <h2 className="mt-1 text-sm font-semibold">Transparent Fare / স্বচ্ছ ভাড়া</h2>
+      {km != null && minutes != null && (
+        <p className="mt-1 text-sm text-white/70">
+          About {minutes} min{estimated ? " · road estimate, routing unavailable" : " by the road route"}
+        </p>
+      )}
       {distance == null || km == null ? (
         <p className="mt-1 text-3xl font-bold">—</p>
       ) : catalogLive ? (
@@ -120,12 +131,15 @@ function FareBreakdown({
 type BookRideProps = {
   pickup: GoPlace | null;
   drop: GoPlace | null;
+  stop: GoPlace | null;
   onPickup: (place: GoPlace | null) => void;
   onDrop: (place: GoPlace | null) => void;
+  onStop: (place: GoPlace | null) => void;
+  routed: RouteQuote | null;
   autoLocate?: boolean;
 };
 
-export function BookRide({ pickup, drop, onPickup, onDrop, autoLocate = true }: BookRideProps) {
+export function BookRide({ pickup, drop, stop, onPickup, onDrop, onStop, routed, autoLocate = true }: BookRideProps) {
   const router = useRouter();
   const [kind, setKind] = useState<GoRideKind>("now");
   const [service, setService] = useState<GoService>("ev_bike");
@@ -138,11 +152,11 @@ export function BookRide({ pickup, drop, onPickup, onDrop, autoLocate = true }: 
   const onPickupNote = useCallback((value: string) => setNote(value), []);
   const [promo, setPromo] = useState("");
   const [promoNote, setPromoNote] = useState<string | null>(null);
-  const [stop, setStop] = useState<GoPlace | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const km = useMemo(() => (pickup && drop ? roadKm(pickup, drop) : null), [pickup, drop]);
+  const straightKm = useMemo(() => (pickup && drop ? roadKm(pickup, drop) : null), [pickup, drop]);
+  const km = routed?.km ?? straightKm;
   const selectedRate = rates.find((rate) => rate.id === service) ?? rates[0];
   const hireFare = kind === "hire" ? estimateFare("hire", null, hours, service, rates) : null;
   const catalogLive = fareSource === "catalog";
@@ -297,7 +311,7 @@ export function BookRide({ pickup, drop, onPickup, onDrop, autoLocate = true }: 
             label="Add a stop (optional)"
             icon="add_location_alt"
             value={stop}
-            onChange={setStop}
+            onChange={onStop}
             placeholder="A stop on the way. Fare stays pickup to final drop."
           />
         </div>
@@ -390,7 +404,7 @@ export function BookRide({ pickup, drop, onPickup, onDrop, autoLocate = true }: 
                   : legacyDistanceFare(km)
                 : null;
             const pickupMin = estimatePickupMinutes(item.id, km);
-            const tripMin = estimateTripMinutes(item.id, km);
+            const tripMin = routed?.minutes ?? estimateTripMinutes(item.id, km);
             return (
               <motion.button
                 key={item.id}
@@ -464,7 +478,15 @@ export function BookRide({ pickup, drop, onPickup, onDrop, autoLocate = true }: 
       </div>
       {promoNote && <p className="text-sm text-[#ddb7ff]" role="status">{promoNote}</p>}
 
-      <FareBreakdown km={kind === "hire" ? null : km} rate={selectedRate} hireFare={hireFare} hours={hours} catalogLive={catalogLive} />
+      <FareBreakdown
+        km={kind === "hire" ? null : km}
+        minutes={kind === "hire" ? null : routed?.minutes ?? null}
+        estimated={routed?.source === "estimate"}
+        rate={selectedRate}
+        hireFare={hireFare}
+        hours={hours}
+        catalogLive={catalogLive}
+      />
 
       {error && (
         <p className="text-sm text-red-400" role="alert">
@@ -495,21 +517,46 @@ type RideDeckProps = {
   showForm?: boolean;
   initialPickup?: GoPlace | null;
   initialDrop?: GoPlace | null;
+  className?: string;
 };
 
-export function RideDeck({ children, below, showForm = true, initialPickup = null, initialDrop = null }: RideDeckProps) {
+export function RideDeck({ children, below, showForm = true, initialPickup = null, initialDrop = null, className }: RideDeckProps) {
   const [pickup, setPickup] = useState<GoPlace | null>(initialPickup);
   const [drop, setDrop] = useState<GoPlace | null>(initialDrop);
+  const [stop, setStop] = useState<GoPlace | null>(null);
+  const [routed, setRouted] = useState<{ key: string; quote: RouteQuote } | null>(null);
+  const endKey = pickup && drop ? routeKey([pickup, drop]) : "";
+  const quote = routed && routed.key === endKey ? routed.quote : null;
+  const stops = useMemo(() => (stop ? [stop] : []), [stop]);
 
   return (
-    <div className="relative flex h-[calc(100dvh-72px-6rem)] w-full flex-col bg-[#131318] text-[#e4e1e9] lg:grid lg:h-[calc(100dvh-72px)] lg:grid-cols-[minmax(320px,420px)_1fr]">
-      <div className="absolute inset-0 z-0 lg:relative lg:order-2 lg:h-full">
-        <RideMap pickup={pickup} drop={drop} />
+    <div className={className ?? "relative flex h-[calc(100dvh-72px-6rem)] w-full flex-col bg-[#131318] text-[#e4e1e9] lg:grid lg:h-[calc(100dvh-72px)] lg:grid-cols-[minmax(320px,420px)_1fr]"}>
+      <div className="absolute inset-0 z-0 lg:relative lg:order-2 lg:h-dvh lg:min-h-[640px]">
+        <RideMap
+          className="h-full min-h-[280px] lg:min-h-[640px]"
+          pickup={pickup}
+          drop={drop}
+          stops={stops}
+          interactive
+          onPickup={setPickup}
+          onDrop={setDrop}
+          onStop={(_index, place) => setStop(place)}
+          onRoute={(next, key) => setRouted(next ? { key, quote: next } : null)}
+        />
       </div>
       <div className="relative z-10 mt-auto max-h-[78%] overflow-y-auto rounded-t-3xl border border-white/10 bg-[#131318]/95 p-4 pb-4 shadow-2xl backdrop-blur-xl lg:order-1 lg:mt-0 lg:max-h-none lg:overflow-y-auto lg:rounded-none lg:border-0 lg:bg-transparent lg:p-6 lg:pb-6 lg:shadow-none">
         {children}
         {showForm ? (
-          <BookRide pickup={pickup} drop={drop} onPickup={setPickup} onDrop={setDrop} autoLocate={!initialPickup} />
+          <BookRide
+            pickup={pickup}
+            drop={drop}
+            stop={stop}
+            onPickup={setPickup}
+            onDrop={setDrop}
+            onStop={setStop}
+            routed={quote}
+            autoLocate={!initialPickup}
+          />
         ) : null}
         {below}
       </div>

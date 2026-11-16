@@ -6,9 +6,10 @@ const contentSecurityPolicy = [
   `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}`,
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "font-src 'self' https://fonts.gstatic.com data:",
-  "img-src 'self' data: blob: https://images.unsplash.com https://lh3.googleusercontent.com https://irjybaasydqcfuldczeu.supabase.co",
-  // nominatim.openstreetmap.org = free address search for ride booking pickup/drop-off.
-  "connect-src 'self' https://irjybaasydqcfuldczeu.supabase.co wss://irjybaasydqcfuldczeu.supabase.co https://nominatim.openstreetmap.org",
+  "img-src 'self' data: blob: https://images.unsplash.com https://lh3.googleusercontent.com https://irjybaasydqcfuldczeu.supabase.co https://tiles.openfreemap.org",
+  // nominatim + photon = free geocoding. openfreemap = keyless tiles. osrm demo = keyless routing.
+  "connect-src 'self' https://irjybaasydqcfuldczeu.supabase.co wss://irjybaasydqcfuldczeu.supabase.co https://nominatim.openstreetmap.org https://photon.komoot.io https://tiles.openfreemap.org https://router.project-osrm.org",
+  "worker-src 'self' blob:",
   "media-src 'self' blob: https://irjybaasydqcfuldczeu.supabase.co",
   "object-src 'none'",
   "base-uri 'self'",

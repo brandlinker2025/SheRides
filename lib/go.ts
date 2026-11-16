@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { ENABLE_CAR } from "./features";
+import { reverseBangladesh, searchBangladesh } from "./map/places";
 
 export type GoRole = "passenger" | "rider";
 export type GoAppStatus = "pending" | "approved" | "rejected" | "suspended";
@@ -283,32 +284,13 @@ export function roadKm(a: { lat: number; lng: number }, b: { lat: number; lng: n
   return Math.round(2 * 6371 * Math.asin(Math.sqrt(h)) * 1.3 * 100) / 100;
 }
 
-/** Free address search (OpenStreetMap Nominatim), limited to Bangladesh. */
+/** Free address search, limited to Bangladesh. Nominatim, then Photon if it is down. */
 export async function searchPlaces(query: string, signal?: AbortSignal): Promise<GoPlace[]> {
-  const q = query.trim();
-  if (q.length < 3) return [];
-  const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&countrycodes=bd&limit=6&accept-language=en,bn&q=${encodeURIComponent(q)}`;
-  const response = await fetch(url, { signal, headers: { Accept: "application/json" } });
-  if (!response.ok) return [];
-  const rows = (await response.json()) as Array<{ display_name: string; lat: string; lon: string }>;
-  return rows.map((row) => ({
-    label: row.display_name.split(", ").slice(0, 4).join(", "),
-    lat: Number(row.lat),
-    lng: Number(row.lon),
-  }));
+  return searchBangladesh(query, signal);
 }
 
-export async function reversePlace(lat: number, lng: number): Promise<string> {
-  try {
-    const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&accept-language=en,bn&zoom=17&lat=${lat}&lon=${lng}`;
-    const response = await fetch(url, { headers: { Accept: "application/json" } });
-    if (!response.ok) throw new Error("reverse failed");
-    const row = (await response.json()) as { display_name?: string };
-    if (row.display_name) return row.display_name.split(", ").slice(0, 4).join(", ");
-  } catch {
-    /* fall through */
-  }
-  return `My location (${lat.toFixed(5)}, ${lng.toFixed(5)})`;
+export async function reversePlace(lat: number, lng: number, signal?: AbortSignal): Promise<string> {
+  return reverseBangladesh(lat, lng, signal);
 }
 
 export function mapsLink(lat: number, lng: number) {

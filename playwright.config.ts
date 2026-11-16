@@ -15,5 +15,9 @@ export default defineConfig({
     url: "http://127.0.0.1:3456",
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
+    env: {
+      ...Object.fromEntries(Object.entries(process.env).filter((entry): entry is [string, string] => typeof entry[1] === "string")),
+      MAP_PREVIEW: "1",
+    },
   },
 });
