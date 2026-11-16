@@ -40,9 +40,9 @@ function SignupForm() {
         panda.mood === "idle" ? "Hey Rider! ♥ Create your account and join the ride!" : undefined
       }
     >
-      <div className="w-full rounded-[28px] border border-[#6c5ce7]/50 bg-[rgba(12,10,14,0.82)] p-6 shadow-[0_20px_50px_rgba(0,0,0,0.35),0_0_0_1px_rgba(108,92,231,0.12)] backdrop-blur-xl sm:p-8">
-        <h1 className="mb-1 text-2xl font-bold leading-tight text-white sm:text-3xl">Create your account</h1>
-        <p className="mb-6 text-sm text-white/70">
+      <div className="w-full rounded-[28px] border border-[#460377]/15 bg-white/92 p-6 shadow-[0_20px_50px_-24px_rgba(40,140,180,0.35)] backdrop-blur-xl sm:p-8">
+        <h1 className="mb-1 text-2xl font-bold leading-tight text-[var(--sr-heading)] sm:text-3xl">Create your account</h1>
+        <p className="mb-6 text-sm text-[var(--sr-muted)]">
           Create your account with your mobile number. An administrator will approve you before you can ride.
         </p>
         <form
@@ -94,7 +94,7 @@ function SignupForm() {
           }}
         >
           <label className="relative block">
-            <Icon name="person" size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/45" />
+            <Icon name="person" size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--sr-faint)]" />
             <input
               minLength={2}
               maxLength={100}
@@ -111,9 +111,9 @@ function SignupForm() {
             />
           </label>
           <label className="block">
-            <span className="mb-1.5 block text-sm text-white/70">Mobile number</span>
+            <span className="mb-1.5 block text-sm text-[var(--sr-muted)]">Mobile number</span>
             <span className="relative block">
-              <Icon name="smartphone" size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/45" />
+              <Icon name="smartphone" size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--sr-faint)]" />
               <input
                 type="tel"
                 inputMode="tel"
@@ -140,9 +140,9 @@ function SignupForm() {
             </span>
           </label>
           <label className="block">
-            <span className="mb-1.5 block text-sm text-white/70">Date of birth</span>
+            <span className="mb-1.5 block text-sm text-[var(--sr-muted)]">Date of birth</span>
             <span className="relative block">
-              <Icon name="cake" size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/45" />
+              <Icon name="cake" size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--sr-faint)]" />
               <input
                 type="date"
                 required
@@ -152,12 +152,12 @@ function SignupForm() {
                 onChange={(e) => setDateOfBirth(e.target.value)}
                 onFocus={panda.onTextFocus}
                 onBlur={panda.onBlur}
-                className={`${authFieldClass} pl-11 [color-scheme:dark]`}
+                className={`${authFieldClass} pl-11 [color-scheme:light]`}
               />
             </span>
           </label>
           <label className="relative block">
-            <Icon name="lock" size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/45" />
+            <Icon name="lock" size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--sr-faint)]" />
             <input
               type={showPassword ? "text" : "password"}
               maxLength={128}
@@ -180,7 +180,7 @@ function SignupForm() {
                   return nextValue;
                 });
               }}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-white/55 transition-colors hover:text-[#6c5ce7]"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--sr-faint)] transition-colors hover:text-[#460377]"
               aria-label={showPassword ? "Hide password" : "Show password"}
             >
               <Icon name={showPassword ? "visibility_off" : "visibility"} size={20} />
@@ -207,9 +207,9 @@ function SignupForm() {
             {busy ? "Creating account..." : "Join"}
           </DustumiSubmitButton>
         </form>
-        <p className="mt-6 text-sm text-white/70">
+        <p className="mt-6 text-sm text-[var(--sr-muted)]">
           Already a member?{" "}
-          <Link href="/login" className="font-label-lg text-[#6c5ce7]">
+          <Link href="/login" className="font-label-lg text-[#460377]">
             Sign In
           </Link>
         </p>

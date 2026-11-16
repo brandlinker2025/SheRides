@@ -34,7 +34,7 @@ function ApplyCard({ role, app }: { role: GoRole; app: GoApplication | undefined
   return (
     <div className="card-surface p-6 flex flex-col gap-3">
       <div className="flex items-center gap-3">
-        <span className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#8b7cf8] to-[#14b8c4] text-white flex items-center justify-center">
+        <span className="w-12 h-12 rounded-2xl bg-[#460377] text-white flex items-center justify-center">
           <Icon name={rider ? "sports_motorsports" : "hail"} filled />
         </span>
         <div className="flex-1">
@@ -44,10 +44,10 @@ function ApplyCard({ role, app }: { role: GoRole; app: GoApplication | undefined
         {status && <span className={`px-3 py-1 rounded-full font-label-lg text-xs capitalize ${STATUS_STYLE[status]}`}>{status}</span>}
       </div>
       {status === "pending" && (
-        <div className="rounded-2xl border border-[#ffb95f]/40 bg-[#1a1a24] p-4 text-[#e4e1e9]" role="status">
-          <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#ffb95f]">{rider ? "CAPTAIN REVIEW" : "BOOKING REVIEW"}</p>
+        <div className="rounded-2xl border border-[#ffb95f]/40 bg-[var(--sr-card-solid)] p-4 text-[var(--sr-ink)]" role="status">
+          <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--sr-gold-ink)]">{rider ? "CAPTAIN REVIEW" : "BOOKING REVIEW"}</p>
           <p className="mt-1 text-base font-bold">{rider ? "An admin is reviewing your captain application" : "An admin needs to approve booking"}</p>
-          <p className="mt-2 text-sm text-white/70">
+          <p className="mt-2 text-sm text-[var(--sr-muted)]">
             {rider
               ? "You cannot go online or receive rides until this is approved. You will get a notification when it is decided."
               : "Booking stays closed until an admin approves you. You will get a notification when you can book."}
@@ -121,11 +121,11 @@ function MyRides() {
       {cancelError && <p className="card-surface p-4 text-sm text-error" role="alert">{cancelError}</p>}
       {upcoming.length > 0 && (
         <section className="flex flex-col gap-3">
-          <h2 className="text-sm font-bold uppercase tracking-[0.14em] text-[#FFB804]">Upcoming pre-booked rides</h2>
+          <h2 className="text-sm font-bold uppercase tracking-[0.14em] text-[var(--sr-gold-ink)]">Upcoming pre-booked rides</h2>
           {upcoming.map((ride) => (
             <article key={ride.id} className="card-surface flex flex-col gap-3 p-4">
               <Link href={`/go/ride/${ride.id}`} className="flex items-center gap-4">
-                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#FF6772]/15 text-[#FF6772]">
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#FF6772]/15 text-[var(--sr-heading)]">
                   <Icon name="event" />
                 </span>
                 <div className="min-w-0 flex-1">
@@ -260,14 +260,14 @@ function GoHub() {
       }
     >
       <header className="flex items-center gap-3">
-        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[#8b7cf8] to-[#14b8c4] text-white">
+        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#460377] text-white">
           <Icon name="two_wheeler" filled />
         </span>
         <div className="min-w-0">
-          <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#ffb95f]">Sanctuary</p>
-          <h1 className="text-2xl font-bold leading-tight text-[#e4e1e9]">Book A Ride</h1>
-          <p className="text-sm text-white/70">Women riders only · an admin checks every captain</p>
-          <Link href="/partner" className="mt-1 inline-flex text-sm font-semibold text-[#ddb7ff]">
+          <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--sr-gold-ink)]">Sanctuary</p>
+          <h1 className="text-2xl font-bold leading-tight text-[var(--sr-ink)]">Book A Ride</h1>
+          <p className="text-sm text-[var(--sr-muted)]">Women riders only · an admin checks every captain</p>
+          <Link href="/partner" className="mt-1 inline-flex text-sm font-semibold text-[var(--sr-heading)]">
             Become a ride partner
           </Link>
         </div>

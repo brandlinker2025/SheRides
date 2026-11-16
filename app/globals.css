@@ -2,7 +2,59 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Light sky is the default. Dark is opt-in only. */
 :root {
+  color-scheme: light;
+  --color-accent: 70 3 119;
+  --color-primary: 70 3 119;
+  --color-primary-container: 232 246 255;
+  --color-primary-fixed: 234 247 255;
+  --color-primary-fixed-dim: 217 251 255;
+  --color-surface: 232 246 255;
+  --color-surface-dim: 217 251 255;
+  --color-surface-bright: 255 255 255;
+  --color-surface-container-lowest: 255 255 255;
+  --color-surface-container-low: 244 252 255;
+  --color-surface-container: 255 255 255;
+  --color-surface-container-high: 234 247 255;
+  --color-surface-variant: 232 246 255;
+  --color-surface-border: 186 220 236;
+  --color-on-surface: 27 19 36;
+  --color-secondary: 58 49 72;
+  --color-tertiary: 126 28 168;
+  --color-outline: 70 3 119;
+  --color-soft-off-white: 255 255 255;
+  --sherides-violet: #460377;
+  --sherides-gold: #FFB804;
+  --sherides-purple: #460377;
+  --sherides-pink: #FF6772;
+  --sherides-helmet: #7E1CA8;
+  --sherides-teal: #05BAA4;
+  --sherides-bg: #E8F6FF;
+  --sr-page: #E8F6FF;
+  --sr-page-2: #D9FBFF;
+  --sr-ink: #1B1324;
+  --sr-heading: #460377;
+  --sr-muted: #3A3148;
+  --sr-faint: #4E4560;
+  --sr-card: rgba(255, 255, 255, 0.94);
+  --sr-card-solid: #ffffff;
+  --sr-inset: #f4fcff;
+  --sr-chip: #e7f7ff;
+  --sr-line: rgba(70, 3, 119, 0.12);
+  --sr-nav: rgba(255, 255, 255, 0.84);
+  --sr-gold-ink: #7A4E00;
+  --sr-rose-ink: #9B2340;
+  --sr-shadow: 0 12px 32px -18px rgba(40, 120, 160, 0.45);
+  --sr-veil: linear-gradient(180deg, rgba(232, 246, 255, 0.72), rgba(217, 251, 255, 0.9));
+  --sr-canvas:
+    radial-gradient(880px 480px at 0% -8%, rgba(79, 216, 255, 0.45), transparent 58%),
+    radial-gradient(740px 420px at 100% 0%, rgba(92, 255, 216, 0.32), transparent 52%),
+    radial-gradient(640px 380px at 78% 100%, rgba(79, 216, 255, 0.24), transparent 55%),
+    linear-gradient(165deg, #EAF7FF 0%, #E8F6FF 46%, #D9FBFF 100%);
+}
+
+html[data-theme="dark"] {
   color-scheme: dark;
   --color-accent: 255 103 114;
   --color-primary: 255 103 114;
@@ -23,38 +75,55 @@
   --color-tertiary: 255 184 4;
   --color-outline: 180 140 200;
   --color-soft-off-white: 31 31 36;
-  --sherides-violet: #F0EBF6;
-  --sherides-gold: #FFB804;
-  --sherides-purple: #460377;
-  --sherides-pink: #FF6772;
-  --sherides-helmet: #7E1CA8;
-  --sherides-teal: #05BAA4;
   --sherides-bg: #1B1324;
+  --sr-page: #1B1324;
+  --sr-page-2: #131318;
+  --sr-ink: #F0EBF6;
+  --sr-heading: #F0EBF6;
+  --sr-muted: #c8bfd4;
+  --sr-faint: #b3a8c4;
+  --sr-card: rgba(31, 31, 36, 0.94);
+  --sr-card-solid: #1f1f24;
+  --sr-inset: #121217;
+  --sr-chip: #2a292f;
+  --sr-line: rgba(255, 255, 255, 0.12);
+  --sr-nav: rgba(19, 19, 24, 0.9);
+  --sr-gold-ink: #FFB804;
+  --sr-rose-ink: #FF6772;
+  --sr-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+  --sr-veil: linear-gradient(180deg, rgba(19, 19, 24, 0.2), rgba(19, 19, 24, 0.82));
+  --sr-canvas:
+    radial-gradient(900px 420px at 0% -10%, rgba(244, 184, 212, 0.18), transparent 55%),
+    radial-gradient(720px 380px at 100% 0%, rgba(168, 85, 247, 0.2), transparent 50%),
+    #131318;
 }
 
-.brand-logo-light {
-  display: none;
-}
-
-html[data-theme="light"] .brand-logo-dark {
-  display: none;
-}
-
-html[data-theme="light"] .brand-logo-light {
-  display: block;
+/* The official logo is never recolored, tinted, glowed, or outlined. */
+.brand-logo {
+  background: none;
+  filter: none;
+  mix-blend-mode: normal;
+  box-shadow: none;
 }
 
 html,
 body {
   min-height: 100%;
-  background-color: #1B1324;
-  color: #e4e1e9;
+  background: var(--sr-canvas);
+  background-color: var(--sr-page);
+  color: var(--sr-ink);
 }
 
 body {
   transition: background-color 0.3s ease, color 0.3s ease;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3 {
+  color: var(--sr-heading);
 }
 
 html {
@@ -74,66 +143,64 @@ html {
   padding-bottom: max(12px, env(safe-area-inset-bottom));
 }
 
-/* SheRides sanctuary components */
-.sherides-card {
-  background: rgba(31, 31, 36, 0.92);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+.sherides-card,
+.card-surface {
+  background: var(--sr-card);
+  border: 1px solid var(--sr-line);
   border-radius: 1.5rem;
+  color: var(--sr-ink);
+  box-shadow: var(--sr-shadow);
   backdrop-filter: blur(16px);
 }
 
+.card-surface {
+  border-radius: 1.25rem;
+}
+
+.btn-primary,
 .sherides-btn-primary {
   background: #FF6772;
   color: #460377;
   font-weight: 700;
   border-radius: 9999px;
+  box-shadow: 0 10px 24px rgba(255, 103, 114, 0.28);
   transition: transform 0.15s ease, filter 0.15s ease;
 }
-.sherides-btn-primary:hover {
-  filter: brightness(1.08);
-  transform: translateY(-1px);
-}
-.sherides-btn-primary:active {
-  transform: scale(0.98);
+
+.sherides-btn-primary:hover,
+.btn-primary:hover {
+  filter: brightness(1.05);
 }
 
 .sherides-btn-secondary {
-  background: #1f1f24;
-  border: 2px solid rgba(221, 183, 255, 0.4);
-  color: #e4e1e9;
+  background: var(--sr-card-solid);
+  border: 2px solid rgba(70, 3, 119, 0.45);
+  color: #460377;
   font-weight: 700;
   border-radius: 9999px;
 }
 
 .panda-app-bg {
-  background:
-    radial-gradient(900px 420px at 0% -10%, rgba(244, 184, 212, 0.18), transparent 55%),
-    radial-gradient(720px 380px at 100% 0%, rgba(168, 85, 247, 0.2), transparent 50%),
-    #131318;
+  background: var(--sr-canvas);
+  background-color: var(--sr-page);
+  color: var(--sr-ink);
 }
 
 .panda-app-veil {
-  background: linear-gradient(180deg, rgba(19, 19, 24, 0.15), rgba(19, 19, 24, 0.78));
+  background: var(--sr-veil);
 }
 
 .panda-topnav,
 .panda-bottomnav {
-  background: rgba(19, 19, 24, 0.9);
-  color: #fff;
-  border-color: rgba(255, 255, 255, 0.08);
+  background: var(--sr-nav);
+  color: var(--sr-ink);
+  border-color: var(--sr-line);
   backdrop-filter: blur(18px);
+  box-shadow: 0 8px 24px rgba(40, 140, 180, 0.12);
 }
 
 .panda-topnav {
   min-height: 80px;
-}
-
-.card-surface {
-  background: rgba(31, 31, 36, 0.92);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 1.25rem;
-  color: #e4e1e9;
-  backdrop-filter: blur(14px);
 }
 
 .card-hover {
@@ -142,7 +209,7 @@ html {
 
 .card-hover:hover {
   transform: translateY(-1px);
-  border-color: rgba(221, 183, 255, 0.45);
+  border-color: rgba(70, 3, 119, 0.28);
 }
 
 .nav-pill {
@@ -152,12 +219,12 @@ html {
   min-height: 2.75rem;
   padding: 0.5rem 0.9rem;
   border-radius: 9999px;
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--sr-ink);
   transition: background-color 0.15s ease, transform 0.15s ease;
 }
 
 .nav-pill:hover {
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(79, 216, 255, 0.22);
 }
 
 .nav-pill:active {
@@ -165,12 +232,21 @@ html {
 }
 
 .nav-pill-active {
+  background: rgba(70, 3, 119, 0.1);
+  color: #460377;
+}
+
+html[data-theme="dark"] .nav-pill:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+html[data-theme="dark"] .nav-pill-active {
   background: rgba(221, 183, 255, 0.22);
   color: #fff;
 }
 
 .avatar-ring {
-  box-shadow: 0 0 0 2px rgba(221, 183, 255, 0.75);
+  box-shadow: 0 0 0 2px rgba(70, 3, 119, 0.45);
 }
 
 @keyframes shimmer {
@@ -180,7 +256,7 @@ html {
 
 .skeleton {
   border-radius: 1rem;
-  background: linear-gradient(90deg, rgba(255, 255, 255, 0.04), rgba(221, 183, 255, 0.18), rgba(255, 255, 255, 0.04));
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.45), rgba(79, 216, 255, 0.45), rgba(255, 255, 255, 0.45));
   background-size: 800px 100%;
   animation: shimmer 1.6s ease-in-out infinite;
 }
@@ -200,7 +276,7 @@ html {
 }
 
 .btn:hover:not(:disabled) {
-  filter: brightness(1.06);
+  filter: brightness(1.05);
   transform: translateY(-1px);
 }
 
@@ -216,82 +292,38 @@ html {
   transform: none;
 }
 
-.btn-primary,
-.sherides-btn-primary {
-  background: #FF6772;
-  color: #460377;
-  box-shadow: 0 10px 24px rgba(255, 103, 114, 0.28);
-}
-
 .btn-secondary {
-  background: transparent;
-  border: 2px solid rgba(221, 183, 255, 0.7);
-  color: #f6ecff;
+  background: var(--sr-card-solid);
+  border: 2px solid #460377;
+  color: #460377;
 }
 
 .btn-ghost {
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  color: #e4e1e9;
+  background: var(--sr-chip);
+  border: 1px solid var(--sr-line);
+  color: var(--sr-ink);
 }
 
 .btn-danger {
   background: transparent;
-  border: 1px solid #ffb4ab;
-  color: #ffb4ab;
+  border: 1px solid #93000a;
+  color: #93000a;
 }
 
-html[data-theme="light"] {
-  color-scheme: light;
-  --color-accent: 70 3 119;
-  --color-primary: 70 3 119;
-  --color-primary-container: 240 235 246;
-  --color-primary-fixed: 240 235 246;
-  --color-primary-fixed-dim: 240 235 246;
-  --color-surface: 240 235 246;
-  --color-surface-dim: 232 226 240;
-  --color-surface-bright: 255 255 255;
-  --color-surface-container-lowest: 255 255 255;
-  --color-surface-container-low: 240 235 246;
-  --color-surface-container: 232 226 240;
-  --color-surface-container-high: 220 212 232;
-  --color-surface-variant: 240 235 246;
-  --color-surface-border: 210 198 224;
-  --color-on-surface: 27 19 36;
-  --color-secondary: 70 3 119;
-  --color-tertiary: 70 3 119;
-  --color-outline: 70 3 119;
-  --color-soft-off-white: 255 255 255;
-  --sherides-bg: #F0EBF6;
-}
-
-html[data-theme="light"] body {
-  background: #F0EBF6;
-  color: #1B1324;
-}
-
-html[data-theme="light"] .card-surface {
-  background: #fff;
-  border-color: rgba(168, 85, 247, 0.16);
-  color: #2a1430;
-}
-
-html[data-theme="light"] .btn-ghost,
-html[data-theme="light"] .btn-secondary {
+/* Coral primary buttons keep deep-purple text, even when a utility sets white. */
+.bg-accent-magenta {
+  background-color: #FF6772;
   color: #460377;
-  border-color: #460377;
-  background: #F0EBF6;
 }
 
 .sherides-gold {
-  color: #ffb95f;
+  color: var(--sr-gold-ink);
 }
 
 .sherides-violet {
-  color: #ddb7ff;
+  color: var(--sr-heading);
 }
 
-/* Keep existing utility classes working */
 .chip {
   background-color: rgb(var(--color-accent) / 0.12);
 }
@@ -302,7 +334,7 @@ html[data-theme="light"] .btn-secondary {
 }
 
 :is(button, a):focus-visible {
-  outline: 2px solid rgba(221, 183, 255, 0.6);
+  outline: 2px solid #460377;
   outline-offset: 2px;
 }
 

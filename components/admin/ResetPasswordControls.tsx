@@ -115,7 +115,7 @@ export function ResetPasswordControls({ userId }: { userId: string }) {
           type="button"
           disabled={busy}
           onClick={() => void submit()}
-          className="px-4 py-2 rounded-lg font-label-lg text-label-lg bg-accent-magenta text-white disabled:opacity-60"
+          className="px-4 py-2 rounded-lg font-label-lg text-label-lg bg-accent-magenta text-[#460377] disabled:opacity-60"
         >
           {busy ? "Resetting..." : "Confirm reset"}
         </button>

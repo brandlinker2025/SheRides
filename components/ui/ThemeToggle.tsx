@@ -13,7 +13,7 @@ export function ThemeToggle({ className = "" }: { className?: string }) {
       onClick={toggleTheme}
       aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
       aria-pressed={isDark}
-      className={`w-10 h-10 rounded-full flex items-center justify-center text-on-primary hover:bg-white/10 transition-colors relative overflow-hidden ${className}`}
+      className={`w-10 h-10 rounded-full flex items-center justify-center text-[var(--sr-ink)] hover:bg-[#4FD8FF]/20 transition-colors relative overflow-hidden ${className}`}
     >
       <Icon name={isDark ? "light_mode" : "dark_mode"} className="animate-scale-in" key={theme} />
     </button>

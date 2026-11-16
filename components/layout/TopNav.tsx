@@ -23,7 +23,7 @@ export function TopNav() {
         {user?.role === "admin" && (
           <Link
             href="/admin"
-            className="hidden sm:flex items-center gap-1 px-3 h-10 rounded-full text-on-primary hover:bg-white/10 transition-colors font-label-lg"
+            className="hidden sm:flex items-center gap-1 px-3 h-10 rounded-full text-[var(--sr-ink)] hover:bg-[#4FD8FF]/20 transition-colors font-label-lg"
             aria-label="Admin panel"
           >
             <Icon name="admin_panel_settings" />
@@ -32,7 +32,7 @@ export function TopNav() {
         )}
         <Link
           href="/partner"
-          className="h-10 px-2 sm:px-3 rounded-full flex items-center gap-1 text-on-primary hover:bg-white/10 transition-colors font-label-lg shrink-0"
+          className="h-10 px-2 sm:px-3 rounded-full flex items-center gap-1 text-[var(--sr-ink)] hover:bg-[#4FD8FF]/20 transition-colors font-label-lg shrink-0"
         >
           <Icon name="handshake" size={22} />
           <span className="hidden md:inline">Partner</span>
@@ -44,13 +44,13 @@ export function TopNav() {
           type="button"
           onClick={() => void signOut()}
           aria-label="Sign out"
-          className="h-10 px-2 sm:px-3 rounded-full flex items-center gap-1 text-on-primary hover:bg-white/10 transition-colors font-label-lg shrink-0"
+          className="h-10 px-2 sm:px-3 rounded-full flex items-center gap-1 text-[var(--sr-ink)] hover:bg-[#4FD8FF]/20 transition-colors font-label-lg shrink-0"
         >
           <Icon name="logout" size={22} />
           <span className="hidden sm:inline">Sign out</span>
         </button>
         <Link href="/profile" className="flex items-center gap-2 min-w-0">
-          <span className="hidden sm:block text-on-primary font-label-lg text-label-lg truncate max-w-[160px]">
+          <span className="hidden sm:block text-[var(--sr-ink)] font-label-lg text-label-lg truncate max-w-[160px]">
             {user?.fullName || "Rider"}
           </span>
           <span className="avatar-ring w-10 h-10 rounded-full overflow-hidden shrink-0">

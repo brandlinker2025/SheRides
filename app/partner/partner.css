@@ -1,14 +1,16 @@
 .partner-root {
   min-height: 100vh;
-  background: #131318;
-  color: #e4e1e9;
+  background: var(--sr-canvas);
+  background-color: #E8F6FF;
+  color: #1B1324;
   font-family: var(--font-partner), var(--font-partner-bn), "Plus Jakarta Sans", "Hind Siliguri", sans-serif;
-  color-scheme: dark;
+  color-scheme: light;
   line-height: 1.45;
 }
 
 body:has(.partner-root) {
-  background: #131318;
+  background: var(--sr-canvas);
+  background-color: #E8F6FF;
 }
 
 body:has(.partner-root) .panda-install-prompt {
@@ -17,18 +19,18 @@ body:has(.partner-root) .panda-install-prompt {
 
 .partner-root :is(button, a):focus-visible,
 .partner-root :is(input, textarea):focus-visible {
-  outline: 2px solid #f4b8d4;
+  outline: 2px solid #460377;
   outline-offset: 2px;
 }
 
 .partner-cta {
   background: #FF6772;
   color: #460377;
-  box-shadow: 0 0 24px rgba(255, 103, 114, 0.35);
+  box-shadow: 0 10px 24px rgba(255, 103, 114, 0.28);
 }
 
 .partner-cta:hover {
-  box-shadow: 0 0 32px rgba(244, 184, 212, 0.45);
+  filter: brightness(1.05);
 }
 
 .partner-cta:active {
@@ -37,10 +39,11 @@ body:has(.partner-root) .panda-install-prompt {
 
 .partner-cta:disabled {
   background-image: none;
-  background-color: #1a1a24;
-  color: rgba(255, 255, 255, 0.3);
+  background-color: #E7F7FF;
+  color: #4E4560;
   box-shadow: none;
   transform: none;
+  filter: none;
 }
 
 .partner-dialog {
@@ -54,7 +57,7 @@ body:has(.partner-root) .panda-install-prompt {
 }
 
 .partner-dialog::backdrop {
-  background: rgba(8, 8, 12, 0.72);
+  background: rgba(27, 80, 110, 0.35);
   backdrop-filter: blur(8px);
 }
 

@@ -37,7 +37,7 @@ function FilePick({
   return (
     <div className="rounded-xl border border-dashed border-surface-border bg-soft-off-white p-4 flex flex-col gap-3">
       <div className="flex items-center gap-4">
-        <span className={`w-11 h-11 rounded-full flex items-center justify-center shrink-0 ${file ? "bg-green-600 text-white" : "bg-accent-magenta/10 text-accent-magenta"}`}>
+        <span className={`w-11 h-11 rounded-full flex items-center justify-center shrink-0 ${file ? "bg-green-600 text-[#460377]" : "bg-accent-magenta/10 text-accent-magenta"}`}>
           <Icon name={file ? "check" : selfie ? "photo_camera_front" : "badge"} />
         </span>
         <span className="min-w-0 flex-1">
@@ -52,7 +52,7 @@ function FilePick({
         <button
           type="button"
           onClick={() => setCameraOpen(true)}
-          className="flex-1 h-12 rounded-full bg-accent-magenta text-white font-label-lg inline-flex items-center justify-center gap-2"
+          className="flex-1 h-12 rounded-full bg-accent-magenta text-[#460377] font-label-lg inline-flex items-center justify-center gap-2"
         >
           <Icon name={selfie ? "photo_camera_front" : "photo_camera"} size={20} />
           {file ? "Retake" : selfie ? "Take selfie" : "Take photo"}
@@ -102,7 +102,7 @@ function FilePick({
 function StepHeading({ n, title, sub }: { n: number; title: string; sub: string }) {
   return (
     <div className="flex items-start gap-3">
-      <span className="mt-0.5 h-7 w-7 shrink-0 rounded-full bg-accent-magenta text-white text-[13px] font-bold inline-flex items-center justify-center">{n}</span>
+      <span className="mt-0.5 h-7 w-7 shrink-0 rounded-full bg-accent-magenta text-[#460377] text-[13px] font-bold inline-flex items-center justify-center">{n}</span>
       <div className="min-w-0">
         <p className="font-label-lg">Step {n} · {title}</p>
         <p className="font-body-sm text-secondary">{sub}</p>
@@ -299,7 +299,7 @@ function ApplyForm() {
         )}
 
         <label className="card-surface p-5 flex items-start gap-3 cursor-pointer">
-          <input type="checkbox" checked={declared} onChange={(e) => setDeclared(e.target.checked)} className="mt-1 h-5 w-5 accent-[#6c5ce7]" />
+          <input type="checkbox" checked={declared} onChange={(e) => setDeclared(e.target.checked)} className="mt-1 h-5 w-5 accent-[#460377]" />
           <span className="font-body-sm">
             I confirm I am a woman and these documents are mine. I understand that a false application, or letting anyone else use my account,
             means a permanent ban from SheRides and may be reported to the police.
@@ -310,9 +310,9 @@ function ApplyForm() {
           ref={barRef}
           className="go-apply-bar pointer-events-none fixed inset-x-0 z-40 px-3 bottom-[calc(5.25rem+env(safe-area-inset-bottom))] lg:bottom-4 lg:left-64 lg:right-0"
         >
-          <div className="pointer-events-auto mx-auto w-full max-w-2xl rounded-2xl border border-white/15 bg-[#0b0b1a]/88 px-3 py-3 shadow-[0_10px_40px_rgba(11,11,26,0.55),0_0_32px_rgba(108,92,231,0.38)] backdrop-blur-xl">
+          <div className="pointer-events-auto mx-auto w-full max-w-2xl rounded-2xl border border-[var(--sr-line)] bg-white/92 px-3 py-3 shadow-[var(--sr-shadow)] backdrop-blur-xl">
             {error && (
-              <p id="go-apply-error" className="mb-2 text-center font-body-sm text-red-200" role="alert">
+              <p id="go-apply-error" className="mb-2 text-center font-body-sm text-red-700" role="alert">
                 {error}
               </p>
             )}
@@ -321,7 +321,7 @@ function ApplyForm() {
               disabled={busy || saved}
               aria-busy={busy}
               aria-describedby={error ? "go-apply-error" : undefined}
-              className="h-14 w-full rounded-full bg-gradient-to-r from-[#241b4a] via-[#6c5ce7] to-[#16708a] text-white font-label-lg inline-flex items-center justify-center gap-2 shadow-[0_0_24px_rgba(108,92,231,0.55)] transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_0_36px_rgba(22,112,138,0.75)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white active:scale-[0.99] disabled:pointer-events-none disabled:opacity-70 motion-reduce:transform-none motion-reduce:transition-none motion-reduce:hover:translate-y-0"
+              className="btn btn-primary h-14 w-full font-label-lg"
             >
               <Icon name="verified_user" />
               {saved ? "Application saved" : busy ? progress ?? "Submitting…" : "Confirm & Submit Application"}

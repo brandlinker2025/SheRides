@@ -81,9 +81,9 @@ export function PlaceInput({ label, icon, value, onChange, allowCurrentLocation,
 
   return (
     <div className="relative">
-      <span className="mb-1.5 block text-sm font-semibold text-white/70">{label}</span>
-      <div className="flex items-center gap-2 rounded-full border border-white/10 bg-[#1A1A24]/80 px-3 focus-within:border-[#A855F7] focus-within:ring-2 focus-within:ring-[#A855F7]/30">
-        <Icon name={icon} className="text-[#ddb7ff]" />
+      <span className="mb-1.5 block text-sm font-semibold text-[var(--sr-muted)]">{label}</span>
+      <div className="flex items-center gap-2 rounded-full border border-[var(--sr-line)] bg-[var(--sr-card)] px-3 focus-within:border-[#460377] focus-within:ring-2 focus-within:ring-[#460377]/25">
+        <Icon name={icon} className="text-[var(--sr-heading)]" />
         <input
           value={text}
           onChange={(event) => {
@@ -92,7 +92,7 @@ export function PlaceInput({ label, icon, value, onChange, allowCurrentLocation,
           }}
           onFocus={() => results.length && setOpen(true)}
           placeholder={busy ? "Finding your location…" : placeholder ?? "Type an area, road or place"}
-          className="min-w-0 flex-1 bg-transparent py-3 text-sm text-[#e4e1e9] placeholder:text-white/35 focus:outline-none"
+          className="min-w-0 flex-1 bg-transparent py-3 text-sm text-[var(--sr-ink)] placeholder:text-[var(--sr-faint)] focus:outline-none"
         />
         {value ? <Icon name="check_circle" filled className="text-green-600" size={20} /> : null}
       </div>
@@ -101,7 +101,7 @@ export function PlaceInput({ label, icon, value, onChange, allowCurrentLocation,
           type="button"
           onClick={() => void fillMyLocation()}
           disabled={busy}
-          className="mt-2 inline-flex items-center gap-1.5 text-sm font-semibold text-[#ddb7ff] disabled:opacity-60"
+          className="mt-2 inline-flex items-center gap-1.5 text-sm font-semibold text-[var(--sr-heading)] disabled:opacity-60"
         >
           <Icon name="my_location" size={18} />
           {busy ? "Finding you…" : "Use my current location"}

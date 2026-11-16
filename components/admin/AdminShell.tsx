@@ -35,7 +35,7 @@ export function AdminShell({
     <div className="panda-app-bg h-dvh overflow-hidden text-on-surface">
       <header className="panda-topnav fixed top-0 w-full z-50 flex justify-between items-center px-gutter py-base md:hidden">
         <Logo variant="mark" height={40} suffix="Admin" />
-        <Link href="/go" className="text-on-primary/80 font-label-lg text-label-lg">
+        <Link href="/go" className="text-[var(--sr-muted)] font-label-lg text-label-lg">
           App
         </Link>
       </header>
@@ -45,8 +45,8 @@ export function AdminShell({
           <Link href="/go" aria-label="SheRides ride booking">
             <Logo variant="mark" height={64} priority />
           </Link>
-          <div className="text-white font-label-caps text-label-caps mt-2 drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">Admin Panel</div>
-          {adminName && <p className="text-white font-body-sm text-body-sm mt-2 drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">{adminName}</p>}
+          <div className="text-[var(--sr-ink)] font-label-caps text-label-caps mt-2 ">Admin Panel</div>
+          {adminName && <p className="text-[var(--sr-ink)] font-body-sm text-body-sm mt-2 ">{adminName}</p>}
         </div>
         <div className="relative z-10 flex-1 flex flex-col gap-1.5 px-4 overflow-y-auto hide-scrollbar min-h-0">
           {nav.map((item) => {
@@ -70,7 +70,7 @@ export function AdminShell({
             );
           })}
         </div>
-        <div className="relative z-10 px-4 pt-3 mt-2 border-t border-white/10">
+        <div className="relative z-10 px-4 pt-3 mt-2 border-t border-[var(--sr-line)]">
           <Link href="/go" className="nav-pill font-label-lg">
             <Icon name="arrow_back" /> Ride app
           </Link>
@@ -85,12 +85,12 @@ export function AdminShell({
             <Link
               key={item.href}
               href={item.href}
-              className={`relative flex min-w-16 flex-col items-center gap-1 ${active ? "text-white" : "text-on-primary/70"}`}
+              className={`relative flex min-w-16 flex-col items-center gap-1 ${active ? "text-[var(--sr-ink)]" : "text-[var(--sr-muted)]"}`}
             >
               <span className="relative">
                 <Icon name={item.icon} filled={active} size={22} />
                 {showBadge ? (
-                  <span className="absolute -right-2 -top-1 min-w-4 h-4 px-1 inline-flex items-center justify-center rounded-full bg-accent-magenta text-white text-[9px] font-label-lg">
+                  <span className="absolute -right-2 -top-1 min-w-4 h-4 px-1 inline-flex items-center justify-center rounded-full bg-accent-magenta text-[#460377] text-[9px] font-label-lg">
                     {badge > 99 ? "99+" : badge}
                   </span>
                 ) : null}
@@ -107,7 +107,7 @@ export function AdminShell({
           alt=""
           fill
           sizes="(min-width: 768px) 70vw, 100vw"
-          className="object-cover object-[42%_40%] opacity-[0.22]"
+          className="object-cover object-[42%_40%] opacity-[0.08]"
         />
         <div className="absolute inset-0 panda-app-veil" />
       </div>

@@ -80,7 +80,7 @@ export default function PlacesPage() {
       <header>
         <Logo variant="badge" height={36} />
         <h1 className="text-2xl font-bold">{t("places.title")}</h1>
-        <p className="mt-1 text-sm text-white/70">{t("places.lead")}</p>
+        <p className="mt-1 text-sm text-[var(--sr-muted)]">{t("places.lead")}</p>
       </header>
 
       <section className="card-surface flex flex-col gap-3 p-4">
@@ -96,16 +96,16 @@ export default function PlacesPage() {
             {t("places.other")}
           </button>
         </div>
-        {message && <p className="text-sm text-white/70" role="status">{message}</p>}
+        {message && <p className="text-sm text-[var(--sr-muted)]" role="status">{message}</p>}
       </section>
 
       <section className="flex flex-col gap-2">
-        {places.length === 0 && <p className="card-surface p-6 text-center text-sm text-white/70">{t("places.empty")}</p>}
+        {places.length === 0 && <p className="card-surface p-6 text-center text-sm text-[var(--sr-muted)]">{t("places.empty")}</p>}
         {places.map((place) => (
           <article key={place.id} className="card-surface flex items-center gap-3 p-4">
-            <Icon name={place.slot === "home" ? "home" : place.slot === "work" ? "work" : "bookmark"} className="text-[#ddb7ff]" />
+            <Icon name={place.slot === "home" ? "home" : place.slot === "work" ? "work" : "bookmark"} className="text-[var(--sr-heading)]" />
             <div className="min-w-0 flex-1">
-              <p className="text-xs font-bold uppercase tracking-wider text-[#ffb95f]">{place.slot}</p>
+              <p className="text-xs font-bold uppercase tracking-wider text-[var(--sr-gold-ink)]">{place.slot}</p>
               <p className="truncate font-semibold">{place.label}</p>
             </div>
             <button type="button" className="btn btn-ghost h-10 min-h-10 px-3 text-xs" disabled={busy} onClick={() => void remove(place.id)}>
@@ -118,12 +118,12 @@ export default function PlacesPage() {
       <section className="card-surface p-5">
         <h2 className="text-lg font-bold">{t("places.favourites")}</h2>
         {favourites.length === 0 ? (
-          <p className="mt-2 text-sm text-white/70">{t("places.favouritesEmpty")}</p>
+          <p className="mt-2 text-sm text-[var(--sr-muted)]">{t("places.favouritesEmpty")}</p>
         ) : (
           <ul className="mt-3 flex flex-col gap-2">
             {favourites.map((captain) => (
               <li key={captain.id} className="flex items-center gap-2 text-sm font-semibold">
-                <Icon name="favorite" filled className="text-[#f4b8d4]" size={18} />
+                <Icon name="favorite" filled className="text-[var(--sr-heading)]" size={18} />
                 {captain.name}
               </li>
             ))}

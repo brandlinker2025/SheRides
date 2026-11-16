@@ -75,7 +75,7 @@ export function ImagePositioner({ file, kind, onCancel, onConfirm }: { file: Fil
       </div>
       <div className="mt-4 flex justify-end gap-2">
         <button type="button" onClick={onCancel} className="px-4 py-2 rounded-lg border border-surface-border">Cancel</button>
-        <button type="button" disabled={busy} onClick={() => void crop()} className="px-4 py-2 rounded-lg bg-accent-magenta text-white disabled:opacity-60">{busy ? "Preparing..." : "Use photo"}</button>
+        <button type="button" disabled={busy} onClick={() => void crop()} className="px-4 py-2 rounded-lg bg-accent-magenta text-[#460377] disabled:opacity-60">{busy ? "Preparing..." : "Use photo"}</button>
       </div>
     </div>
   </div>;

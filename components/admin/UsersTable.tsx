@@ -159,7 +159,7 @@ export function UsersTable({
                         type="button"
                         disabled={busyId === user.id}
                         onClick={() => void setAccess(user, true)}
-                        className="inline-flex px-4 py-2 rounded-lg font-label-lg text-label-lg bg-accent-magenta text-white disabled:opacity-60"
+                        className="inline-flex px-4 py-2 rounded-lg font-label-lg text-label-lg bg-accent-magenta text-[#460377] disabled:opacity-60"
                       >
                         {busyId === user.id && busyKind === "access" ? "Saving..." : "Approve"}
                       </button>

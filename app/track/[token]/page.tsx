@@ -81,7 +81,7 @@ export default function TrackTripPage() {
               )}
             </div>
             {trip.rider_lat != null && trip.rider_lng != null && trip.status !== "completed" ? (
-              <a href={mapsLink(trip.rider_lat, trip.rider_lng)} target="_blank" rel="noreferrer" className="h-12 rounded-full bg-accent-magenta text-white font-label-lg inline-flex items-center justify-center gap-2">
+              <a href={mapsLink(trip.rider_lat, trip.rider_lng)} target="_blank" rel="noreferrer" className="h-12 rounded-full bg-accent-magenta text-[#460377] font-label-lg inline-flex items-center justify-center gap-2">
                 <Icon name="near_me" /> Open live location on map
               </a>
             ) : null}

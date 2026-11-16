@@ -165,17 +165,17 @@ export default function GoRidePage() {
     <div className="w-full max-w-xl mx-auto px-container-margin-mobile lg:px-0 py-8 flex flex-col gap-5">
       <BackLink href={isRider ? "/go?tab=rider" : "/go"} label="Book a Ride" />
 
-      <header className="rounded-[24px] p-6 text-white bg-gradient-to-br from-[#14163a] via-[#4c45c4] to-[#16708a] shadow-xl">
-        <p className="font-label-caps text-label-caps opacity-80">{KIND_LABEL[ride.kind].toUpperCase()} · {ride.kind === "now" ? "NOW" : formatWhen(ride.scheduled_at)}</p>
+      <header className="rounded-[24px] border border-[var(--sr-line)] bg-white p-6 text-[var(--sr-ink)] shadow-[var(--sr-shadow)]">
+        <p className="font-label-caps text-label-caps text-[var(--sr-muted)]">{KIND_LABEL[ride.kind].toUpperCase()} · {ride.kind === "now" ? "NOW" : formatWhen(ride.scheduled_at)}</p>
         <h1 className="font-display-lg text-[30px] font-bold leading-tight mt-1 flex items-center gap-2">
-          {ride.status === "requested" && <span className="w-3 h-3 rounded-full bg-white animate-pulse" />}
+          {ride.status === "requested" && <span className="w-3 h-3 rounded-full bg-[#FF6772] animate-pulse" />}
           {RIDE_STATUS_LABEL[ride.status]}
         </h1>
         <p className="font-headline-md text-[22px] mt-1">{formatTaka(ride.fare)} · {ride.payment_method === "bkash" ? "bKash" : ride.payment_method === "nagad" ? "Nagad" : "Cash"}{serviceLabel(ride.service) ? ` · ${serviceLabel(ride.service)}` : ""}</p>
         {stepIndex >= 0 && (
           <div className="mt-4 grid grid-cols-4 gap-1.5">
             {STEPS.map((step, i) => (
-              <span key={step} className={`h-1.5 rounded-full ${i <= stepIndex ? "bg-white" : "bg-white/25"}`} />
+              <span key={step} className={`h-1.5 rounded-full ${i <= stepIndex ? "bg-[#460377]" : "bg-[#E7F7FF]"}`} />
             ))}
           </div>
         )}
@@ -240,7 +240,7 @@ export default function GoRidePage() {
           </div>
         )}
         {stops.map((stop) => (
-          <p key={stop.id} className="flex gap-3"><Icon name="add_location_alt" className="text-[#ffb95f]" />Stop · {stop.label}</p>
+          <p key={stop.id} className="flex gap-3"><Icon name="add_location_alt" className="text-[var(--sr-gold-ink)]" />Stop · {stop.label}</p>
         ))}
         {ride.kind === "hire" && ride.hire_hours && <p className="flex gap-3"><Icon name="schedule" className="text-accent-magenta" />{ride.hire_hours} hour hire</p>}
         {ride.note && <p className="flex gap-3 text-secondary"><Icon name="sticky_note_2" />{ride.note}</p>}
@@ -295,7 +295,7 @@ export default function GoRidePage() {
 
       {active && isPassenger && (
         <button type="button" onClick={() => void shareTrip()} className="btn btn-secondary w-full">
-          <Icon name="share_location" className="text-[#ddb7ff]" /> Share trip
+          <Icon name="share_location" className="text-[var(--sr-heading)]" /> Share trip
         </button>
       )}
 

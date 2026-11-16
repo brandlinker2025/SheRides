@@ -93,7 +93,7 @@ export function UserDetailsTable({ users }: { users: AdminUserDetailRow[] }) {
       </div>
 
       {selected && (
-        <div className="fixed inset-0 z-[90] bg-black/50 flex justify-end" onClick={() => setSelected(null)}>
+        <div className="fixed inset-0 z-[90] bg-white flex justify-end" onClick={() => setSelected(null)}>
           <aside className="h-full w-full max-w-md bg-surface-container-lowest p-6 overflow-y-auto shadow-2xl" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-6">
               <div>

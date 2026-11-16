@@ -67,7 +67,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     title: "SheRides",
-    statusBarStyle: "black-translucent",
+    statusBarStyle: "default",
   },
   ...(process.env.GOOGLE_SITE_VERIFICATION
     ? { verification: { google: process.env.GOOGLE_SITE_VERIFICATION } }
@@ -75,14 +75,14 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#460377",
+  themeColor: "#E8F6FF",
   width: "device-width",
   initialScale: 1,
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${inter.variable} ${montserrat.variable} ${butterpop.variable}`}>
+    <html lang="en" data-theme="light" className={`${inter.variable} ${montserrat.variable} ${butterpop.variable}`}>
       <head>
         <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="icon" href="/icons/icon-32.png" type="image/png" sizes="32x32" />
@@ -96,7 +96,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <script
           dangerouslySetInnerHTML={{
             __html:
-              "try{var t=localStorage.getItem('sherides-theme');if(t==='dark'||t==='light'){document.documentElement.setAttribute('data-theme',t);}}catch(e){}window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();window.__sheridesBIP=e;});",
+              "try{var t=localStorage.getItem('sherides-theme');document.documentElement.setAttribute('data-theme',t==='dark'?'dark':'light');}catch(e){document.documentElement.setAttribute('data-theme','light');}window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();window.__sheridesBIP=e;});",
           }}
         />
       </head>
