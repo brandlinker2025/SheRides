@@ -207,12 +207,45 @@ export function rideNoteWithPreference(preference: string, userNote: string, max
 /** Distance fare from a stored rate. 5 km is ৳150. Premium extra is ৳20/km, economical is ৳15/km. */
 export function distanceFare(distanceKm: number, service: GoService | string = "ev_bike", rates: FareRate[] = FARE_RATES) {
   const rate = rateFor(service, rates);
-  const km = Math.max(0, distanceKm);
+  const km = Math.round(Math.max(0, distanceKm) * 100) / 100;
   const raw =
     km <= rate.slabKm
       ? rate.basePerKm * km
       : rate.slabKm * rate.basePerKm + rate.extraPerKm * (km - rate.slabKm);
   return Math.round(raw);
+}
+
+/**
+ * Single quote used both to display the fare on /go and to persist distance_km + fare
+ * in public.go_rides when the ride request is created.
+ */
+export function quoteRideRequest(input: {
+  kind: GoRideKind;
+  service?: GoService | string;
+  routedKm?: number | null;
+  pickup?: { lat: number; lng: number } | null;
+  drop?: { lat: number; lng: number } | null;
+  hireHours?: number | null;
+  rates?: FareRate[];
+}): { distanceKm: number | null; fare: number | null } {
+  const service = input.service ?? "ev_bike";
+  const rates = input.rates ?? FARE_RATES;
+  if (input.kind === "hire") {
+    return {
+      distanceKm: null,
+      fare: estimateFare("hire", null, input.hireHours ?? 1, service, rates),
+    };
+  }
+  const fallbackKm = input.pickup && input.drop ? roadKm(input.pickup, input.drop) : null;
+  const rawKm = input.routedKm != null && Number.isFinite(input.routedKm) && input.routedKm > 0 ? input.routedKm : fallbackKm;
+  if (rawKm == null) {
+    return { distanceKm: null, fare: null };
+  }
+  const distanceKm = Math.round(rawKm * 100) / 100;
+  return {
+    distanceKm,
+    fare: distanceFare(distanceKm, service, rates),
+  };
 }
 
 /** Potential waiting charge from the stored per-minute rate. Not included in the distance fare. */

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { FARE_RATES, distanceFare, estimateServiceFare, formatTaka, goErrorMessage, legacyDistanceFare, ratesFromCatalog, rideNoteWithPreference, waitingFee } from "./go";
+import { FARE_RATES, distanceFare, estimateServiceFare, formatTaka, goErrorMessage, legacyDistanceFare, quoteRideRequest, ratesFromCatalog, rideNoteWithPreference, roadKm, waitingFee } from "./go";
 
 test("5 km is 150 BDT on every category", () => {
   for (const rate of FARE_RATES) {
@@ -55,4 +55,72 @@ test("waiting is 1.50 per minute and stays off the distance fare", () => {
   const catalog = JSON.stringify(FARE_RATES).toLowerCase();
   assert.equal(catalog.includes("cng"), false);
   assert.equal(catalog.includes("\"car\""), false);
+});
+
+test("booking quote uses OSRM route distance and admin fare settings for both preview and saved ride", () => {
+  const pickup = { lat: 23.7946, lng: 90.415 };
+  const drop = { lat: 23.7556, lng: 90.376 };
+  const osrmKm = 8.45;
+  const straightKm = roadKm(pickup, drop);
+  assert.notEqual(osrmKm, straightKm);
+
+  const adminRates = ratesFromCatalog([
+    { service: "ev_bike", label: "EV Bikes", tier: "premium", slab_km: 5, base_per_km: 30, extra_per_km: 20, waiting_per_minute: 1.5, waiting_grace_minutes: 3 },
+    { service: "scooter_light", label: "Scooters & Light Bikes", tier: "economical", slab_km: 5, base_per_km: 30, extra_per_km: 15, waiting_per_minute: 1.5, waiting_grace_minutes: 3 },
+  ]);
+
+  const evQuote = quoteRideRequest({
+    kind: "now",
+    service: "ev_bike",
+    routedKm: osrmKm,
+    pickup,
+    drop,
+    rates: adminRates,
+  });
+  assert.deepEqual(evQuote, {
+    distanceKm: 8.45,
+    fare: distanceFare(8.45, "ev_bike", adminRates),
+  });
+  assert.equal(evQuote.fare, 219);
+
+  const scooterQuote = quoteRideRequest({
+    kind: "scheduled",
+    service: "scooter_light",
+    routedKm: osrmKm,
+    pickup,
+    drop,
+    rates: adminRates,
+  });
+  assert.deepEqual(scooterQuote, {
+    distanceKm: 8.45,
+    fare: distanceFare(8.45, "scooter_light", adminRates),
+  });
+  assert.equal(scooterQuote.fare, 202);
+
+  const fallbackQuote = quoteRideRequest({
+    kind: "now",
+    service: "ev_bike",
+    routedKm: null,
+    pickup,
+    drop,
+    rates: adminRates,
+  });
+  assert.deepEqual(fallbackQuote, {
+    distanceKm: straightKm,
+    fare: distanceFare(straightKm, "ev_bike", adminRates),
+  });
+
+  const hireQuote = quoteRideRequest({
+    kind: "hire",
+    service: "ev_bike",
+    routedKm: osrmKm,
+    pickup,
+    drop,
+    hireHours: 3,
+    rates: adminRates,
+  });
+  assert.deepEqual(hireQuote, {
+    distanceKm: null,
+    fare: 750,
+  });
 });

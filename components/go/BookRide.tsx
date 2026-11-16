@@ -15,10 +15,9 @@ import {
   estimateTripMinutes,
   formatTaka,
   goErrorMessage,
-  legacyDistanceFare,
+  quoteRideRequest,
   ratesFromCatalog,
   rideNoteWithPreference,
-  roadKm,
   type FareRate,
   type GoPlace,
   type GoRideKind,
@@ -27,7 +26,7 @@ import {
 import { createClient } from "@/lib/supabase/client";
 import { normalizePromoCode, rpcMissing } from "@/lib/ride-extras";
 import type { RouteQuote } from "@/lib/map/route";
-import { routeKey } from "@/lib/map/route";
+import { fetchRideRoute, routeKey } from "@/lib/map/route";
 import { PickupSpot } from "./PickupSpot";
 import { PlaceInput } from "./PlaceInput";
 import { RideMap } from "./RideMap";
@@ -57,6 +56,10 @@ function joinDateTime(date: string, time: string) {
   return `${date}T${time}`;
 }
 
+function routeFareRpcMissing(message: string) {
+  return /schema cache|could not find the function|p_distance_km|p_fare/i.test(message);
+}
+
 function serviceRpcMissing(message: string) {
   return /schema cache|could not find the function|p_service|go_service_fare|column ["']?service/i.test(message);
 }
@@ -68,7 +71,6 @@ function FareBreakdown({
   rate,
   hireFare,
   hours,
-  catalogLive,
 }: {
   km: number | null;
   minutes: number | null;
@@ -76,13 +78,12 @@ function FareBreakdown({
   rate: FareRate;
   hireFare: number | null;
   hours: number;
-  catalogLive: boolean;
 }) {
-  const distance = km != null ? (catalogLive ? distanceFare(km, rate.id, [rate]) : legacyDistanceFare(km)) : null;
+  const distance = km != null ? distanceFare(km, rate.id, [rate]) : null;
   const beyond = distance != null && km != null && km > rate.slabKm ? distance - rate.slabKm * rate.basePerKm : 0;
   return (
     <section aria-label="Fare breakdown" className="rounded-3xl border border-white/10 bg-[#1f1f24]/95 px-4 py-4 text-[#e4e1e9] backdrop-blur-xl">
-      <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-[#ffb95f]">{catalogLive ? rate.label : "Standard rate"}</p>
+      <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-[#ffb95f]">{rate.label}</p>
       <h2 className="mt-1 text-sm font-semibold">Transparent Fare / স্বচ্ছ ভাড়া</h2>
       {km != null && minutes != null && (
         <p className="mt-1 text-sm text-white/70">
@@ -91,7 +92,7 @@ function FareBreakdown({
       )}
       {distance == null || km == null ? (
         <p className="mt-1 text-3xl font-bold">—</p>
-      ) : catalogLive ? (
+      ) : (
         <>
           <p className="mt-1 text-3xl font-bold text-[#ddb7ff]">{formatTaka(distance)}</p>
           <ul className="mt-2 flex flex-col gap-1 text-sm text-white/70">
@@ -110,13 +111,6 @@ function FareBreakdown({
               </>
             )}
           </ul>
-        </>
-      ) : (
-        <>
-          <p className="mt-1 text-3xl font-bold text-[#ddb7ff]">{formatTaka(distance)}</p>
-          <p className="mt-2 text-sm text-white/70">
-            {km.toFixed(2)} km · ৳30 + ৳14/km · minimum ৳70
-          </p>
         </>
       )}
       {hireFare != null ? (
@@ -144,7 +138,7 @@ export function BookRide({ pickup, drop, stop, onPickup, onDrop, onStop, routed,
   const [kind, setKind] = useState<GoRideKind>("now");
   const [service, setService] = useState<GoService>("ev_bike");
   const [rates, setRates] = useState<FareRate[]>(() => bookableRates(FARE_RATES));
-  const [fareSource, setFareSource] = useState<"unknown" | "catalog" | "legacy">("unknown");
+  const [fetchedRoute, setFetchedRoute] = useState<{ key: string; quote: RouteQuote } | null>(null);
   const [when, setWhen] = useState("");
   const [hours, setHours] = useState(2);
   const [payment, setPayment] = useState<"cash" | "bkash" | "nagad">("cash");
@@ -155,30 +149,55 @@ export function BookRide({ pickup, drop, stop, onPickup, onDrop, onStop, routed,
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const straightKm = useMemo(() => (pickup && drop ? roadKm(pickup, drop) : null), [pickup, drop]);
-  const km = routed?.km ?? straightKm;
+  const pairKey = pickup && drop ? routeKey([pickup, drop]) : "";
+
+  useEffect(() => {
+    if (!pickup || !drop || !pairKey) {
+      setFetchedRoute(null);
+      return;
+    }
+    if (routed?.source === "osrm") return;
+    const controller = new AbortController();
+    void fetchRideRoute([pickup, drop], controller.signal)
+      .then((next) => {
+        if (!next) return;
+        setFetchedRoute({ key: pairKey, quote: { km: next.km, minutes: next.minutes, source: next.source } });
+      })
+      .catch(() => undefined);
+    return () => controller.abort();
+  }, [pickup, drop, pairKey, routed?.source]);
+
+  const activeRoute =
+    routed?.source === "osrm"
+      ? routed
+      : fetchedRoute && fetchedRoute.key === pairKey
+        ? fetchedRoute.quote
+        : routed;
+
+  const rideQuote = useMemo(
+    () =>
+      quoteRideRequest({
+        kind,
+        service,
+        routedKm: activeRoute?.km ?? null,
+        pickup,
+        drop,
+        hireHours: hours,
+        rates,
+      }),
+    [kind, service, activeRoute?.km, pickup, drop, hours, rates],
+  );
+  const km = rideQuote.distanceKm;
   const selectedRate = rates.find((rate) => rate.id === service) ?? rates[0];
   const hireFare = kind === "hire" ? estimateFare("hire", null, hours, service, rates) : null;
-  const catalogLive = fareSource === "catalog";
 
   useEffect(() => {
     const supabase = createClient();
-    if (!supabase) {
-      setFareSource("legacy");
-      return;
-    }
+    if (!supabase) return;
     void supabase.rpc("go_list_fare_rates").then(({ data, error: loadError }) => {
-      if (loadError || !data) {
-        setFareSource("legacy");
-        return;
-      }
+      if (loadError || !data) return;
       const next = bookableRates(ratesFromCatalog(data as Parameters<typeof ratesFromCatalog>[0]));
-      if (!next.length) {
-        setFareSource("legacy");
-        return;
-      }
-      setRates(next);
-      setFareSource("catalog");
+      if (next.length) setRates(next);
     });
   }, []);
   const canSubmit = Boolean(pickup) && (kind === "hire" || Boolean(drop)) && (kind !== "scheduled" || Boolean(when));
@@ -188,18 +207,24 @@ export function BookRide({ pickup, drop, stop, onPickup, onDrop, onStop, routed,
     if (!pickup) return setError("Set a pickup point, or allow location access.");
     if (kind !== "hire" && !drop) return setError("Choose a drop-off from the suggestions.");
     if (kind === "scheduled" && !when) return setError("Choose a pickup date and time.");
+    const { distanceKm: tripKm, fare: previewFare } = quoteRideRequest({
+      kind,
+      service,
+      routedKm: activeRoute?.km ?? null,
+      pickup,
+      drop,
+      hireHours: hours,
+      rates,
+    });
+    if (previewFare == null || (kind !== "hire" && tripKm == null)) {
+      return setError("Choose pickup and drop-off from the suggestions so the fare can be calculated.");
+    }
     const supabase = createClient();
     if (!supabase) return setError("Ride booking is not connected yet.");
     setBusy(true);
     const code = normalizePromoCode(promo);
     let quoted: string | null = null;
     if (code) {
-      const previewFare =
-        kind === "hire" ? hireFare : km != null ? (catalogLive ? distanceFare(km, service, rates) : legacyDistanceFare(km)) : null;
-      if (previewFare == null) {
-        setBusy(false);
-        return setError("Add a destination before using a promo code.");
-      }
       const quote = await supabase.rpc("go_quote_promo", { p_code: code, p_fare: previewFare, p_kind: kind });
       if (quote.error) {
         setBusy(false);
@@ -228,12 +253,16 @@ export function BookRide({ pickup, drop, stop, onPickup, onDrop, onStop, routed,
       p_note: note.trim() || null,
     };
     const legacyPayload = { ...payload, p_note: rideNoteWithPreference(preference, note) };
-    let result =
-      fareSource === "legacy"
-        ? await supabase.rpc("go_request_ride", legacyPayload)
-        : await supabase.rpc("go_request_ride", { ...payload, p_service: service });
+    let result = await supabase.rpc("go_request_ride", {
+      ...payload,
+      p_service: service,
+      p_distance_km: tripKm,
+      p_fare: previewFare,
+    });
+    if (result.error && routeFareRpcMissing(result.error.message)) {
+      result = await supabase.rpc("go_request_ride", { ...payload, p_service: service });
+    }
     if (result.error && serviceRpcMissing(result.error.message)) {
-      setFareSource("legacy");
       result = await supabase.rpc("go_request_ride", legacyPayload);
     }
     if (result.error || !result.data) {
@@ -268,8 +297,7 @@ export function BookRide({ pickup, drop, stop, onPickup, onDrop, onStop, routed,
     setPromoNote(null);
     const code = normalizePromoCode(promo);
     if (code.length < 4) return setError("Enter the promo code.");
-    const previewFare =
-      kind === "hire" ? hireFare : km != null ? (catalogLive ? distanceFare(km, service, rates) : legacyDistanceFare(km)) : null;
+    const previewFare = rideQuote.fare;
     if (previewFare == null) return setError("Add a destination so the code can be checked against the fare.");
     const supabase = createClient();
     if (!supabase) return setError("Ride booking is not connected yet.");
@@ -388,23 +416,13 @@ export function BookRide({ pickup, drop, stop, onPickup, onDrop, onStop, routed,
           <h2 className="text-lg font-bold text-[#e4e1e9]">Sanctuary Fleet / ফ্লিট</h2>
           <span className="text-xs font-semibold text-[#ffb95f]">100% Female Captains</span>
         </div>
-        {fareSource !== "catalog" && (
-          <p className="mb-2 text-xs text-white/55">
-            Bike choice is saved as a preference. The charged fare is the standard rate until fleet pricing is turned on.
-          </p>
-        )}
         <div className="flex flex-col gap-2.5" role="listbox" aria-label="Choose a vehicle">
           {rates.map((item, index) => {
             const copy = FLEET_COPY[item.id];
             const selected = service === item.id;
-            const fare =
-              km != null && kind !== "hire"
-                ? catalogLive
-                  ? distanceFare(km, item.id, rates)
-                  : legacyDistanceFare(km)
-                : null;
+            const fare = km != null && kind !== "hire" ? distanceFare(km, item.id, rates) : null;
             const pickupMin = estimatePickupMinutes(item.id, km);
-            const tripMin = routed?.minutes ?? estimateTripMinutes(item.id, km);
+            const tripMin = activeRoute?.minutes ?? estimateTripMinutes(item.id, km);
             return (
               <motion.button
                 key={item.id}
@@ -480,12 +498,11 @@ export function BookRide({ pickup, drop, stop, onPickup, onDrop, onStop, routed,
 
       <FareBreakdown
         km={kind === "hire" ? null : km}
-        minutes={kind === "hire" ? null : routed?.minutes ?? null}
-        estimated={routed?.source === "estimate"}
+        minutes={kind === "hire" ? null : activeRoute?.minutes ?? null}
+        estimated={activeRoute?.source === "estimate"}
         rate={selectedRate}
         hireFare={hireFare}
         hours={hours}
-        catalogLive={catalogLive}
       />
 
       {error && (
