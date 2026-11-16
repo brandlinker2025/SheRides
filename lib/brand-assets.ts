@@ -7,8 +7,8 @@
  */
 export const officialLogo = {
   src: "/brand/sherides-official.png",
-  width: 1550,
-  height: 1824,
+  width: 3100,
+  height: 3648,
 } as const;
 
 /** Every previous mark / lockup / badge slot renders this same artwork. */
