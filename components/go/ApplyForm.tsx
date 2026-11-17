@@ -336,7 +336,7 @@ export function ApplyForm({ role }: { role: GoRole }) {
           ref={barRef}
           className="go-apply-bar pointer-events-none fixed inset-x-0 z-40 px-3 bottom-[calc(5.25rem+env(safe-area-inset-bottom))] lg:bottom-4 lg:left-64 lg:right-0"
         >
-          <div className="pointer-events-auto mx-auto w-full max-w-2xl rounded-2xl border border-white/15 bg-[#fffcff]/95 px-3 py-3 shadow-[0_10px_40px_#6135bc30] backdrop-blur-xl">
+          <div className="pointer-events-auto mx-auto w-full max-w-2xl rounded-2xl border border-white/15 bg-[#ffffff]/95 px-3 py-3 shadow-[0_10px_40px_#7044f530] backdrop-blur-xl">
             {error && (
               <p id="go-apply-error" className="mb-2 text-center font-body-sm text-red-200" role="alert">
                 {error}

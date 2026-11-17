@@ -1,104 +1,212 @@
+/* SheRides public app — palette sampled from the approved reference design (Nov 2026). */
 .public-app {
   color-scheme: light;
   min-height: 100dvh;
   padding: clamp(16px, 4vw, 40px);
-  background: radial-gradient(ellipse at 50% 45%, #ded0fc, transparent 65%), #f0e9ff;
-  color: #261c38;
-  --color-surface: 255 252 255;
-  --color-surface-border: 231 218 250;
-  --color-soft-off-white: 249 244 255;
-  --color-surface-container-lowest: 255 252 255;
-  --color-on-surface: 38 28 56;
-  --color-secondary: 93 81 112;
-  --color-tertiary: 93 81 112;
-  --color-accent: 97 53 188;
-  --color-primary: 97 53 188;
-  --color-primary-container: 230 216 255;
-  --color-surface-container-low: 249 244 255;
-  --color-surface-container: 243 236 255;
-  --color-surface-container-high: 230 216 255;
-  --color-surface-variant: 240 233 255;
-  --color-outline: 134 81 220;
+  background:
+    radial-gradient(60% 40% at 15% 0%, #f8d9ff 0, transparent 70%),
+    radial-gradient(50% 40% at 100% 100%, #d6f8f4 0, transparent 70%),
+    radial-gradient(ellipse at 50% 45%, #ddccff, transparent 65%),
+    #efe7ff;
+  color: #251b3a;
+  --sr-violet-1: #9466f6;
+  --sr-violet-2: #7244f2;
+  --sr-violet-deep: #5328d6;
+  --sr-violet-text: #7044f5;
+  --sr-mint-1: #8af3e9;
+  --sr-mint-2: #3fd0c1;
+  --sr-mint-deep: #24afa2;
+  --sr-mint-text: #0a3f3a;
+  --sr-lav: #e9dfff;
+  --sr-lav-text: #4a2e8a;
+  --sr-ink: #251b3a;
+  --sr-muted: #5e5276;
+  --sr-line: #e4d8ff;
+  --color-surface: 255 255 255;
+  --color-surface-border: 228 216 255;
+  --color-soft-off-white: 248 244 255;
+  --color-surface-container-lowest: 255 255 255;
+  --color-on-surface: 37 27 58;
+  --color-secondary: 94 82 118;
+  --color-tertiary: 94 82 118;
+  --color-accent: 112 68 245;
+  --color-primary: 112 68 245;
+  --color-primary-container: 233 223 255;
+  --color-surface-container-low: 248 244 255;
+  --color-surface-container: 242 236 255;
+  --color-surface-container-high: 233 223 255;
+  --color-surface-variant: 239 231 255;
+  --color-outline: 148 102 246;
 }
 .public-app-home { display: grid; place-items: center; }
 .public-entry, .public-panel {
   width: min(100%, 28rem);
   margin-inline: auto;
   padding: clamp(18px, 4vw, 32px);
-  border: 1px solid #e7dafa;
-  border-radius: 28px;
-  background: #fffcff;
-  box-shadow: 0 22px 52px #6135bc28, inset 0 2px 0 #fff;
+  border: 1px solid #ffffffcc;
+  border-radius: 30px;
+  background: linear-gradient(180deg, #ffffff, #fbf8ff);
+  box-shadow: 0 30px 60px -20px #7244f240, 0 8px 18px -10px #7244f226, inset 0 1px 0 #fff;
 }
 .public-entry { display: grid; gap: 14px; }
 .public-hero {
   position: relative;
   display: grid;
   place-items: center;
-  min-height: 248px;
+  min-height: 252px;
   margin-bottom: 8px;
   overflow: hidden;
-  border-radius: 24px;
-  background: radial-gradient(circle at 80% 15%, #a77cf0 0, transparent 45%), linear-gradient(160deg, #8651dc, #6135bc);
-  box-shadow: 0 16px 34px #6135bc40, inset 0 2px 0 #ffffff40;
+  border-radius: 26px;
+  background:
+    radial-gradient(70% 55% at 50% 0%, #c6a6ff 0, transparent 70%),
+    radial-gradient(45% 35% at 90% 90%, #b58dff 0, transparent 70%),
+    linear-gradient(170deg, #a47cf7, #7a4bfd 60%, #6a3cf0);
+  box-shadow: 0 22px 40px -14px #7a4bfd88, inset 0 1px 0 #ffffff66, inset 0 -6px 18px #5328d633;
 }
 .public-hero-arch {
   position: absolute;
-  inset: 18px 34px -40px;
+  inset: 16px 30px -40px;
   border-radius: 999px 999px 32px 32px;
-  background: linear-gradient(#fffcff, #f0e9ff);
-  border: 1px solid #ffffff99;
-  box-shadow: 0 0 0 10px #ffffff1f;
+  background: linear-gradient(180deg, #ffffff, #f3ecff);
+  border: 1px solid #ffffffb3;
+  box-shadow: 0 0 0 10px #ffffff26, 0 0 0 22px #ffffff12, 0 18px 30px -12px #3b168f55;
 }
 .public-hero-dot { position: absolute; width: 14px; height: 14px; border-radius: 999px; }
-.public-hero-dot-pink { top: 26px; left: 18px; background: #f7a4e2; box-shadow: 0 0 0 6px #f7a4e233; }
-.public-hero-dot-aqua { bottom: 30px; right: 18px; background: #6edbd9; box-shadow: 0 0 0 6px #6edbd933; }
-.public-hero-logo { position: relative; margin-top: 14px; }
+.public-hero-dot-pink { top: 26px; left: 18px; background: radial-gradient(circle at 35% 30%, #ffd1ff, #fc81fd); box-shadow: 0 0 0 6px #fc81fd33, 0 0 14px #fc81fd; }
+.public-hero-dot-aqua { bottom: 30px; right: 18px; background: radial-gradient(circle at 35% 30%, #d4fffb, #58eeec); box-shadow: 0 0 0 6px #58eeec33, 0 0 14px #58eeec; }
+.public-hero-logo { position: relative; margin-top: 14px; filter: drop-shadow(0 6px 10px #3b168f22); }
 .public-panel-wide { width: min(100%, 68rem); }
-.public-action, .public-back {
+
+/* ---------- Premium buttons ---------- */
+.public-action, .public-back,
+.public-app :is(.btn-primary, .btn-secondary, .dustumi-btn),
+.public-app :is(button, a)[class*="bg-accent-magenta"]:not([class*="/"]),
+.public-app :is(button, a):is([class*="from-[#A855F7]"], [class*="from-[#241b4a]"], [class*="bg-[#7044f5]"]) {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 10px;
-  min-height: 50px;
+  border: 0;
   border-radius: 999px;
-  padding: 10px 20px;
   font-weight: 700;
+  letter-spacing: 0.01em;
+  transition: transform 0.18s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.18s ease, filter 0.18s ease;
+  -webkit-tap-highlight-color: transparent;
 }
-.public-violet { background: linear-gradient(#8651dc, #6135bc); color: white; box-shadow: 0 4px 0 #4f289e; }
-.public-action { justify-content: flex-start; min-height: 58px; padding: 7px 22px 7px 7px; font-size: 1.05rem; }
+/* glossy top highlight */
+.public-action::before, .public-back::before,
+.public-app :is(.btn-primary, .btn-secondary, .dustumi-btn)::before,
+.public-app :is(button, a)[class*="bg-accent-magenta"]:not([class*="/"])::before,
+.public-app :is(button, a):is([class*="from-[#A855F7]"], [class*="from-[#241b4a]"], [class*="bg-[#7044f5]"])::before {
+  content: "";
+  position: absolute;
+  inset: 1px 1px 50% 1px;
+  z-index: -1;
+  border-radius: 999px 999px 40% 40% / 999px 999px 18px 18px;
+  background: linear-gradient(180deg, #ffffff73, #ffffff00);
+  pointer-events: none;
+}
+/* light sweep on hover */
+.public-action::after,
+.public-app :is(.btn-primary, .dustumi-btn)::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -60%;
+  width: 40%;
+  z-index: -1;
+  background: linear-gradient(100deg, transparent, #ffffff66, transparent);
+  transform: skewX(-18deg);
+  transition: left 0.6s ease;
+  pointer-events: none;
+}
+.public-action:hover::after,
+.public-app :is(.btn-primary, .dustumi-btn):hover::after { left: 120%; }
+
+.public-violet,
+.public-icon-violet,
+.public-app .btn-primary,
+.public-app :is(button, a)[class*="bg-accent-magenta"]:not([class*="/"]),
+.public-app :is(button, a):is([class*="from-[#A855F7]"], [class*="from-[#241b4a]"], [class*="bg-[#7044f5]"]) {
+  background: linear-gradient(180deg, var(--sr-violet-1), var(--sr-violet-2));
+  color: #fff;
+  text-shadow: 0 1px 1px #3b168f59;
+  box-shadow: inset 0 1px 0 #ffffff80, inset 0 -3px 0 #3b168f33, 0 3px 0 var(--sr-violet-deep), 0 14px 26px -10px #7244f2b3;
+}
+.public-mint,
+.public-app .public-auth .dustumi-btn {
+  background: linear-gradient(180deg, var(--sr-mint-1), var(--sr-mint-2));
+  color: var(--sr-mint-text);
+  box-shadow: inset 0 1px 0 #ffffffb3, inset 0 -3px 0 #0a3f3a1f, 0 3px 0 var(--sr-mint-deep), 0 14px 26px -10px #3fd0c1cc;
+}
+.public-light {
+  background: linear-gradient(180deg, #ffffff, #f6f1ff);
+  color: var(--sr-lav-text);
+  box-shadow: inset 0 0 0 1px var(--sr-line), inset 0 1px 0 #fff, 0 3px 0 #dccdfb, 0 14px 26px -12px #7244f259;
+}
+.public-back,
+.public-app .btn-secondary {
+  background: linear-gradient(180deg, #f1eaff, var(--sr-lav));
+  color: var(--sr-lav-text);
+  box-shadow: inset 0 0 0 1px #d9c9fb, inset 0 1px 0 #fff, 0 2px 0 #cfbcf7;
+}
+.public-action:hover, .public-back:hover,
+.public-app :is(.btn-primary, .btn-secondary, .dustumi-btn):hover:not(:disabled),
+.public-app :is(button, a)[class*="bg-accent-magenta"]:not([class*="/"]):hover:not(:disabled) {
+  transform: translateY(-1px);
+  filter: brightness(1.04) saturate(1.06);
+}
+.public-action:active, .public-back:active,
+.public-app :is(.btn-primary, .btn-secondary, .dustumi-btn):active:not(:disabled),
+.public-app :is(button, a)[class*="bg-accent-magenta"]:not([class*="/"]):active:not(:disabled) {
+  transform: translateY(2px) scale(0.99);
+  filter: brightness(0.98);
+}
+.public-app :is(.btn-primary, .btn-secondary, .dustumi-btn, button):disabled {
+  filter: saturate(0.6);
+  opacity: 0.55;
+  transform: none;
+  cursor: not-allowed;
+}
+
+.public-action, .public-back { min-height: 50px; padding: 10px 20px; }
+.public-action { justify-content: flex-start; min-height: 60px; padding: 8px 22px 8px 8px; font-size: 1.05rem; }
 .public-action.w-full { justify-content: center; padding: 10px 20px; }
-.public-light { background: #fffcff; color: #422a6c; border: 1px solid #e7dafa; box-shadow: 0 4px 0 #d9c7f6, 0 10px 22px #6135bc1a; }
-.public-action-icon { display: inline-grid; place-items: center; width: 44px; height: 44px; border-radius: 999px; flex-shrink: 0; }
-.public-icon-violet { background: linear-gradient(#8651dc, #6135bc); color: #fff; }
-.public-icon-mint { background: #ffffffb3; color: #103c35; }
-.public-action:active { transform: translateY(2px); }
-.public-mint { background: linear-gradient(#a7f6df, #50d4bd); color: #103c35; box-shadow: 0 4px 0 #32a88e; }
-.public-back { min-height: 44px; margin-bottom: 20px; background: #e6d8ff; color: #422a6c; }
-.public-app :focus-visible { outline: 3px solid #6135bc; outline-offset: 3px; }
-.public-app .public-auth :is(p, label, input, .text-white) { color: #261c38; }
-.public-app .public-auth :is(input, select) { background: #f9f4ff; border: 1px solid #e7dafa; border-radius: 16px; }
-.public-app .public-auth input::placeholder { color: #5d5170; }
-.public-app .public-auth :is(a, .material-symbols-outlined) { color: #6135bc; }
+.public-action-icon { display: inline-grid; place-items: center; width: 44px; height: 44px; border-radius: 999px; flex-shrink: 0; overflow: hidden; }
+.public-icon-violet { color: #fff; box-shadow: inset 0 1px 0 #ffffff80, 0 6px 12px -4px #7244f2aa; }
+.public-icon-mint { background: linear-gradient(180deg, #ffffffe6, #ffffff99); color: var(--sr-mint-text); box-shadow: inset 0 1px 0 #fff, 0 4px 10px -4px #24afa299; }
+.public-back { min-height: 44px; margin-bottom: 20px; }
+.public-app :focus-visible { outline: 3px solid #7244f280; outline-offset: 3px; }
+
+.public-app .public-auth :is(p, label, input, .text-white) { color: var(--sr-ink); }
+.public-app .public-auth :is(input, select) { background: #f8f4ff; border: 1px solid var(--sr-line); border-radius: 16px; }
+.public-app .public-auth input::placeholder { color: var(--sr-muted); }
+.public-app .public-auth :is(a, .material-symbols-outlined) { color: var(--sr-violet-text); }
+.public-app .public-auth .dustumi-btn .material-symbols-outlined { color: inherit; }
 .public-app .public-auth [role="alert"] { color: #a82144; }
-.public-app .public-auth .dustumi-btn { color: #103c35; background: linear-gradient(#a7f6df,#50d4bd); box-shadow: 0 4px 0 #32a88e; }
-.public-app .btn-primary { background: linear-gradient(#8651dc,#6135bc); color: white; }
-.public-app .btn-secondary { background: #e6d8ff; border-color: #cdb8f1; color: #422a6c; }
+.public-app :is(input, select, textarea):focus { border-color: var(--sr-violet-1); box-shadow: 0 0 0 4px #9466f633; outline: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .public-app *, .public-app *::before, .public-app *::after { transition: none !important; }
+}
 
 /* Light palette for the signed-in panels: remap dark-theme leftovers (scoped to public flows only). */
-.public-app :is(h1, h2, h3):not([class*="text-"]) { color: #261c38; }
+.public-app :is(h1, h2, h3):not([class*="text-"]) { color: #251b3a; }
 .public-app :is([class*="from-["], .public-hero) :is(h1, h2, h3) { color: inherit; }
-.public-app .public-auth h1 { color: #6135bc; }
-.public-app [class*="text-white/"] { color: #5d5170; }
-.public-app :is([class*="text-[#e4e1e9]"], [class*="text-[#f8f3ff]"]) { color: #261c38; }
-.public-app :is([class*="text-[#ddb7ff]"], [class*="text-[#dfc7ff]"], [class*="text-[#c5b6dc]"]) { color: #6135bc; }
+.public-app .public-auth h1 { color: #7044f5; }
+.public-app [class*="text-white/"] { color: #5e5276; }
+.public-app :is([class*="text-[#e4e1e9]"], [class*="text-[#f8f3ff]"]) { color: #251b3a; }
+.public-app :is([class*="text-[#ddb7ff]"], [class*="text-[#dfc7ff]"], [class*="text-[#c5b6dc]"]) { color: #7044f5; }
 .public-app :is([class*="text-[#ffb95f]"], [class*="text-[#FFB804]"]) { color: #8a5300; }
 .public-app [class*="text-[#3ddc84]"] { color: #137a4f; }
 .public-app [class*="text-[#ff8a80]"] { color: #a82144; }
-.public-app :is([class*="bg-[#1f1f24]"], [class*="bg-[#1A1A24]"], [class*="bg-[#1a1a24]"], [class*="bg-[#2a292f]"], [class*="bg-[#0e0e13]"], [class*="bg-[#121217]"], [class*="bg-black/"], [class*="bg-white/10"]) { background-color: #f9f4ff; color: #261c38; }
-.public-app :is([class*="border-white/"]) { border-color: #e7dafa; }
+.public-app :is([class*="bg-[#1f1f24]"], [class*="bg-[#1A1A24]"], [class*="bg-[#1a1a24]"], [class*="bg-[#2a292f]"], [class*="bg-[#0e0e13]"], [class*="bg-[#121217]"], [class*="bg-black/"], [class*="bg-white/10"]) { background-color: #f8f4ff; color: #251b3a; }
+.public-app :is([class*="border-white/"]) { border-color: #e4d8ff; }
 .public-app input::placeholder, .public-app textarea::placeholder { color: #8a7d9e; }
-.public-app .card-surface { background: #fffcff; border: 1px solid #e7dafa; color: #261c38; box-shadow: 0 12px 30px #6135bc14; }
-.public-app :is([class*="from-[#A855F7]"], [class*="from-[#241b4a]"], [class*="from-[#8b7cf8]"], [class*="from-[#14163a]"]) { background-image: linear-gradient(135deg, #8651dc, #6135bc); color: #fff; }
-.public-app :is([class*="from-[#A855F7]"], [class*="from-[#241b4a]"], [class*="from-[#14163a]"]) [class*="text-white/"] { color: #f0e9ff; }
-.public-action-icon { overflow: hidden; }
+.public-app .card-surface { background: #ffffff; border: 1px solid #e4d8ff; color: #251b3a; box-shadow: 0 12px 30px #7044f514; }
+.public-app :is([class*="from-[#A855F7]"], [class*="from-[#241b4a]"], [class*="from-[#8b7cf8]"], [class*="from-[#14163a]"]) { background-image: linear-gradient(135deg, #9466f6, #7044f5); color: #fff; }
+.public-app :is([class*="from-[#A855F7]"], [class*="from-[#241b4a]"], [class*="from-[#14163a]"]) [class*="text-white/"] { color: #efe7ff; }
