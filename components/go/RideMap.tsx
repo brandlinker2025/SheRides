@@ -32,24 +32,24 @@ export function RideMap({ pickup, drop }: { pickup: GoPlace | null; drop: GoPlac
   const placed = pins.map((pin) => ({ ...pin, ...project(pin.place, bounds) }));
 
   return (
-    <div className="relative h-full min-h-[220px] overflow-hidden rounded-[28px] border border-white/15 bg-[#12142e] shadow-[0_20px_50px_-24px_rgba(88,70,220,0.65)]">
+    <div className="relative h-full min-h-[220px] overflow-hidden rounded-[28px] border border-[#e7dafa] bg-[#f0e9ff] shadow-[0_20px_50px_-24px_rgba(97,53,188,0.45)]">
       <div
         className="absolute inset-0 opacity-90"
         style={{
           backgroundImage:
-            "radial-gradient(circle at 20% 20%, rgba(139,124,248,0.35), transparent 32%), radial-gradient(circle at 80% 70%, rgba(20,184,196,0.28), transparent 36%), linear-gradient(160deg, #1a1c3f 0%, #12142e 55%, #0e1a32 100%)",
+            "radial-gradient(circle at 20% 20%, rgba(134,81,220,0.22), transparent 34%), radial-gradient(circle at 80% 70%, rgba(80,212,189,0.28), transparent 38%), linear-gradient(160deg, #f7f2ff 0%, #ece2ff 55%, #e3f8f3 100%)",
         }}
       />
       <svg className="absolute inset-0 h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
         {Array.from({ length: 8 }, (_, index) => (
-          <line key={`h-${index}`} x1="0" x2="100" y1={8 + index * 12} y2={4 + index * 12} stroke="rgba(255,255,255,0.06)" strokeWidth="0.35" />
+          <line key={`h-${index}`} x1="0" x2="100" y1={8 + index * 12} y2={4 + index * 12} stroke="rgba(97,53,188,0.08)" strokeWidth="0.35" />
         ))}
         {Array.from({ length: 7 }, (_, index) => (
-          <line key={`v-${index}`} y1="0" y2="100" x1={6 + index * 14} x2={10 + index * 13} stroke="rgba(255,255,255,0.05)" strokeWidth="0.35" />
+          <line key={`v-${index}`} y1="0" y2="100" x1={6 + index * 14} x2={10 + index * 13} stroke="rgba(97,53,188,0.07)" strokeWidth="0.35" />
         ))}
-        <path d="M8 72 C 24 68, 30 40, 48 46 S 70 78, 94 30" fill="none" stroke="rgba(139,124,248,0.55)" strokeWidth="1.4" />
-        <path d="M4 28 C 22 36, 40 18, 58 32 S 78 20, 98 48" fill="none" stroke="rgba(20,184,196,0.45)" strokeWidth="1.1" />
-        <path d="M12 90 C 30 60, 46 84, 70 58 S 86 40, 96 62" fill="none" stroke="rgba(255,255,255,0.16)" strokeWidth="0.7" />
+        <path d="M8 72 C 24 68, 30 40, 48 46 S 70 78, 94 30" fill="none" stroke="rgba(134,81,220,0.45)" strokeWidth="1.4" />
+        <path d="M4 28 C 22 36, 40 18, 58 32 S 78 20, 98 48" fill="none" stroke="rgba(80,212,189,0.6)" strokeWidth="1.1" />
+        <path d="M12 90 C 30 60, 46 84, 70 58 S 86 40, 96 62" fill="none" stroke="rgba(97,53,188,0.18)" strokeWidth="0.7" />
         {placed.length === 2 && (
           <line
             x1={placed[0].x}
@@ -63,8 +63,8 @@ export function RideMap({ pickup, drop }: { pickup: GoPlace | null; drop: GoPlac
         )}
         <defs>
           <linearGradient id="route" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor="#5eead4" />
-            <stop offset="100%" stopColor="#8b7cf8" />
+            <stop offset="0%" stopColor="#50d4bd" />
+            <stop offset="100%" stopColor="#6135bc" />
           </linearGradient>
         </defs>
       </svg>
@@ -82,17 +82,17 @@ export function RideMap({ pickup, drop }: { pickup: GoPlace | null; drop: GoPlac
           </span>
         </span>
       ))}
-      <div className="absolute left-3 top-3 flex max-w-[70%] items-center gap-2 rounded-full bg-[#1f1f24]/90 px-3 py-1.5 text-white shadow-lg backdrop-blur-md">
-        <span className="h-2 w-2 shrink-0 rounded-full bg-[#ffb95f]" />
-        <span className="truncate text-[10px] font-bold uppercase tracking-wider text-[#ffb95f]">100% female captains · checked by an admin</span>
+      <div className="absolute left-3 top-3 flex max-w-[70%] items-center gap-2 rounded-full border border-[#e7dafa] bg-[#fffcff]/90 px-3 py-1.5 text-[#261c38] shadow-lg backdrop-blur-md">
+        <span className="h-2 w-2 shrink-0 rounded-full bg-[#50d4bd]" />
+        <span className="truncate text-[10px] font-bold uppercase tracking-wider text-[#6135bc]">100% female captains · checked by an admin</span>
       </div>
-      <div className="absolute inset-x-3 bottom-3 rounded-2xl border border-white/10 bg-[#121217]/90 px-4 py-3 text-white shadow-lg backdrop-blur-xl">
-        <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-white/70">Live map</p>
+      <div className="absolute inset-x-3 bottom-3 rounded-2xl border border-[#e7dafa] bg-[#fffcff]/92 px-4 py-3 text-[#261c38] shadow-lg backdrop-blur-xl">
+        <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#6135bc]">Live map</p>
         <p className="mt-1 truncate text-sm font-semibold">{pickup?.label ?? "Pickup not set"}</p>
-        <p className="truncate text-sm text-white/75">{drop ? drop.label : "Choose a destination"}</p>
+        <p className="truncate text-sm text-[#5d5170]">{drop ? drop.label : "Choose a destination"}</p>
       </div>
       {!pins.length && (
-        <p className="absolute left-4 top-4 rounded-full bg-black/40 px-3 py-1 text-xs font-semibold text-white/90 backdrop-blur-md">
+        <p className="absolute left-4 top-4 rounded-full bg-[#fffcff]/90 px-3 py-1 text-xs font-semibold text-[#422a6c] backdrop-blur-md">
           Dhaka · waiting for a route
         </p>
       )}

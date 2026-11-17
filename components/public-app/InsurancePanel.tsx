@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { Icon } from "@/components/ui/Icon";
 
 type Insurance = { provider: string; summary: string; terms_url: string };
 
@@ -22,7 +23,7 @@ export function InsurancePanel() {
 
   return (
     <details onToggle={(event) => void loadInsurance(event.currentTarget.open)}>
-      <summary>Insurance</summary>
+      <summary><span className="public-tile-icon public-tile-pink"><Icon name="health_and_safety" size={20} /></span>Insurance</summary>
       {details ? (
         <>
           <p><strong>{details.provider}</strong></p>
