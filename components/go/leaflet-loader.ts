@@ -59,7 +59,9 @@ export async function baseLayer(L: typeof Leaflet, layer: MapLayer): Promise<Lea
   if (layer === "street" && hasWebGL()) {
     try {
       const maplibre = await import("maplibre-gl");
-      (window as unknown as { maplibregl: unknown }).maplibregl = maplibre.default ?? maplibre;
+      // MapLibre 6 runs in a module worker; serve it from our own origin (public/vendor) so the bundler's chunk names do not matter.
+      (maplibre as unknown as { setWorkerUrl?: (url: string) => void }).setWorkerUrl?.("/vendor/maplibre-gl-worker-6.19.0.mjs");
+      (window as unknown as { maplibregl: unknown }).maplibregl = (maplibre as unknown as { default?: unknown }).default ?? maplibre;
       const plugin = (await import("@maplibre/maplibre-gl-leaflet")) as unknown as {
         maplibreGL: (options: Record<string, unknown>) => Leaflet.Layer;
       };
