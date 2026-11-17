@@ -10,7 +10,6 @@ const PUBLIC_PATHS = new Set([
   "/admin-login",
   "/signup",
   "/download",
-  "/maptest",
   "/install",
   "/app",
   "/get",
