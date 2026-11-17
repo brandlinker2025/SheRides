@@ -172,7 +172,7 @@ export function RideDetails({ id }: { id: string }) {
           {ride.status === "requested" && <span className="w-3 h-3 rounded-full bg-white animate-pulse" />}
           {RIDE_STATUS_LABEL[ride.status]}
         </h1>
-        <p className="font-headline-md text-[22px] mt-1">{formatTaka(ride.fare)} · {ride.payment_method === "bkash" ? "bKash" : ride.payment_method === "nagad" ? "Nagad" : "Cash"}{serviceLabel(ride.service) ? ` · ${serviceLabel(ride.service)}` : ""}</p>
+        <p className="font-headline-md text-[22px] mt-1">{formatTaka(ride.fare)} · {ride.payment_method === "bkash" ? "bKash" : ride.payment_method === "nagad" ? "Nagad" : "Cash"}</p>
         {stepIndex >= 0 && (
           <div className="mt-4 grid grid-cols-4 gap-1.5">
             {STEPS.map((step, i) => (
@@ -183,7 +183,7 @@ export function RideDetails({ id }: { id: string }) {
       </header>
 
       {ride.status !== "completed" && ride.status !== "cancelled" && (
-        <div className="h-[260px] sm:h-[320px]">
+        <div className="h-[56vh] min-h-[340px] max-h-[560px]">
           <RideMap
             pickup={ride.pickup_lat != null && ride.pickup_lng != null ? { label: ride.pickup_text, lat: ride.pickup_lat, lng: ride.pickup_lng } : null}
             drop={ride.drop_lat != null && ride.drop_lng != null ? { label: ride.drop_text ?? "Drop-off", lat: ride.drop_lat, lng: ride.drop_lng } : null}
