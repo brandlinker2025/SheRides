@@ -15,7 +15,7 @@ import "./auth-panda.css";
 const SCENE_ART = "/images/sherides-panda-scene-clean.png";
 
 export const authFieldClass =
-  "w-full rounded-xl border border-white/15 bg-black/50 px-4 py-3 text-white placeholder:text-white/45 outline-none transition-all duration-300 focus:border-[#6c5ce7] focus:ring-2 focus:ring-[#6c5ce7]/30";
+  "w-full rounded-full border border-white/15 bg-black/50 px-4 py-3 text-white placeholder:text-white/45 outline-none transition-all duration-300 focus:border-[#6c5ce7] focus:ring-2 focus:ring-[#6c5ce7]/30";
 
 type AuthSceneProps = {
   children: ReactNode;
@@ -27,7 +27,7 @@ type AuthSceneProps = {
 
 export function AuthScene({ children, mood, speech, admin = false }: AuthSceneProps) {
   return (
-    <div className="auth-page relative min-h-screen overflow-x-hidden bg-[#0b090c] text-white">
+    <div className="auth-page relative min-h-screen overflow-x-hidden bg-[#07040B] bg-[radial-gradient(ellipse_at_top_left,rgba(150,92,255,0.24),transparent_50%),radial-gradient(ellipse_at_bottom_right,rgba(34,211,238,0.14),transparent_48%)] text-white">
       <div className="relative z-10 flex min-h-screen flex-col">
         <header className="flex items-center justify-between gap-3 px-4 py-3 sm:px-8">
           <Link href="/" aria-label="SheRides home" className="flex min-w-0 items-center gap-2.5">

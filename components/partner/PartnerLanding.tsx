@@ -169,6 +169,9 @@ export function PartnerLanding() {
                   {t.hero.book}
                 </Link>
               </div>
+              <Link href="/go/apply?role=rider" className="mt-4 inline-flex font-semibold text-[#ddb7ff] underline underline-offset-4">
+                {lang === "bn" ? "ক্যাপ্টেন পরিচয় যাচাই শুরু করুন" : "Start captain identity verification"}
+              </Link>
               <p className={`mt-8 max-w-xl border-l-2 border-[#FFB804] pl-4 text-left text-sm leading-6 text-white/70`}>{t.hero.note}</p>
             </div>
             {ENABLE_CAR && (

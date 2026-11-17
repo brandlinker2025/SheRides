@@ -9,7 +9,7 @@ const DOC_FIELDS = ["nid_front_path", "nid_back_path", "selfie_path", "license_p
 const DOC_LABEL: Record<(typeof DOC_FIELDS)[number], string> = {
   nid_front_path: "NID front",
   nid_back_path: "NID back",
-  selfie_path: "Live selfie",
+  selfie_path: "Selfie",
   license_path: "Licence",
   bike_papers_path: "Bike papers",
 };
@@ -17,7 +17,7 @@ const DOC_LABEL: Record<(typeof DOC_FIELDS)[number], string> = {
 export default async function AdminGoPage() {
   const { supabase } = await requireAdmin();
 
-  const [{ data: appRows, error: appError }, { data: rideRows, error: rideError }, partnerResult] = await Promise.all([
+  const [{ data: appRows, error: appError }, { data: rideRows, error: rideError }, queueResult, captainResult, partnerResult] = await Promise.all([
     supabase
       .from("go_applications")
       .select("*, profile:profiles!go_applications_user_id_fkey(full_name, username, avatar_url)")
@@ -30,6 +30,10 @@ export default async function AdminGoPage() {
       )
       .order("created_at", { ascending: false })
       .limit(300),
+    supabase.from("go_rides")
+      .select("id, pickup_text, drop_text, scheduled_at, passenger:profiles!go_rides_passenger_id_fkey(full_name)")
+      .eq("status", "requested").is("rider_id", null).order("created_at", { ascending: true }),
+    supabase.from("go_applications").select("user_id, full_name").eq("role", "rider").eq("status", "approved").order("full_name"),
     supabase
       .from("partner_applications")
       .select("id, full_name, phone, area, vehicle_type, commitment, note, created_at, status, admin_notes")
@@ -92,6 +96,11 @@ export default async function AdminGoPage() {
         <GoAdminBoard
           applications={applications}
           rides={rides}
+          queue={(queueResult.data ?? []).map((ride) => ({
+            ...ride, passenger: (Array.isArray(ride.passenger) ? ride.passenger[0] : ride.passenger)?.full_name,
+          }))}
+          captains={captainResult.data ?? []}
+          assignmentError={queueResult.error?.message ?? captainResult.error?.message ?? null}
           partners={(partnerResult.data ?? []) as AdminPartnerLead[]}
           partnerNote={partnerResult.error ? partnerResult.error.message : null}
         />

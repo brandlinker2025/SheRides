@@ -9,6 +9,7 @@ import { normalizeBdPhone } from "@/lib/phone";
 import { Icon } from "@/components/ui/Icon";
 import { AuthScene, authFieldClass } from "@/components/auth/AuthScene";
 import { DustumiSubmitButton } from "@/components/auth/DustumiSubmitButton";
+import { AuthSocialButtons } from "@/components/auth/AuthSocialButtons";
 import { usePandaForm } from "@/components/auth/usePandaForm";
 
 function SignupForm() {
@@ -41,7 +42,7 @@ function SignupForm() {
       }
     >
       <div className="w-full rounded-[28px] border border-[#6c5ce7]/50 bg-[rgba(12,10,14,0.82)] p-6 shadow-[0_20px_50px_rgba(0,0,0,0.35),0_0_0_1px_rgba(108,92,231,0.12)] backdrop-blur-xl sm:p-8">
-        <h1 className="mb-1 text-2xl font-bold leading-tight text-white sm:text-3xl">Create your account</h1>
+        <h1 className="mb-1 text-2xl font-bold leading-tight text-white sm:text-3xl">Welcome to SheRides!</h1>
         <p className="mb-6 text-sm text-white/70">
           Create your account with your mobile number. An administrator will approve you before you can ride.
         </p>
@@ -51,6 +52,11 @@ function SignupForm() {
           onSubmit={async (e) => {
             e.preventDefault();
             setError(null);
+            if (fullName.trim().length < 2) {
+              setError("Enter your full name.");
+              dodge();
+              return;
+            }
             const normalized = normalizeBdPhone(phone);
             if (!normalized) {
               setError("Enter a valid Bangladesh mobile number (01XXXXXXXXX).");
@@ -107,6 +113,7 @@ function SignupForm() {
               onFocus={panda.onTextFocus}
               onBlur={panda.onBlur}
               placeholder="Full name"
+              aria-label="Full name"
               className={`${authFieldClass} pl-11`}
             />
           </label>
@@ -204,7 +211,7 @@ function SignupForm() {
             </p>
           )}
           <DustumiSubmitButton dodgeToken={dodgeToken} busy={busy}>
-            {busy ? "Creating account..." : "Join"}
+            {busy ? "Creating account..." : "Sign Up"}
           </DustumiSubmitButton>
         </form>
         <p className="mt-6 text-sm text-white/70">
@@ -213,6 +220,7 @@ function SignupForm() {
             Sign In
           </Link>
         </p>
+        <div className="mt-4"><AuthSocialButtons googleOnly onError={setError} /></div>
       </div>
     </AuthScene>
   );

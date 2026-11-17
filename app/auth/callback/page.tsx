@@ -43,6 +43,10 @@ function CallbackInner() {
         setMessage(failText ?? "This link is invalid or has expired. Please request a new one.");
         return;
       }
+      if (!isRecovery && params.get("flow") === "oauth") {
+        window.location.replace("/go");
+        return;
+      }
       setStage(isRecovery ? "set-password" : "email-linked");
     };
 

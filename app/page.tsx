@@ -3,11 +3,11 @@ import { Logo } from "@/components/ui/Logo";
 
 export default function EntryPage() {
   return (
-    <main className="relative flex min-h-dvh flex-col items-center justify-center overflow-hidden bg-[#1B1324] px-6 py-16 text-[#F0EBF6]">
-      <div className="pointer-events-none absolute -left-24 top-0 h-80 w-80 rounded-full bg-[#FF6772]/20 blur-3xl" aria-hidden="true" />
+    <main className="relative flex min-h-dvh flex-col items-center justify-center overflow-hidden bg-[#07040B] px-6 py-16 text-[#F0EBF6]">
+      <div className="pointer-events-none absolute -left-24 top-0 h-80 w-80 rounded-full bg-[#a878ff]/30 blur-3xl" aria-hidden="true" />
       <div className="pointer-events-none absolute right-0 top-1/3 h-72 w-72 rounded-full bg-[#460377]/55 blur-3xl" aria-hidden="true" />
-      <div className="pointer-events-none absolute bottom-0 right-1/4 h-48 w-48 rounded-full bg-[#FFB804]/15 blur-3xl" aria-hidden="true" />
-      <div className="relative flex w-full max-w-lg flex-col items-center text-center">
+      <div className="pointer-events-none absolute bottom-0 right-1/4 h-48 w-48 rounded-full bg-[#23daf3]/20 blur-3xl" aria-hidden="true" />
+      <div className="relative flex w-full max-w-lg flex-col items-center rounded-[32px] border border-violet-300/25 bg-violet-300/10 p-6 text-center shadow-[0_24px_80px_rgba(118,59,222,0.28),inset_0_1px_0_rgba(255,255,255,0.15)] backdrop-blur-xl sm:p-10">
         <h1 className="w-full">
           <Logo variant="lockup" height={460} priority className="mx-auto max-w-full" />
         </h1>
@@ -16,7 +16,7 @@ export default function EntryPage() {
             Take a ride / রাইড নিন
           </Link>
           <Link href="/partner" className="btn btn-secondary h-14 w-full text-lg">
-            Become a partner / পার্টনার হন
+            Become a SheRides Partner / পার্টনার হন
           </Link>
         </div>
         <p className="mt-10 text-sm text-white/60">
