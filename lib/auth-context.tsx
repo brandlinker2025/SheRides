@@ -154,7 +154,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (profileSave.error) return { error: "Account created, but the mobile number could not be saved to your profile." };
       }
       const saved = await supabase.rpc("save_own_date_of_birth", { p_dob: dateOfBirth });
-      if (saved.error) return { error: "Account created. Add your birthday from your profile to receive wishes." };
+      if (saved.error) return { error: "Account created. You can update your date of birth in your profile." };
       return {};
     },
     async signOut() {

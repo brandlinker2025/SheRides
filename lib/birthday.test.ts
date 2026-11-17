@@ -13,7 +13,6 @@ import {
   parseDateOnly,
   validateDateOfBirth,
 } from "./birthday";
-import { dueBirthdayWishes, isApprovedForBirthday } from "./birthday-job";
 
 test("signup without DOB is blocked", () => {
   assert.equal(validateDateOfBirth(""), "Date of birth is required.");
@@ -41,58 +40,6 @@ test("too young or too old is blocked", () => {
 test("invalid calendar dates are blocked", () => {
   assert.equal(validateDateOfBirth("2020-02-30", { year: 2026, month: 9, day: 2 }), "Enter a valid date of birth.");
   assert.equal(parseDateOnly("not-a-date"), null);
-});
-
-test("existing users with NULL DOB are skipped and do not crash", () => {
-  const today = { year: 2026, month: 9, day: 2 };
-  const due = dueBirthdayWishes(
-    [
-      { userId: "a", fullName: "Old Member", dateOfBirth: "", verified: true, role: "rider" },
-      { userId: "b", fullName: "Also Old", dateOfBirth: "null", verified: true, role: "rider" },
-    ],
-    today
-  );
-  assert.deepEqual(due, []);
-});
-
-test("only approved/active users are due a wish", () => {
-  const today = { year: 2026, month: 9, day: 2 };
-  const birthday = "2000-09-02";
-  const due = dueBirthdayWishes(
-    [
-      { userId: "ok", fullName: "Approved", dateOfBirth: birthday, verified: true, role: "rider" },
-      { userId: "admin", fullName: "Admin", dateOfBirth: birthday, verified: false, role: "admin" },
-      { userId: "pending", fullName: "Pending", dateOfBirth: birthday, verified: false, role: "rider" },
-      { userId: "rejected", fullName: "Rejected", dateOfBirth: birthday, verified: false, role: "rider" },
-    ],
-    today
-  );
-  assert.deepEqual(
-    due.map((row) => row.userId),
-    ["ok", "admin"]
-  );
-  assert.equal(isApprovedForBirthday({ verified: false, role: "rider" }), false);
-});
-
-test("wrong date does not create a wish", () => {
-  const today = { year: 2026, month: 9, day: 2 };
-  const due = dueBirthdayWishes(
-    [{ userId: "x", fullName: "Later", dateOfBirth: "2000-09-03", verified: true, role: "rider" }],
-    today
-  );
-  assert.equal(due.length, 0);
-});
-
-test("birthday today is selected once per matching user", () => {
-  const today = { year: 2026, month: 9, day: 2 };
-  const due = dueBirthdayWishes(
-    [
-      { userId: "x", fullName: "Today", dateOfBirth: "1999-09-02", verified: true, role: "rider" },
-      { userId: "x", fullName: "Today", dateOfBirth: "1999-09-02", verified: true, role: "rider" },
-    ],
-    today
-  );
-  assert.equal(due.length, 2);
 });
 
 test("Feb 29 is wished on 29 Feb in leap years and 28 Feb otherwise", () => {
