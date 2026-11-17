@@ -1,8 +1,6 @@
 "use client";
 
-import Image from "next/image";
 import { Suspense } from "react";
-import { PANDA_HERO_SRC } from "@/lib/brand-art";
 import { useScrollTopOnNavigate } from "@/hooks/useScrollTopOnNavigate";
 import { AuthGate } from "../auth/AuthGate";
 import { BottomNav } from "./BottomNav";
@@ -22,13 +20,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </Suspense>
           {/* Background art stays put while only the content scrolls */}
           <div className="pointer-events-none fixed inset-0 top-20 lg:left-64 overflow-hidden" aria-hidden="true">
-            <Image
-              src={PANDA_HERO_SRC}
-              alt=""
-              fill
-              sizes="(min-width: 1024px) 70vw, 100vw"
-              className="object-cover object-[45%_40%] opacity-[0.2] sm:opacity-[0.26]"
-            />
             <div className="absolute inset-0 panda-app-veil" />
           </div>
           {/* Sidebar + top bar are fixed; this is the ONLY scrolling area */}
