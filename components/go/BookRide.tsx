@@ -4,16 +4,11 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { Icon } from "@/components/ui/Icon";
 import {
-  FARE_RATES,
-  bookableRates,
-  distanceFare,
-  estimateFare,
+  WAITING_PER_MINUTE,
   formatTaka,
   goErrorMessage,
-  legacyDistanceFare,
-  ratesFromCatalog,
   roadKm,
-  type FareRate,
+  sheRidesFare,
   type GoPlace,
   type GoRideKind,
   type GoService,
@@ -50,29 +45,21 @@ function serviceRpcMissing(message: string) {
   return /schema cache|could not find the function|p_service|go_service_fare|column ["']?service/i.test(message);
 }
 
-function FareBreakdown({
-  km,
-  rate,
-  hireFare,
-  hours,
-  catalogLive,
-}: {
-  km: number | null;
-  rate: FareRate;
-  hireFare: number | null;
-  hours: number;
-  catalogLive: boolean;
-}) {
-  const distance = km != null ? (catalogLive ? distanceFare(km, rate.id, [rate]) : legacyDistanceFare(km)) : null;
-  const amount = hireFare ?? distance;
+function FareBreakdown({ kind, km, hours }: { kind: GoRideKind; km: number | null; hours: number }) {
+  const amount = sheRidesFare(kind, km, hours);
   return (
     <section aria-label="Fare" className="sr-fare">
       <div>
-        <p className="sr-fare-label">আনুমানিক ভাড়া</p>
+        <p className="sr-fare-label">{kind === "hire" ? "Hire (admin confirm করবেন)" : "ভাড়া"}</p>
         <p className="sr-fare-amount">{amount != null ? formatTaka(amount) : "—"}</p>
       </div>
       <p className="sr-fare-meta">
-        {hireFare != null ? `${hours} ঘণ্টা hire` : km != null ? `${km.toFixed(1)} km` : "গন্তব্য দিলে ভাড়া দেখাবে"}
+        {kind === "hire"
+          ? `${hours} ঘণ্টা × ৳300 · অতিরিক্ত কিমি ৳15`
+          : km != null
+            ? `${km.toFixed(1)} km${kind === "now" ? " × ৳30" : ""}`
+            : "গন্তব্য দিলে ভাড়া দেখাবে"}
+        <span className="block">অপেক্ষা ৳{WAITING_PER_MINUTE[kind]}/মিনিট</span>
       </p>
     </section>
   );
@@ -99,8 +86,6 @@ export function BookRide({ pickup, drop, onPickup, onDrop, autoLocate = true }: 
   const router = useRouter();
   const [kind, setKind] = useState<GoRideKind>("now");
   const service: GoService = "ev_bike";
-  const [rates, setRates] = useState<FareRate[]>(() => bookableRates(FARE_RATES));
-  const [fareSource, setFareSource] = useState<"unknown" | "catalog" | "legacy">("unknown");
   const [when, setWhen] = useState("");
   const [hours, setHours] = useState(2);
   const [payment, setPayment] = useState<"cash" | "bkash">("cash");
@@ -117,30 +102,7 @@ export function BookRide({ pickup, drop, onPickup, onDrop, autoLocate = true }: 
   const [error, setError] = useState<string | null>(null);
 
   const km = useMemo(() => (pickup && drop ? roadKm(pickup, drop) : null), [pickup, drop]);
-  const selectedRate = rates.find((rate) => rate.id === service) ?? rates[0];
-  const hireFare = kind === "hire" ? estimateFare("hire", null, hours, service, rates) : null;
-  const catalogLive = fareSource === "catalog";
 
-  useEffect(() => {
-    const supabase = createClient();
-    if (!supabase) {
-      setFareSource("legacy");
-      return;
-    }
-    void supabase.rpc("go_list_fare_rates").then(({ data, error: loadError }) => {
-      if (loadError || !data) {
-        setFareSource("legacy");
-        return;
-      }
-      const next = bookableRates(ratesFromCatalog(data as Parameters<typeof ratesFromCatalog>[0]));
-      if (!next.length) {
-        setFareSource("legacy");
-        return;
-      }
-      setRates(next);
-      setFareSource("catalog");
-    });
-  }, []);
 
   const canSubmit = Boolean(pickup) && (kind === "hire" || Boolean(drop)) && (kind !== "scheduled" || Boolean(when));
   const note = [
@@ -186,12 +148,8 @@ export function BookRide({ pickup, drop, onPickup, onDrop, autoLocate = true }: 
       p_payment: payment,
       p_note: note || null,
     };
-    let result =
-      fareSource === "legacy"
-        ? await supabase.rpc("go_request_ride", payload)
-        : await supabase.rpc("go_request_ride", { ...payload, p_service: service });
+    let result = await supabase.rpc("go_request_ride", { ...payload, p_service: service });
     if (result.error && serviceRpcMissing(result.error.message)) {
-      setFareSource("legacy");
       result = await supabase.rpc("go_request_ride", payload);
     }
     if (result.error || !result.data) {
@@ -322,14 +280,19 @@ export function BookRide({ pickup, drop, onPickup, onDrop, autoLocate = true }: 
         ))}
       </div>
 
-      <FareBreakdown km={kind === "hire" ? null : km} rate={selectedRate} hireFare={hireFare} hours={hours} catalogLive={catalogLive} />
+      <FareBreakdown kind={kind} km={kind === "hire" ? null : km} hours={hours} />
+      {kind === "hire" && (
+        <p className="rounded-2xl bg-[#fff6ec] px-4 py-3 text-sm text-[#7a4a10]">
+          Hire request সরাসরি confirm হয় না। SheRides admin বা moderator ভাড়া ঠিক করে captain দিয়ে দেবেন, তখন notification পাবেন।
+        </p>
+      )}
       {error && <p className="rounded-2xl bg-[#ffeef3] px-4 py-3 text-sm text-[#a82144]" role="alert">{error}</p>}
 
       {/* Sticky request bar */}
       <div className="sr-request-bar">
         <button type="button" disabled={busy || !canSubmit} onClick={() => void submit()} aria-busy={busy} className="btn btn-primary h-14 w-full text-lg">
           <Icon name="electric_moped" size={22} />
-          {busy ? "Request হচ্ছে…" : kind === "now" ? "Request ride" : kind === "hire" ? "Request hire" : "Pre-book ride"}
+          {busy ? "Request হচ্ছে…" : kind === "now" ? "Request ride" : kind === "hire" ? "Send hire request" : "Pre-book ride"}
         </button>
         {!canSubmit && (
           <p className="mt-1 text-center text-xs text-[#5e5276]">

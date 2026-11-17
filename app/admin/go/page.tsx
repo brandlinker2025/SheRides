@@ -31,7 +31,7 @@ export default async function AdminGoPage() {
       .order("created_at", { ascending: false })
       .limit(300),
     supabase.from("go_rides")
-      .select("id, pickup_text, drop_text, scheduled_at, passenger:profiles!go_rides_passenger_id_fkey(full_name)")
+      .select("id, kind, fare, hire_hours, pickup_text, drop_text, scheduled_at, passenger:profiles!go_rides_passenger_id_fkey(full_name)")
       .eq("status", "requested").is("rider_id", null).order("created_at", { ascending: true }),
     supabase.from("go_applications").select("user_id, full_name").eq("role", "rider").eq("status", "approved").order("full_name"),
     supabase
