@@ -286,9 +286,43 @@ export function roadKm(a: { lat: number; lng: number }, b: { lat: number; lng: n
 }
 
 /** Free address search (OpenStreetMap Nominatim), limited to Bangladesh. */
-export async function searchPlaces(query: string, signal?: AbortSignal): Promise<GoPlace[]> {
+type PhotonFeature = {
+  geometry: { coordinates: [number, number] };
+  properties: { name?: string; street?: string; housenumber?: string; district?: string; city?: string; county?: string; state?: string; countrycode?: string };
+};
+
+function photonLabel(p: PhotonFeature["properties"]) {
+  const street = [p.housenumber, p.street].filter(Boolean).join(" ");
+  const parts = [p.name, street !== p.name ? street : "", p.district, p.city ?? p.county].filter(Boolean) as string[];
+  return Array.from(new Set(parts)).slice(0, 3).join(", ");
+}
+
+/** Bangladesh bounding box: keeps suggestions inside the country. */
+const BD_BBOX = "88.0,20.5,92.7,26.7";
+
+/**
+ * Place search for pickup / destination. Photon (OpenStreetMap, typo-tolerant, works while typing)
+ * biased to the rider's area, then Nominatim as a fallback. Both are free and need no key.
+ */
+export async function searchPlaces(query: string, signal?: AbortSignal, near?: { lat: number; lng: number } | null): Promise<GoPlace[]> {
   const q = query.trim();
-  if (q.length < 3) return [];
+  if (q.length < 2) return [];
+  const center = near ?? { lat: 23.78, lng: 90.4 };
+  try {
+    const url = `https://photon.komoot.io/api/?q=${encodeURIComponent(q)}&lat=${center.lat}&lon=${center.lng}&limit=8&bbox=${BD_BBOX}`;
+    const response = await fetch(url, { signal });
+    if (response.ok) {
+      const data = (await response.json()) as { features?: PhotonFeature[] };
+      const seen = new Set<string>();
+      const rows = (data.features ?? [])
+        .filter((f) => !f.properties.countrycode || f.properties.countrycode === "BD")
+        .map((f) => ({ label: photonLabel(f.properties), lat: f.geometry.coordinates[1], lng: f.geometry.coordinates[0] }))
+        .filter((row) => row.label && !seen.has(row.label) && seen.add(row.label));
+      if (rows.length) return rows.slice(0, 6);
+    }
+  } catch (err) {
+    if ((err as Error)?.name === "AbortError") throw err;
+  }
   const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&countrycodes=bd&limit=6&accept-language=en,bn&q=${encodeURIComponent(q)}`;
   const response = await fetch(url, { signal, headers: { Accept: "application/json" } });
   if (!response.ok) return [];
