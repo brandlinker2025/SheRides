@@ -43,7 +43,7 @@ const nextConfig = {
     // Social pages and the SOS center were removed. Old links land on ride booking or admin review.
     return [
       // Short share links for installing the app on any phone.
-      ...["/install", "/app", "/get", "/apk"].map((source) => ({ source, destination: "/download", permanent: false })),
+      ...["/install", "/app", "/get", "/apk", "/sherides.apk"].map((source) => ({ source, destination: "/download", permanent: false })),
       { source: "/partner", destination: "/?flow=partner", permanent: false },
       { source: "/signup", has: [{ type: "query", key: "captain", value: "1" }], destination: "/?flow=partner&step=signup", permanent: false },
       { source: "/signup", destination: "/?flow=ride&step=signup", permanent: false },
@@ -79,14 +79,6 @@ const nextConfig = {
       {
         source: "/:path*",
         headers: securityHeaders,
-      },
-      {
-        source: "/sherides.apk",
-        headers: [
-          { key: "Content-Type", value: "application/vnd.android.package-archive" },
-          { key: "Content-Disposition", value: "attachment; filename=\"SheRides.apk\"" },
-          { key: "Cache-Control", value: "public, max-age=3600" },
-        ],
       },
       {
         source: "/sw.js",

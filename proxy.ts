@@ -14,6 +14,7 @@ const PUBLIC_PATHS = new Set([
   "/app",
   "/get",
   "/apk",
+  "/sherides.apk",
   "/partner",
   "/auth/callback",
   "/api/keep-alive",
@@ -25,7 +26,6 @@ const PUBLIC_METADATA_PATHS = new Set([
   "/robots.txt",
   "/sitemap.xml",
   "/sw.js",
-  "/icon.svg",
   "/apple-touch-icon",
   "/apple-touch-icon-precomposed",
   "/apple-icon",
@@ -37,7 +37,6 @@ function isPublicPath(pathname: string) {
   if (pathname.startsWith("/api/auth/")) return true;
   if (pathname.startsWith("/track/")) return true;
   if (PUBLIC_METADATA_PATHS.has(pathname)) return true;
-  if (pathname === "/sherides.apk") return true;
   if (/\.(?:svg|png|jpg|jpeg|gif|webp|ico|js|css|woff2?|map)$/i.test(pathname)) return true;
   return false;
 }
