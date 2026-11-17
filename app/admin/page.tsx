@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { RideSettings } from "./ride-settings";
+import { RideReport } from "./ride-report";
 import { Icon } from "@/components/ui/Icon";
 import { loadAdminStats } from "@/lib/admin/queries";
 import { loadRiderOverview } from "@/lib/admin/riders";
@@ -8,7 +9,8 @@ import { requireAdmin } from "@/lib/supabase/require-admin";
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminDashboardPage() {
+export default async function AdminDashboardPage({ searchParams }: { searchParams: Promise<{ start?: string; end?: string }> }) {
+  const { start, end } = await searchParams;
   const { supabase } = await requireAdmin();
   const [stats, riders] = await Promise.all([loadAdminStats(supabase), loadRiderOverview(supabase)]);
 
@@ -87,6 +89,7 @@ export default async function AdminDashboardPage() {
         ))}
       </div>
 
+      <RideReport start={start} end={end} />
       <RideSettings />
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-gutter">
         <section className="bg-surface-container-lowest text-on-surface rounded-xl shadow-premium border border-surface-border p-6">

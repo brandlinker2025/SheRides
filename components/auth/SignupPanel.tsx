@@ -11,11 +11,12 @@ import { AuthScene, authFieldClass } from "@/components/auth/AuthScene";
 import { DustumiSubmitButton } from "@/components/auth/DustumiSubmitButton";
 import { usePandaForm } from "@/components/auth/usePandaForm";
 
-export function SignupPanel({ flow }: { flow: "partner" | "ride" }) {
+export function SignupPanel({ flow, returnTo }: { flow: "partner" | "ride"; returnTo?: string }) {
   const { signUp } = useAuth();
   const router = useRouter();
   const params = useSearchParams();
-  const loginHref = `/?flow=${flow}`;
+  const destination = returnTo ?? `/?flow=${flow}`;
+  const loginHref = `${destination}&step=login`;
   const [fullName, setFullName] = useState("");
   const [identifier, setIdentifier] = useState(() => params.get("phone") ?? "");
   const [password, setPassword] = useState("");
@@ -97,7 +98,7 @@ export function SignupPanel({ flow }: { flow: "partner" | "ride" }) {
               return;
             }
             window.setTimeout(() => {
-              router.replace(loginHref);
+              router.replace(destination);
               router.refresh();
             }, 900);
           }}

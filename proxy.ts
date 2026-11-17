@@ -13,7 +13,6 @@ const PUBLIC_PATHS = new Set([
   "/partner",
   "/auth/callback",
   "/api/keep-alive",
-  "/api/cron/birthday-wishes",
 ]);
 const AUTH_ONLY_PATHS = new Set(["/verification", "/pending-approval", "/verify-phone"]);
 const PUBLIC_METADATA_PATHS = new Set([
@@ -32,7 +31,6 @@ function isPublicPath(pathname: string) {
   if (PUBLIC_PATHS.has(pathname)) return true;
   if (pathname.startsWith("/_next/")) return true;
   if (pathname.startsWith("/api/auth/")) return true;
-  if (pathname === "/api/partner") return true;
   if (pathname.startsWith("/track/")) return true;
   if (PUBLIC_METADATA_PATHS.has(pathname)) return true;
   if (pathname === "/sherides.apk") return true;

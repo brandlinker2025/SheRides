@@ -67,7 +67,7 @@ export function ProfileView({ rider, isSelf }: ProfileViewProps) {
                 {rider.bio || (isSelf ? "Add a short bio so riders and passengers know who you are." : "")}
               </p>
               {isSelf && !rider.hasBirthday ? (
-                <p className="font-body-sm text-accent-magenta mb-2">Add your birthday so SheRides can send you a yearly wish.</p>
+                <p className="font-body-sm text-accent-magenta mb-2">Add your date of birth to complete your profile.</p>
               ) : null}
               <div className="flex items-center gap-4 font-body-sm text-body-sm text-tertiary flex-wrap">
                 {rider.location && (

@@ -33,11 +33,11 @@ function safeUserNextPath(value: string | null) {
   return value;
 }
 
-export function LoginPanel({ admin = false, flow }: { admin?: boolean; flow?: "partner" | "ride" }) {
+export function LoginPanel({ admin = false, flow, returnTo }: { admin?: boolean; flow?: "partner" | "ride"; returnTo?: string }) {
   const { signIn } = useAuth();
   const router = useRouter();
   const params = useSearchParams();
-  const next = admin ? "/admin" : flow ? `/?flow=${flow}` : safeUserNextPath(params.get("next"));
+  const next = admin ? "/admin" : flow ? returnTo ?? `/?flow=${flow}` : safeUserNextPath(params.get("next"));
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -252,7 +252,7 @@ export function LoginPanel({ admin = false, flow }: { admin?: boolean; flow?: "p
   const joinParams = new URLSearchParams();
   if (normalizeBdPhone(identifier)) joinParams.set("phone", identifier.trim());
   if (next === captainApplicationPath) joinParams.set("captain", "1");
-  const joinHref = flow ? `/?flow=${flow}&step=signup` : joinParams.size ? `/signup?${joinParams}` : "/signup";
+  const joinHref = flow ? `${next}&step=signup` : joinParams.size ? `/signup?${joinParams}` : "/signup";
 
   return (
     <AuthScene admin={admin} embedded={!!flow}>
