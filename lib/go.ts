@@ -39,6 +39,8 @@ export type GoRide = {
   rider_lat: number | null;
   rider_lng: number | null;
   rider_seen_at: string | null;
+  landmark_photo_path?: string | null;
+  landmark_photo_at?: string | null;
   passenger_rating: number | null;
   rider_rating: number | null;
   cancel_reason: string | null;
