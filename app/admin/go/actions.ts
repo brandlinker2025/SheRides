@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { reviewInputError } from "@/lib/approval";
-import { requireAdmin } from "@/lib/supabase/require-admin";
+import { requireStaff } from "@/lib/supabase/require-admin";
 import { createServerSupabase } from "@/lib/supabase/server";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -13,7 +13,7 @@ export async function reviewGoApplication(applicationId: string, status: string,
   const invalid = reviewInputError(status, notes);
   if (invalid) return { error: invalid };
   try {
-    await requireAdmin();
+    await requireStaff();
     // The review RPC checks auth.uid() is an admin, so it must run with the admin's own session.
     const session = await createServerSupabase();
     if (!session) return { error: "Supabase is not configured." };
@@ -38,7 +38,7 @@ export async function reviewPartnerApplication(applicationId: string, status: st
   const invalid = reviewInputError(status, notes);
   if (invalid) return { error: invalid };
   try {
-    await requireAdmin();
+    await requireStaff();
     const session = await createServerSupabase();
     if (!session) return { error: "Supabase is not configured." };
     const { error } = await session.rpc("admin_review_partner_application", {
@@ -57,7 +57,7 @@ export async function reviewPartnerApplication(applicationId: string, status: st
 export async function adminCancelGoRide(rideId: string) {
   if (!UUID.test(rideId)) return { error: "Invalid request." };
   try {
-    await requireAdmin();
+    await requireStaff();
     const session = await createServerSupabase();
     if (!session) return { error: "Supabase is not configured." };
     const { error } = await session.rpc("go_cancel_ride", { p_ride_id: rideId, p_reason: "Cancelled by SheRides admin" });
@@ -71,7 +71,7 @@ export async function adminCancelGoRide(rideId: string) {
 
 export async function adminAssignGoRide(rideId: string, riderId: string) {
   if (!UUID.test(rideId) || !UUID.test(riderId)) return { error: "Select an approved captain." };
-  await requireAdmin();
+  await requireStaff();
   const session = await createServerSupabase();
   if (!session) return { error: "Supabase is not configured." };
   const { error } = await session.rpc("go_admin_assign_ride", { p_ride_id: rideId, p_rider_id: riderId });

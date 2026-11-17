@@ -120,8 +120,8 @@ export async function proxy(request: NextRequest) {
   }
 
   if (isAdminAppPath(pathname)) {
-    if (profile?.role !== "admin") {
-      return NextResponse.redirect(new URL("/go", request.url));
+    if (profile?.role !== "admin" && profile?.role !== "moderator") {
+      return NextResponse.redirect(new URL("/", request.url));
     }
     return response;
   }

@@ -8,7 +8,7 @@ import { PandaNavBackdrop } from "@/components/brand/PandaNavBackdrop";
 import { useScrollTopOnNavigate } from "@/hooks/useScrollTopOnNavigate";
 
 const nav = [
-  { href: "/admin/go", label: "Approvals", icon: "fact_check" },
+  { href: "/admin/go", label: "Approvals", icon: "fact_check", moderator: true },
   { href: "/admin", label: "Dashboard", icon: "dashboard", exact: true },
   { href: "/admin/verifications", label: "New Joins", icon: "verified_user" },
   { href: "/admin/users", label: "Accounts", icon: "group" },
@@ -18,15 +18,18 @@ const nav = [
 export function AdminShell({
   children,
   adminName,
+  role = "admin",
   pendingCount = 0,
   queueCount = 0,
 }: {
   children: React.ReactNode;
   adminName?: string;
+  role?: "admin" | "moderator";
   pendingCount?: number;
   queueCount?: number;
 }) {
   const pathname = usePathname();
+  const items = role === "moderator" ? nav.filter((item) => "moderator" in item) : nav;
   const mainRef = useScrollTopOnNavigate<HTMLElement>();
 
   return (
@@ -43,11 +46,11 @@ export function AdminShell({
           <Link href="/go" aria-label="SheRides ride booking">
             <Logo variant="mark" height={64} priority />
           </Link>
-          <div className="text-white font-label-caps text-label-caps mt-2 drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">Admin Panel</div>
+          <div className="text-white font-label-caps text-label-caps mt-2 drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">{role === "moderator" ? "Moderator Panel" : "Admin Panel"}</div>
           {adminName && <p className="text-white font-body-sm text-body-sm mt-2 drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">{adminName}</p>}
         </div>
         <div className="relative z-10 flex-1 flex flex-col gap-1.5 px-4 overflow-y-auto hide-scrollbar min-h-0">
-          {nav.map((item) => {
+          {items.map((item) => {
             const active = item.exact ? pathname === item.href : pathname.startsWith(item.href);
             const badge = item.href === "/admin/go" ? queueCount : item.href === "/admin/verifications" ? pendingCount : 0;
             const showBadge = badge > 0;
@@ -75,7 +78,7 @@ export function AdminShell({
         </div>
       </nav>
       <div className="panda-topnav md:hidden fixed bottom-0 inset-x-0 z-50 flex justify-around py-3 px-2 overflow-x-auto">
-        {nav.map((item) => {
+        {items.map((item) => {
           const active = item.exact ? pathname === item.href : pathname.startsWith(item.href);
           const badge = item.href === "/admin/go" ? queueCount : item.href === "/admin/verifications" ? pendingCount : 0;
           const showBadge = badge > 0;

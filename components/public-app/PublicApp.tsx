@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { LoginPanel } from "@/components/auth/LoginPanel";
 import { SignupPanel } from "@/components/auth/SignupPanel";
@@ -15,6 +16,12 @@ import "./public-app.css";
 export function PublicApp() {
   const params = useSearchParams();
   const { user, loading, refreshUser, signOut } = useAuth();
+  // Installed app (home-screen): first open asks for sign-up once; the session then stays on this phone.
+  const [installed, setInstalled] = useState(false);
+  useEffect(() => {
+    const nav = navigator as Navigator & { standalone?: boolean };
+    setInstalled(window.matchMedia("(display-mode: standalone)").matches || Boolean(nav.standalone));
+  }, []);
   const flow = params.get("flow");
   const step = params.get("step");
   const trip = params.get("trip");
@@ -53,8 +60,15 @@ export function PublicApp() {
       <div className={`public-panel ${approved && flow === "partner" && !step && !trip ? "public-panel-wide" : ""}`}>
         <Link className="public-back" href={back}><Icon name="arrow_back" size={18} /> Back</Link>
         {loading ? <p role="status">Loading…</p> : !user ? (
-          step === "signup" ? (
-            <SignupPanel flow={flow} returnTo={returnTo} />
+          step === "signup" || (installed && step !== "login") ? (
+            <>
+              {installed && (
+                <p className="install-card mb-4 text-sm" role="note">
+                  <b>একবার Sign up করুন।</b> এরপর এই ফোনে SheRides খুললেই সরাসরি ঢুকে যাবেন — আর কখনো sign in লাগবে না।
+                </p>
+              )}
+              <SignupPanel flow={flow} returnTo={returnTo} />
+            </>
           ) : <LoginPanel flow={flow} returnTo={returnTo} />
         ) : !approved ? (
           <section>

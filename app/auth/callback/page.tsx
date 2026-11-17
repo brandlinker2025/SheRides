@@ -22,6 +22,12 @@ function CallbackInner() {
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
+    // Read the link's hash before the Supabase client can consume or clear it.
+    const earlyHash = typeof window !== "undefined" ? window.location.hash : "";
+    const hashTokens = new URLSearchParams(earlyHash.slice(1));
+    const accessToken = hashTokens.get("access_token");
+    const refreshToken = hashTokens.get("refresh_token");
+    const staffLogin = params.get("next") === "staff";
     const supabase = createClient();
     if (!supabase) {
       setStage("failed");
@@ -43,6 +49,10 @@ function CallbackInner() {
         setMessage(failText ?? "This link is invalid or has expired. Please request a new one.");
         return;
       }
+      if (staffLogin) {
+        window.location.replace("/admin");
+        return;
+      }
       if (!isRecovery && params.get("flow") === "oauth") {
         window.location.replace("/go");
         return;
@@ -56,6 +66,13 @@ function CallbackInner() {
     }
 
     void (async () => {
+      if (accessToken && refreshToken) {
+        // Emailed staff login link (implicit flow): the session arrives in the link itself.
+        const { error } = await supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken });
+        window.history.replaceState(null, "", window.location.pathname + window.location.search);
+        finish(!error, error?.message);
+        return;
+      }
       if (tokenHash && rawType && OTP_TYPES.includes(rawType)) {
         // Link from our own email template: works even if opened in a different browser.
         const { error } = await supabase.auth.verifyOtp({ token_hash: tokenHash, type: rawType });
@@ -155,7 +172,7 @@ function CallbackInner() {
             <Icon name="link_off" size={44} className="mx-auto text-[#ff8a8a]" />
             <h1 className="text-2xl font-bold">Link not working</h1>
             <p className="text-white/75 text-sm" role="alert">{message}</p>
-            <Link href="/login" className="h-12 rounded-xl bg-[#6c5ce7] font-semibold grid place-items-center hover:bg-[#5a4bd4]">
+            <Link href={params.get("next") === "staff" ? "/admin-login" : "/login"} className="h-12 rounded-xl bg-[#6c5ce7] font-semibold grid place-items-center hover:bg-[#5a4bd4]">
               Back to login
             </Link>
           </div>
