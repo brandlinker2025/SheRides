@@ -99,9 +99,7 @@ export function GoHub({ flow }: { flow: "partner" | "ride" }) {
     void load();
   }, [load]);
 
-  const passenger = apps?.find((a) => a.role === "passenger");
   const rider = apps?.find((a) => a.role === "rider");
-  const canBook = passenger?.status === "approved";
   const canRide = rider?.status === "approved";
   const tab = flow === "partner" ? "rider" : "book";
   const submitted = params.get("submitted");
@@ -139,18 +137,11 @@ export function GoHub({ flow }: { flow: "partner" | "ride" }) {
     );
   }
 
+  // Live Ride: any approved member can book straight away (no separate passenger verification).
   return (
-    <RideDeck
-      showForm={Boolean(apps && canBook)}
-      below={
-        apps && !canBook ? (
-          <div className="grid gap-4">
-            {!canBook && <ApplyCard role="passenger" app={passenger} />}
-          </div>
-        ) : null
-      }
-    >
-      <h1 className="mb-3 text-2xl font-bold">Live Ride</h1>
+    <RideDeck showForm={apps !== null}>
+      <h1 className="mb-1 text-2xl font-bold">Live Ride</h1>
+      <p className="mb-3 text-sm text-[#5e5276]">Pickup আর গন্তব্য দিন → ভাড়া দেখুন → Request চাপুন। কাছের নারী captain খোঁজা শুরু হবে।</p>
       {notices}
     </RideDeck>
   );

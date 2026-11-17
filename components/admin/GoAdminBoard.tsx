@@ -380,7 +380,6 @@ export function GoAdminBoard({
     ridesByRider.set(ride.rider_id, list);
   }
 
-  const pendingPassengers = passengers.filter((a) => a.status === "pending");
   const pendingRiders = riders.filter((a) => a.status === "pending");
   const pendingPartners = partners.filter((lead) => lead.status === "pending");
   const reviewedPartners = partners.filter((lead) => lead.status !== "pending");
@@ -392,12 +391,11 @@ export function GoAdminBoard({
           <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#ffb95f]">One queue</p>
           <h2 className="text-xl font-bold text-[#e4e1e9]">Waiting for a decision</h2>
           <p className="text-sm text-white/65">
-            Approve or reject passengers who want to book, captains who want to ride, and partner leads. A rejection needs a short reason. The member gets an in-app notification.
+            Approve or reject captains who want to ride and partner leads. Passengers can book as soon as their membership is approved. A rejection needs a short reason. The member gets an in-app notification.
           </p>
         </div>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <div className="grid grid-cols-2 gap-3">
           {[
-            { href: "#passengers", label: "Passengers to book", value: pendingPassengers.length },
             { href: "#captains", label: "Captains to ride", value: pendingRiders.length },
             { href: "#partners", label: "Partner leads", value: pendingPartners.length },
           ].map((card) => (
@@ -407,15 +405,6 @@ export function GoAdminBoard({
             </a>
           ))}
         </div>
-      </section>
-
-      <section id="passengers" className="flex flex-col gap-3">
-        <h2 className="text-lg font-bold">Passengers — book rides ({pendingPassengers.length})</h2>
-        <p className="text-sm text-white/60">These members are stuck on Book rides · Pending until you approve them.</p>
-        {pendingPassengers.map((app) => (
-          <VerificationRow key={app.id} app={app} rides={ridesByRider.get(app.user_id) ?? []} />
-        ))}
-        {pendingPassengers.length === 0 && <p className="card-surface p-6 text-center text-sm text-white/60">No passengers waiting to book.</p>}
       </section>
 
       <section id="captains" className="flex flex-col gap-3">
@@ -458,7 +447,7 @@ export function GoAdminBoard({
 
       <div className="flex flex-col sm:flex-row gap-3">
         <div role="tablist" aria-label="Who to review" className="inline-flex rounded-full border border-surface-border bg-surface-container-lowest p-1 self-start">
-          {(["rider", "passenger"] as Role[]).map((r) => {
+          {(["rider"] as Role[]).map((r) => {
             const waiting = (r === "rider" ? riders : passengers).filter((a) => a.status === "pending").length;
             return (
               <button

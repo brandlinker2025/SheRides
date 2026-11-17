@@ -4,15 +4,14 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Icon } from "@/components/ui/Icon";
 import { Logo } from "@/components/ui/Logo";
-import { PandaNavBackdrop } from "@/components/brand/PandaNavBackdrop";
-import { useScrollTopOnNavigate } from "@/hooks/useScrollTopOnNavigate";
+import "@/components/public-app/public-app.css";
 
 const nav = [
-  { href: "/admin/go", label: "Approvals", icon: "fact_check", moderator: true },
-  { href: "/admin", label: "Dashboard", icon: "dashboard", exact: true },
-  { href: "/admin/verifications", label: "New Joins", icon: "verified_user" },
-  { href: "/admin/users", label: "Accounts", icon: "group" },
-  { href: "/admin/user-details", label: "Contacts", icon: "badge" },
+  { href: "/admin/go", label: "Approvals", short: "Approvals", icon: "fact_check", moderator: true },
+  { href: "/admin", label: "Dashboard", short: "Home", icon: "dashboard", exact: true },
+  { href: "/admin/verifications", label: "New Joins", short: "Joins", icon: "verified_user" },
+  { href: "/admin/users", label: "Accounts", short: "Accounts", icon: "group" },
+  { href: "/admin/user-details", label: "Contacts", short: "Contacts", icon: "badge" },
 ];
 
 export function AdminShell({
@@ -30,91 +29,65 @@ export function AdminShell({
 }) {
   const pathname = usePathname();
   const items = role === "moderator" ? nav.filter((item) => "moderator" in item) : nav;
-  const mainRef = useScrollTopOnNavigate<HTMLElement>();
+  const isMod = role === "moderator";
+  const count = (href: string) => (href === "/admin/go" ? queueCount : href === "/admin/verifications" ? pendingCount : 0);
+  const active = (item: (typeof nav)[number]) => (item.exact ? pathname === item.href : pathname.startsWith(item.href));
+  const label = isMod ? "Moderator" : "Main admin";
 
   return (
-    <div className="panda-app-bg h-dvh overflow-hidden text-on-surface">
-      <header className="panda-topnav fixed top-0 w-full z-50 flex justify-between items-center px-gutter py-base md:hidden">
-        <Logo variant="mark" height={40} suffix="Admin" />
-        <Link href="/go" className="text-on-primary/80 font-label-lg text-label-lg">
-          App
-        </Link>
-      </header>
-      <nav aria-label="Admin navigation" className="hidden md:flex flex-col h-dvh fixed left-0 top-0 pt-8 pb-6 w-64 shadow-xl z-50 overflow-hidden">
-        <PandaNavBackdrop />
-        <div className="relative z-10 px-6 mb-6">
-          <Link href="/go" aria-label="SheRides ride booking">
-            <Logo variant="mark" height={64} priority />
+    <div className="admin-app text-on-surface">
+      <aside className="admin-side" aria-label="Admin navigation">
+        <div className="admin-brand">
+          <Link href="/" aria-label="SheRides home">
+            <Logo variant="lockup" tone="light" height={92} priority />
           </Link>
-          <div className="text-white font-label-caps text-label-caps mt-2 drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">{role === "moderator" ? "Moderator Panel" : "Admin Panel"}</div>
-          {adminName && <p className="text-white font-body-sm text-body-sm mt-2 drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">{adminName}</p>}
+          <span className={`admin-role ${isMod ? "is-mod" : ""}`}>
+            <Icon name={isMod ? "support_agent" : "shield_person"} size={16} /> {label}
+          </span>
+          {adminName && <p className="admin-name">{adminName}</p>}
         </div>
-        <div className="relative z-10 flex-1 flex flex-col gap-1.5 px-4 overflow-y-auto hide-scrollbar min-h-0">
+        <nav className="flex flex-col gap-1.5 flex-1 overflow-y-auto hide-scrollbar">
           {items.map((item) => {
-            const active = item.exact ? pathname === item.href : pathname.startsWith(item.href);
-            const badge = item.href === "/admin/go" ? queueCount : item.href === "/admin/verifications" ? pendingCount : 0;
-            const showBadge = badge > 0;
+            const n = count(item.href);
             return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`nav-pill font-label-lg ${active ? "nav-pill-active" : ""}`}
-              >
-                <Icon name={item.icon} filled={active} />
-                <span className="flex-1">{item.label}</span>
-                {showBadge ? (
-                  <span className="min-w-6 h-6 px-1.5 inline-flex items-center justify-center rounded-full bg-white text-accent-magenta text-[11px] font-bold shadow">
-                    {badge > 99 ? "99+" : badge}
-                  </span>
-                ) : null}
+              <Link key={item.href} href={item.href} className={`admin-link ${active(item) ? "is-active" : ""}`}>
+                <Icon name={item.icon} filled={active(item)} size={22} />
+                <span>{item.label}</span>
+                {n > 0 && <span className="admin-count">{n > 99 ? "99+" : n}</span>}
               </Link>
             );
           })}
-        </div>
-        <div className="relative z-10 px-4 pt-3 mt-2 border-t border-white/10">
-          <Link href="/go" className="nav-pill font-label-lg">
-            <Icon name="arrow_back" /> Ride app
-          </Link>
-        </div>
-      </nav>
-      <div className="panda-topnav md:hidden fixed bottom-0 inset-x-0 z-50 flex justify-around py-3 px-2 overflow-x-auto">
-        {items.map((item) => {
-          const active = item.exact ? pathname === item.href : pathname.startsWith(item.href);
-          const badge = item.href === "/admin/go" ? queueCount : item.href === "/admin/verifications" ? pendingCount : 0;
-          const showBadge = badge > 0;
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`relative flex min-w-16 flex-col items-center gap-1 ${active ? "text-white" : "text-on-primary/70"}`}
-            >
-              <span className="relative">
-                <Icon name={item.icon} filled={active} size={22} />
-                {showBadge ? (
-                  <span className="absolute -right-2 -top-1 min-w-4 h-4 px-1 inline-flex items-center justify-center rounded-full bg-accent-magenta text-white text-[9px] font-label-lg">
-                    {badge > 99 ? "99+" : badge}
-                  </span>
-                ) : null}
-              </span>
-              <span className="font-label-caps text-[10px] whitespace-nowrap">{item.label}</span>
-            </Link>
-          );
-        })}
-      </div>
-      {/* Background art stays put while only the content scrolls */}
-      <div className="pointer-events-none fixed inset-0 md:left-64 overflow-hidden" aria-hidden="true">
-        <div className="absolute inset-0 panda-app-veil" />
-      </div>
-      {/* Sidebar is fixed; this is the ONLY scrolling area */}
-      <main
-        id="admin-main"
-        ref={mainRef}
-        className="relative z-10 h-dvh overflow-y-auto overscroll-contain md:ml-64 pt-20 md:pt-0"
-      >
-        <div className="p-container-margin-mobile md:p-container-margin-desktop pb-28 md:pb-container-margin-desktop">
-          {children}
-        </div>
+        </nav>
+        <Link href="/" className="admin-link">
+          <Icon name="arrow_back" size={22} /> SheRides app
+        </Link>
+      </aside>
+
+      <header className="admin-top">
+        <Logo variant="mark" tone="light" height={40} />
+        <span className={`admin-role ${isMod ? "is-mod" : ""}`}>
+          <Icon name={isMod ? "support_agent" : "shield_person"} size={16} /> {label}
+        </span>
+      </header>
+
+      <main id="admin-main" className="admin-main">
+        <div className="mx-auto w-full max-w-6xl">{children}</div>
       </main>
+
+      {items.length > 1 && (
+        <nav className="admin-tabs" aria-label="Admin sections">
+          {items.map((item) => {
+            const n = count(item.href);
+            return (
+              <Link key={item.href} href={item.href} className={`admin-tab ${active(item) ? "is-active" : ""}`}>
+                <Icon name={item.icon} filled={active(item)} size={22} />
+                <span>{item.short}</span>
+                {n > 0 && <span className="admin-count">{n > 99 ? "99+" : n}</span>}
+              </Link>
+            );
+          })}
+        </nav>
+      )}
     </div>
   );
 }
