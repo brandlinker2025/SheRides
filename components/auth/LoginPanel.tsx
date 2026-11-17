@@ -21,7 +21,7 @@ function translateAuthError(message: string, member: boolean): string {
     return member ? "Please confirm your account first." : "Please verify your email first.";
   }
   if (lower.includes("invalid login credentials") || lower.includes("invalid credentials")) {
-    return member ? "The mobile number or password is incorrect." : "The email or password is incorrect.";
+    return member ? "The email, mobile number, or password is incorrect." : "The email or password is incorrect.";
   }
   return message;
 }

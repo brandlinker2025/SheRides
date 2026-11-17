@@ -11,7 +11,8 @@ import {
 } from "react";
 import { validateDateOfBirth } from "./birthday";
 import { riderFromProfile } from "./profile";
-import { authEmailForIdentifier, normalizeBdPhone, parseMemberIdentifier, phoneAuthEmail } from "./phone";
+import { authEmailForIdentifier, isPhoneAuthEmail, parseMemberIdentifier } from "./phone";
+import { siteOrigin } from "./site";
 import { createClient } from "./supabase/client";
 import type { Rider } from "./types";
 
@@ -32,7 +33,7 @@ type AuthContextValue = {
   refreshUser: () => Promise<void>;
   updateProfile: (updates: ProfileUpdates) => Promise<string | null>;
   signIn: (identifier: string, password: string) => Promise<string | null>;
-  signUp: (fullName: string, phone: string, password: string, dateOfBirth: string) => Promise<string | null>;
+  signUp: (fullName: string, identifier: string, password: string, dateOfBirth: string) => Promise<{ error?: string; confirmationRequired?: boolean }>;
   signOut: () => Promise<void>;
 };
 
@@ -119,22 +120,42 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const retry = await supabase.auth.signInWithPassword({ email: linkedEmail, password });
       return retry.error?.message ?? null;
     },
-    async signUp(fullName, phoneInput, password, dateOfBirth) {
-      const supabase = createClient(); if (!supabase) return "Supabase is not configured.";
-      const dobError = validateDateOfBirth(dateOfBirth); if (dobError) return dobError;
-      const phone = normalizeBdPhone(phoneInput); if (!phone) return "Enter a valid Bangladesh mobile number (01XXXXXXXXX or +8801XXXXXXXXX).";
-      const { data: taken, error: takenError } = await supabase.rpc("is_member_phone_taken", { p_phone: phone });
-      if (!takenError && taken === true) return "This mobile number is already registered. Sign in instead.";
-      const email = phoneAuthEmail(phone); const username = phone;
-      const { data, error } = await supabase.auth.signUp({ email, password, options: { data: { full_name: fullName, username, phone } } });
-      if (error) { if (alreadyRegistered(error.message)) return "This mobile number is already registered. Sign in instead."; return error.message; }
-      if (data.user) {
-        const profileSave = await supabase.from("profiles").upsert({ id: data.user.id, full_name: fullName || "Rider", username, mobile_number: phone });
-        if (profileSave.error) return "Account created, but the mobile number could not be saved to your profile.";
-        const saved = await supabase.rpc("save_own_date_of_birth", { p_dob: dateOfBirth });
-        if (saved.error) return "Account created. Add your birthday from your profile to receive wishes.";
+    async signUp(fullName, identifier, password, dateOfBirth) {
+      const supabase = createClient();
+      if (!supabase) return { error: "Supabase is not configured." };
+      const dobError = validateDateOfBirth(dateOfBirth);
+      if (dobError) return { error: dobError };
+      const parsed = parseMemberIdentifier(identifier);
+      if (!parsed || (parsed.kind === "email" && isPhoneAuthEmail(parsed.value))) {
+        return { error: "Enter a valid email address or Bangladesh mobile number." };
       }
-      return null;
+
+      const phone = parsed.kind === "phone" ? parsed.value : null;
+      const duplicate = phone ? "This mobile number is already registered. Sign in instead." : "This email is already registered. Sign in instead.";
+      if (phone) {
+        const { data: taken } = await supabase.rpc("is_member_phone_taken", { p_phone: phone });
+        if (taken === true) return { error: duplicate };
+      }
+
+      const username = phone ?? `member_${crypto.randomUUID()}`;
+      const { data, error } = await supabase.auth.signUp({
+        email: authEmailForIdentifier(parsed),
+        password,
+        options: {
+          data: { full_name: fullName, username, ...(phone ? { phone } : {}) },
+          emailRedirectTo: `${siteOrigin()}/auth/callback`,
+        },
+      });
+      if (error) return { error: alreadyRegistered(error.message) ? duplicate : error.message };
+      if (!data.session) return { confirmationRequired: true };
+
+      if (phone) {
+        const profileSave = await supabase.from("profiles").update({ mobile_number: phone }).eq("id", data.session.user.id);
+        if (profileSave.error) return { error: "Account created, but the mobile number could not be saved to your profile." };
+      }
+      const saved = await supabase.rpc("save_own_date_of_birth", { p_dob: dateOfBirth });
+      if (saved.error) return { error: "Account created. Add your birthday from your profile to receive wishes." };
+      return {};
     },
     async signOut() {
       setUser(null); const supabase = createClient(); if (supabase) await supabase.auth.signOut();

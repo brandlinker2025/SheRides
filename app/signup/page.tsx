@@ -5,11 +5,10 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { dobInputBounds, validateDateOfBirth } from "@/lib/birthday";
-import { normalizeBdPhone } from "@/lib/phone";
+import { parseMemberIdentifier } from "@/lib/phone";
 import { Icon } from "@/components/ui/Icon";
 import { AuthScene, authFieldClass } from "@/components/auth/AuthScene";
 import { DustumiSubmitButton } from "@/components/auth/DustumiSubmitButton";
-import { AuthSocialButtons } from "@/components/auth/AuthSocialButtons";
 import { usePandaForm } from "@/components/auth/usePandaForm";
 
 function SignupForm() {
@@ -17,16 +16,17 @@ function SignupForm() {
   const router = useRouter();
   const params = useSearchParams();
   const [fullName, setFullName] = useState("");
-  const [phone, setPhone] = useState(() => params.get("phone") ?? "");
+  const [identifier, setIdentifier] = useState(() => params.get("phone") ?? "");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [dateOfBirth, setDateOfBirth] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [confirmationRequired, setConfirmationRequired] = useState(false);
   const [busy, setBusy] = useState(false);
   const [dodgeToken, setDodgeToken] = useState(0);
   const panda = usePandaForm();
-  const identifierValid = Boolean(normalizeBdPhone(phone));
+  const identifierValid = Boolean(parseMemberIdentifier(identifier));
 
   function dodge() {
     setDodgeToken((value) => value + 1);
@@ -44,9 +44,13 @@ function SignupForm() {
       <div className="w-full rounded-[28px] border border-[#6c5ce7]/50 bg-[rgba(12,10,14,0.82)] p-6 shadow-[0_20px_50px_rgba(0,0,0,0.35),0_0_0_1px_rgba(108,92,231,0.12)] backdrop-blur-xl sm:p-8">
         <h1 className="mb-1 text-2xl font-bold leading-tight text-white sm:text-3xl">Welcome to SheRides!</h1>
         <p className="mb-6 text-sm text-white/70">
-          Create your account with your mobile number. An administrator will approve you before you can ride.
+          Create your account with your email or mobile number. An administrator will approve you before you can ride.
         </p>
-        <form
+        {confirmationRequired ? (
+          <p className="rounded-xl bg-white/10 p-4 text-sm text-white/90" role="status">
+            Check your inbox for the SheRides confirmation link. After opening it, you can sign in and wait for admin approval. You can add your date of birth from your profile after approval.
+          </p>
+        ) : <form
           className="flex flex-col gap-4"
           noValidate
           onSubmit={async (e) => {
@@ -57,9 +61,8 @@ function SignupForm() {
               dodge();
               return;
             }
-            const normalized = normalizeBdPhone(phone);
-            if (!normalized) {
-              setError("Enter a valid Bangladesh mobile number (01XXXXXXXXX).");
+            if (!identifierValid) {
+              setError("Enter a valid email address or Bangladesh mobile number.");
               dodge();
               return;
             }
@@ -85,14 +88,19 @@ function SignupForm() {
               return;
             }
             setBusy(true);
-            const message = await signUp(fullName.trim(), phone.trim(), password, dateOfBirth);
-            if (message) {
+            const result = await signUp(fullName.trim(), identifier, password, dateOfBirth);
+            if (result.error) {
               setBusy(false);
-              setError(message);
+              setError(result.error);
               panda.onError();
               return;
             }
             panda.onSuccess();
+            if (result.confirmationRequired) {
+              setConfirmationRequired(true);
+              setBusy(false);
+              return;
+            }
             window.setTimeout(() => {
               router.replace("/pending-approval");
               router.refresh();
@@ -118,22 +126,23 @@ function SignupForm() {
             />
           </label>
           <label className="block">
-            <span className="mb-1.5 block text-sm text-white/70">Mobile number</span>
+            <span className="mb-1.5 block text-sm text-white/70">Email or mobile number</span>
             <span className="relative block">
-              <Icon name="smartphone" size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/45" />
+              <Icon name="alternate_email" size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/45" />
               <input
-                type="tel"
-                inputMode="tel"
-                autoComplete="tel"
-                maxLength={16}
-                value={phone}
+                type="text"
+                autoComplete="username"
+                autoCapitalize="none"
+                spellCheck={false}
+                maxLength={254}
+                value={identifier}
                 onChange={(e) => {
-                  setPhone(e.target.value);
+                  setIdentifier(e.target.value);
                   panda.onTextInput(e.target.value);
                 }}
                 onFocus={panda.onTextFocus}
                 onBlur={panda.onBlur}
-                placeholder="01XXXXXXXXX"
+                placeholder="Email or 01XXXXXXXXX"
                 className={`${authFieldClass} pl-11 ${identifierValid ? "pr-11" : ""}`}
               />
               {identifierValid ? (
@@ -213,14 +222,13 @@ function SignupForm() {
           <DustumiSubmitButton dodgeToken={dodgeToken} busy={busy}>
             {busy ? "Creating account..." : "Sign Up"}
           </DustumiSubmitButton>
-        </form>
+        </form>}
         <p className="mt-6 text-sm text-white/70">
           Already a member?{" "}
           <Link href="/login" className="font-label-lg text-[#6c5ce7]">
             Sign In
           </Link>
         </p>
-        <div className="mt-4"><AuthSocialButtons googleOnly onError={setError} /></div>
       </div>
     </AuthScene>
   );
