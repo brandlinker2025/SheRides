@@ -1,11 +1,12 @@
 import type { MetadataRoute } from "next";
+import { brandAssetPath } from "./brand-assets";
 import { SITE_URL } from "./site";
 
 const icons: NonNullable<MetadataRoute.Manifest["icons"]> = [
-  { src: "/icons/icon-192.png", sizes: "192x192", type: "image/png", purpose: "any" },
-  { src: "/icons/icon-512.png", sizes: "512x512", type: "image/png", purpose: "any" },
-  { src: "/icons/icon-192-maskable.png", sizes: "192x192", type: "image/png", purpose: "maskable" },
-  { src: "/icons/icon-512-maskable.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
+  { src: `${brandAssetPath}/icon-192.png`, sizes: "192x192", type: "image/png", purpose: "any" },
+  { src: `${brandAssetPath}/icon-512.png`, sizes: "512x512", type: "image/png", purpose: "any" },
+  { src: `${brandAssetPath}/icon-192-maskable.png`, sizes: "192x192", type: "image/png", purpose: "maskable" },
+  { src: `${brandAssetPath}/icon-512-maskable.png`, sizes: "512x512", type: "image/png", purpose: "maskable" },
 ];
 
 const shared = {

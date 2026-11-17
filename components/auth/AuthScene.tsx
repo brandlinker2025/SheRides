@@ -13,7 +13,16 @@ export const authPrimaryClass =
   "inline-flex min-h-12 items-center justify-center rounded-full bg-gradient-to-b from-[#e4cffd] to-[#aa7bf3] px-5 text-center font-semibold text-[#201031] shadow-[0_5px_0_#7047ae,0_10px_24px_rgba(157,103,242,0.25)] transition-colors hover:from-[#eedfff] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#ded0ff]";
 
 export function AuthScene({ children, admin = false, embedded = false }: { children: ReactNode; admin?: boolean; embedded?: boolean }) {
-  if (embedded) return <div className="public-auth">{children}</div>;
+  if (embedded) {
+    return (
+      <div className="public-auth">
+        <div className="mb-4 flex justify-center">
+          <Logo height={108} tone="light" priority />
+        </div>
+        {children}
+      </div>
+    );
+  }
   return (
     <main className={`relative grid min-h-dvh place-items-center px-4 py-14 sm:px-8 ${authBackdropClass}`}>
       <div className="absolute right-4 top-4 sm:right-8">
