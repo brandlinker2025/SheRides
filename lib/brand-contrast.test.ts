@@ -19,10 +19,14 @@ test("coral and lavender buttons use dark purple text at WCAG AA", () => {
   const css = `${readFileSync("app/globals.css", "utf8")}\n${readFileSync("components/public-app/public-app.css", "utf8")}`;
   assert.match(css, /\.btn-primary,\s*\n\.sherides-btn-primary\s*\{[^}]*background:\s*#FF6772/i);
   assert.match(css, /\.btn-primary,\s*\n\.sherides-btn-primary\s*\{[^}]*color:\s*#460377/i);
-  assert.match(css, /\.public-mint\s*\{[^}]*background:\s*linear-gradient\(#a7f6df, #50d4bd\)/i);
-  assert.match(css, /\.public-mint\s*\{[^}]*color:\s*#103c35/i);
-  assert.ok(contrast("#103c35", "#a7f6df") >= 4.5);
-  assert.ok(contrast("#103c35", "#50d4bd") >= 4.5);
+  assert.match(css, /--sr-mint-1:\s*#8af3e9/i);
+  assert.match(css, /--sr-mint-2:\s*#3fd0c1/i);
+  assert.match(css, /--sr-mint-text:\s*#0a3f3a/i);
+  assert.ok(contrast("#0a3f3a", "#8af3e9") >= 4.5);
+  assert.ok(contrast("#0a3f3a", "#3fd0c1") >= 4.5);
+  // Violet buttons: white label stays readable on the darker half; links on white pass AA.
+  assert.ok(contrast("#FFFFFF", "#7244f2") >= 4.5);
+  assert.ok(contrast("#7044f5", "#FFFFFF") >= 4.5);
   assert.ok(contrast("#460377", "#FF6772") >= 4.5);
   assert.ok(contrast("#FFFFFF", "#FF6772") < 3);
   assert.ok(contrast("#FF6772", "#1B1324") >= 4.5);
