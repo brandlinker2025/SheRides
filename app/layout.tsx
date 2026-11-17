@@ -3,6 +3,7 @@ import { Inter, Montserrat } from "next/font/google";
 import localFont from "next/font/local";
 import { AppProviders } from "@/components/providers/AppProviders";
 import { RegisterSW } from "@/components/pwa/RegisterSW";
+import { brandAssetPath } from "@/lib/brand-assets";
 import "./globals.css";
 
 const inter = Inter({
@@ -26,7 +27,7 @@ const butterpop = localFont({
 });
 
 const siteUrl = "https://sherides.online";
-const ogImage = "/og.jpg";
+const ogImage = `${brandAssetPath}/share.jpg`;
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -37,13 +38,13 @@ export const metadata: Metadata = {
   manifest: "/manifest.webmanifest",
   icons: {
     icon: [
-      { url: "/favicon.ico" },
-      { url: "/icons/icon-16.png", sizes: "16x16", type: "image/png" },
-      { url: "/icons/icon-32.png", sizes: "32x32", type: "image/png" },
-      { url: "/icons/icon-48.png", sizes: "48x48", type: "image/png" },
-      { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: `${brandAssetPath}/favicon.ico` },
+      { url: `${brandAssetPath}/icon-16.png`, sizes: "16x16", type: "image/png" },
+      { url: `${brandAssetPath}/icon-32.png`, sizes: "32x32", type: "image/png" },
+      { url: `${brandAssetPath}/icon-48.png`, sizes: "48x48", type: "image/png" },
+      { url: `${brandAssetPath}/icon-192.png`, sizes: "192x192", type: "image/png" },
     ],
-    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
+    apple: [{ url: `${brandAssetPath}/icon-180.png`, sizes: "180x180", type: "image/png" }],
   },
   alternates: {
     canonical: "/",
@@ -83,10 +84,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={`${inter.variable} ${montserrat.variable} ${butterpop.variable}`}>
       <head>
-        <link rel="icon" href="/favicon.ico" sizes="any" />
-        <link rel="icon" href="/icons/icon-32.png" type="image/png" sizes="32x32" />
-        <link rel="icon" href="/icons/icon-16.png" type="image/png" sizes="16x16" />
-        <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <link
           href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0..1,0&display=swap"

@@ -18,6 +18,7 @@ export function Logo({ variant = "mark", height = 48, tone = "dark", suffix, cla
   const width = Math.max(1, Math.round(height * asset.ratio));
   const sizes = `${width * 2}px`;
   const frame = "absolute inset-0 h-full w-full object-contain";
+  const darkFrame = variant === "badge" ? frame : `${frame} rounded-lg bg-[#f0e9ff] p-1`;
   const imageProps = { quality: 95 as const, priority };
 
   return (
@@ -34,7 +35,7 @@ export function Logo({ variant = "mark", height = 48, tone = "dark", suffix, cla
             height={asset.dark.height}
             sizes={sizes}
             {...imageProps}
-            className={tone === "auto" ? `brand-logo-dark ${frame}` : frame}
+            className={tone === "auto" ? `brand-logo-dark ${darkFrame}` : darkFrame}
           />
         ) : null}
         {tone !== "dark" ? (
