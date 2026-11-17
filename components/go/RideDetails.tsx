@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { Avatar } from "@/components/ui/Avatar";
+import { RideMap } from "./RideMap";
 import { BackLink } from "@/components/ui/BackLink";
 import { Icon } from "@/components/ui/Icon";
 import { useAuth } from "@/lib/auth-context";
@@ -179,6 +180,16 @@ export function RideDetails({ id }: { id: string }) {
           </div>
         )}
       </header>
+
+      {ride.status !== "completed" && ride.status !== "cancelled" && (
+        <div className="h-[260px] sm:h-[320px]">
+          <RideMap
+            pickup={ride.pickup_lat != null && ride.pickup_lng != null ? { label: ride.pickup_text, lat: ride.pickup_lat, lng: ride.pickup_lng } : null}
+            drop={ride.drop_lat != null && ride.drop_lng != null ? { label: ride.drop_text ?? "Drop-off", lat: ride.drop_lat, lng: ride.drop_lng } : null}
+            rider={active && ride.rider_lat != null && ride.rider_lng != null ? { label: "Captain", lat: ride.rider_lat, lng: ride.rider_lng } : null}
+          />
+        </div>
+      )}
 
       {isPassenger && secret && active && (
         <div className="card-surface p-5 flex items-center gap-4">

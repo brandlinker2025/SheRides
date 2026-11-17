@@ -9,7 +9,6 @@ import { GoHub } from "@/components/go/GoHub";
 import { RideDetails } from "@/components/go/RideDetails";
 import { Icon } from "@/components/ui/Icon";
 import { Logo } from "@/components/ui/Logo";
-import { InsurancePanel } from "./InsurancePanel";
 import { useAuth } from "@/lib/auth-context";
 import "./public-app.css";
 
@@ -48,27 +47,13 @@ export function PublicApp() {
   const hubHref = `/?flow=${flow}`;
   const approved = user?.verified || user?.role === "admin";
   const back = step || trip ? hubHref : "/";
-  const passengerOptions = flow === "ride" && !step && !trip;
   const returnTo = validTrip ? `${hubHref}&trip=${trip}` : hubHref;
   return (
     <main className="public-app">
-      <div className={`public-panel ${approved && !step ? "public-panel-wide" : ""}`}>
+      <div className={`public-panel ${approved && flow === "partner" && !step && !trip ? "public-panel-wide" : ""}`}>
         <Link className="public-back" href={back}><Icon name="arrow_back" size={18} /> Back</Link>
-        {passengerOptions && (
-          <div className="public-tools">
-            <InsurancePanel />
-            <details>
-              <summary><span className="public-tile-icon public-tile-peach"><Icon name="sell" size={20} /></span>Promotions</summary>
-              <p>Use a promo code in the ride form to see the discount before booking.</p>
-            </details>
-          </div>
-        )}
         {loading ? <p role="status">Loading…</p> : !user ? (
-          passengerOptions ? (
-            <Link className="public-action public-mint w-full" href="/?flow=ride&step=login">
-              <Icon name="location_on" size={20} /> Live Ride
-            </Link>
-          ) : step === "signup" ? (
+          step === "signup" ? (
             <SignupPanel flow={flow} returnTo={returnTo} />
           ) : <LoginPanel flow={flow} returnTo={returnTo} />
         ) : !approved ? (

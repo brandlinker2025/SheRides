@@ -1,9 +1,9 @@
 export const bikeBrands = {
-  Yamaha: ["FZS V3", "R15 V4", "MT-15", "Saluto", "Fazer", "Ray ZR"],
-  Honda: ["CB Hornet", "CB Shine", "CB Trigger", "XBlade", "Livo"],
-  Suzuki: ["Gixxer", "Gixxer SF", "Hayabusa", "Intruder"],
+  Yamaha: ["FZS V3", "R15 V4", "MT-15", "Saluto", "Fazer", "Ray ZR", "Fascino"],
+  Honda: ["CB Hornet", "CB Shine", "CB Trigger", "XBlade", "Livo", "Dio"],
+  Suzuki: ["Gixxer", "Gixxer SF", "Hayabusa", "Intruder", "Access 125"],
   Bajaj: ["Pulsar NS160", "NS200", "RS200", "Dominar 400"],
-  TVS: ["Apache RTR 160", "Apache RTR 200", "Ntorq"],
+  TVS: ["Apache RTR 160", "Apache RTR 200", "Ntorq", "Jupiter"],
   Hero: ["Hunk", "Xtreme", "Passion Pro"],
   Lifan: [],
   Zinnan: [],

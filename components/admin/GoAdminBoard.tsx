@@ -16,8 +16,10 @@ export type AdminGoApplication = {
   emergency_contact_name: string | null;
   emergency_contact_phone: string | null;
   license_number: string | null;
+  bike_brand: string | null;
   bike_model: string | null;
   bike_plate: string | null;
+  bike_chassis: string | null;
   admin_notes: string | null;
   created_at: string;
   profile: { full_name: string; username: string; avatar_url: string | null } | null;
@@ -182,7 +184,10 @@ function VerificationRow({ app, rides }: { app: AdminGoApplication; rides: Admin
         <span className="font-mono text-sm">{showNid ? app.nid_number : maskNid(app.nid_number)}</span>
       </button>
       {app.role === "rider" && (
-        <p className="text-sm text-white/70">{app.bike_model ?? "Bike not given"} · {app.bike_plate ?? "no plate"}</p>
+        <p className="text-sm text-white/70">
+          {[app.bike_brand, app.bike_model].filter(Boolean).join(" ") || "Bike not given"} · {app.bike_plate ?? "no plate"}
+          <span className="block font-mono text-xs">Chassis: {app.bike_chassis ?? "not given"}</span>
+        </p>
       )}
       {app.emergency_contact_name && (
         <p className="text-sm text-white/70">Emergency contact on file: {app.emergency_contact_name}. The phone stays hidden on this card.</p>
@@ -365,7 +370,7 @@ export function GoAdminBoard({
   const shown = scoped.filter(
     (a) =>
       a.status === filter &&
-      (!q || [a.full_name, a.profile?.full_name, a.bike_plate, a.bike_model, a.license_number].some((v) => v?.toLowerCase().includes(q)))
+      (!q || [a.full_name, a.profile?.full_name, a.bike_plate, a.bike_brand, a.bike_model, a.bike_chassis, a.license_number].some((v) => v?.toLowerCase().includes(q)))
   );
   const ridesByRider = new Map<string, AdminGoRide[]>();
   for (const ride of rides) {

@@ -5,7 +5,8 @@ import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "rea
 import { CameraCapture } from "@/components/ui/CameraCapture";
 import { Icon } from "@/components/ui/Icon";
 import { useAuth } from "@/lib/auth-context";
-import { createSubmitLock, runGoApplicationSubmit, validateGoApplication } from "@/lib/go-application";
+import { createSubmitLock, normalizeChassis, runGoApplicationSubmit, validateGoApplication } from "@/lib/go-application";
+import { bikeBrandNames, bikeBrands, type BikeBrand } from "@/lib/bikes";
 import { uploadGoDocument, type GoRole } from "@/lib/go";
 import { createClient } from "@/lib/supabase/client";
 
@@ -139,8 +140,10 @@ export function ApplyForm({ role }: { role: GoRole }) {
   const [selfie, setSelfie] = useState<File | null>(null);
   const [licenseNo, setLicenseNo] = useState("");
   const [licenseFile, setLicenseFile] = useState<File | null>(null);
+  const [bikeBrand, setBikeBrand] = useState("");
   const [bikeModel, setBikeModel] = useState("");
   const [bikePlate, setBikePlate] = useState("");
+  const [bikeChassis, setBikeChassis] = useState("");
   const [bikePapers, setBikePapers] = useState<File | null>(null);
   const [declared, setDeclared] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -189,8 +192,10 @@ export function ApplyForm({ role }: { role: GoRole }) {
       hasSelfie: Boolean(selfie),
       licenseNo,
       hasLicenseFile: Boolean(licenseFile),
+      bikeBrand,
       bikeModel,
       bikePlate,
+      bikeChassis,
       hasBikePapers: Boolean(bikePapers),
       declared,
     };
@@ -230,7 +235,15 @@ export function ApplyForm({ role }: { role: GoRole }) {
         },
         save: async (payload) => {
           const { error: rpcError } = await supabase.rpc("go_submit_application", payload);
-          if (rpcError) throw rpcError;
+          if (!rpcError) return;
+          // Database not yet migrated for brand/chassis: save with the original fields so the
+          // application is never lost; the brand is kept inside the model text.
+          if (rpcError.code !== "PGRST202") throw rpcError;
+          const { p_bike_brand, p_bike_chassis, ...legacy } = payload;
+          void p_bike_chassis;
+          const model = [p_bike_brand, legacy.p_bike_model].filter(Boolean).join(" ").slice(0, 60) || null;
+          const { error: legacyError } = await supabase.rpc("go_submit_application", { ...legacy, p_bike_model: model });
+          if (legacyError) throw legacyError;
         },
       },
     });
@@ -293,8 +306,17 @@ export function ApplyForm({ role }: { role: GoRole }) {
           <Section title="3. Licence & bike">
             <input value={licenseNo} onChange={(e) => setLicenseNo(e.target.value)} maxLength={40} placeholder="Driving licence number" className={field} />
             <FilePick label="Driving licence" hint="Photo or PDF" file={licenseFile} onPick={setLicenseFile} />
-            <input value={bikeModel} onChange={(e) => setBikeModel(e.target.value)} maxLength={60} placeholder="Bike / scooter model (e.g. Yamaha Fascino)" className={field} />
-            <input value={bikePlate} onChange={(e) => setBikePlate(e.target.value)} maxLength={30} placeholder="Number plate (e.g. Dhaka Metro-HA 12-3456)" className={field} />
+            <p className="font-label-lg text-sm font-bold pt-2">Bike details</p>
+            <input value={bikeBrand} onChange={(e) => setBikeBrand(e.target.value)} maxLength={40} list="sr-bike-brands" autoComplete="off" placeholder="Brand (e.g. Yamaha, Honda, TVS)" aria-label="Bike brand" className={field} />
+            <datalist id="sr-bike-brands">
+              {bikeBrandNames.map((name) => <option key={name} value={name} />)}
+            </datalist>
+            <input value={bikeModel} onChange={(e) => setBikeModel(e.target.value)} maxLength={60} list="sr-bike-models" autoComplete="off" placeholder="Model (e.g. Fascino, Ray ZR, Ntorq)" aria-label="Bike model" className={field} />
+            <datalist id="sr-bike-models">
+              {(bikeBrands[bikeBrand as BikeBrand] ?? []).map((name) => <option key={name} value={name} />)}
+            </datalist>
+            <input value={bikePlate} onChange={(e) => setBikePlate(e.target.value)} maxLength={30} placeholder="Number plate (e.g. Dhaka Metro-HA 12-3456)" aria-label="Number plate" className={field} />
+            <input value={bikeChassis} onChange={(e) => setBikeChassis(normalizeChassis(e.target.value).slice(0, 25))} maxLength={25} autoCapitalize="characters" autoComplete="off" spellCheck={false} placeholder="Chassis number (from registration paper)" aria-label="Chassis number" className={`${field} font-mono tracking-wider`} />
             <FilePick label="Bike papers" hint="Registration + tax token (one photo or PDF)" file={bikePapers} onPick={setBikePapers} />
             <p className="font-body-sm text-secondary">
               You must carry a second clean helmet for your passenger on every ride.

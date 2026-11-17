@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 import type { GoPlace } from "@/lib/go";
 
-type Pin = { place: GoPlace; kind: "pickup" | "drop" };
+type Pin = { place: GoPlace; kind: "pickup" | "drop" | "rider" };
 
 function project(place: GoPlace, bounds: { minLat: number; maxLat: number; minLng: number; maxLng: number }) {
   const latSpan = Math.max(bounds.maxLat - bounds.minLat, 0.01);
@@ -14,8 +14,8 @@ function project(place: GoPlace, bounds: { minLat: number; maxLat: number; minLn
 }
 
 /** Stylized live-map frame. Pins track pickup and drop without a third-party map key. */
-export function RideMap({ pickup, drop }: { pickup: GoPlace | null; drop: GoPlace | null }) {
-  const pins = useMemo(() => [pickup && { place: pickup, kind: "pickup" as const }, drop && { place: drop, kind: "drop" as const }].filter(Boolean) as Pin[], [pickup, drop]);
+export function RideMap({ pickup, drop, rider = null }: { pickup: GoPlace | null; drop: GoPlace | null; rider?: GoPlace | null }) {
+  const pins = useMemo(() => [pickup && { place: pickup, kind: "pickup" as const }, drop && { place: drop, kind: "drop" as const }, rider && { place: rider, kind: "rider" as const }].filter(Boolean) as Pin[], [pickup, drop, rider]);
   const bounds = useMemo(() => {
     const points = pins.length ? pins.map((pin) => pin.place) : [{ lat: 23.78, lng: 90.36 }, { lat: 23.86, lng: 90.44 }];
     const lats = points.map((point) => point.lat);
@@ -50,17 +50,17 @@ export function RideMap({ pickup, drop }: { pickup: GoPlace | null; drop: GoPlac
         <path d="M8 72 C 24 68, 30 40, 48 46 S 70 78, 94 30" fill="none" stroke="rgba(134,81,220,0.45)" strokeWidth="1.4" />
         <path d="M4 28 C 22 36, 40 18, 58 32 S 78 20, 98 48" fill="none" stroke="rgba(80,212,189,0.6)" strokeWidth="1.1" />
         <path d="M12 90 C 30 60, 46 84, 70 58 S 86 40, 96 62" fill="none" stroke="rgba(97,53,188,0.18)" strokeWidth="0.7" />
-        {placed.length === 2 && (
+        {(() => { const a = placed.find((p) => p.kind === "pickup"); const b = placed.find((p) => p.kind === "drop"); return a && b ? (
           <line
-            x1={placed[0].x}
-            y1={placed[0].y}
-            x2={placed[1].x}
-            y2={placed[1].y}
+            x1={a.x}
+            y1={a.y}
+            x2={b.x}
+            y2={b.y}
             stroke="url(#route)"
             strokeWidth="0.9"
             strokeDasharray="1.6 1.1"
           />
-        )}
+        ) : null; })()}
         <defs>
           <linearGradient id="route" x1="0" y1="0" x2="1" y2="1">
             <stop offset="0%" stopColor="#50d4bd" />
@@ -75,10 +75,10 @@ export function RideMap({ pickup, drop }: { pickup: GoPlace | null; drop: GoPlac
           style={{ left: `${pin.x}%`, top: `${pin.y}%` }}
         >
           <span
-            className={`block h-3.5 w-3.5 rounded-full border-2 border-white shadow-lg ${pin.kind === "pickup" ? "bg-cyan-300" : "bg-violet-400"}`}
+            className={`block h-3.5 w-3.5 rounded-full border-2 border-white shadow-lg ${pin.kind === "pickup" ? "bg-[#50d4bd]" : pin.kind === "rider" ? "bg-[#ec7fd0] animate-pulse" : "bg-[#6135bc]"}`}
           />
           <span className="mt-1 block max-w-[140px] truncate rounded-full bg-black/55 px-2 py-0.5 text-[11px] font-semibold text-white backdrop-blur-md">
-            {pin.kind === "pickup" ? "Pickup" : "Drop-off"}
+            {pin.kind === "pickup" ? "Pickup" : pin.kind === "rider" ? "Captain" : "Drop-off"}
           </span>
         </span>
       ))}
