@@ -12,6 +12,13 @@
   --color-secondary: 93 81 112;
   --color-tertiary: 93 81 112;
   --color-accent: 97 53 188;
+  --color-primary: 97 53 188;
+  --color-primary-container: 230 216 255;
+  --color-surface-container-low: 249 244 255;
+  --color-surface-container: 243 236 255;
+  --color-surface-container-high: 230 216 255;
+  --color-surface-variant: 240 233 255;
+  --color-outline: 134 81 220;
 }
 .public-app-home { display: grid; place-items: center; }
 .public-entry, .public-panel {
@@ -23,7 +30,30 @@
   background: #fffcff;
   box-shadow: 0 22px 52px #6135bc28, inset 0 2px 0 #fff;
 }
-.public-entry { display: grid; gap: 16px; }
+.public-entry { display: grid; gap: 14px; }
+.public-hero {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 248px;
+  margin-bottom: 8px;
+  overflow: hidden;
+  border-radius: 24px;
+  background: radial-gradient(circle at 80% 15%, #a77cf0 0, transparent 45%), linear-gradient(160deg, #8651dc, #6135bc);
+  box-shadow: 0 16px 34px #6135bc40, inset 0 2px 0 #ffffff40;
+}
+.public-hero-arch {
+  position: absolute;
+  inset: 18px 34px -40px;
+  border-radius: 999px 999px 32px 32px;
+  background: linear-gradient(#fffcff, #f0e9ff);
+  border: 1px solid #ffffff99;
+  box-shadow: 0 0 0 10px #ffffff1f;
+}
+.public-hero-dot { position: absolute; width: 14px; height: 14px; border-radius: 999px; }
+.public-hero-dot-pink { top: 26px; left: 18px; background: #f7a4e2; box-shadow: 0 0 0 6px #f7a4e233; }
+.public-hero-dot-aqua { bottom: 30px; right: 18px; background: #6edbd9; box-shadow: 0 0 0 6px #6edbd933; }
+.public-hero-logo { position: relative; margin-top: 14px; }
 .public-panel-wide { width: min(100%, 68rem); }
 .public-action, .public-back {
   display: inline-flex;
@@ -36,12 +66,23 @@
   font-weight: 700;
 }
 .public-violet { background: linear-gradient(#8651dc, #6135bc); color: white; box-shadow: 0 4px 0 #4f289e; }
+.public-action { justify-content: flex-start; min-height: 58px; padding: 7px 22px 7px 7px; font-size: 1.05rem; }
+.public-action.w-full { justify-content: center; padding: 10px 20px; }
+.public-light { background: #fffcff; color: #422a6c; border: 1px solid #e7dafa; box-shadow: 0 4px 0 #d9c7f6, 0 10px 22px #6135bc1a; }
+.public-action-icon { display: inline-grid; place-items: center; width: 44px; height: 44px; border-radius: 999px; flex-shrink: 0; }
+.public-icon-violet { background: linear-gradient(#8651dc, #6135bc); color: #fff; }
+.public-icon-mint { background: #ffffffb3; color: #103c35; }
+.public-action:active { transform: translateY(2px); }
 .public-mint { background: linear-gradient(#a7f6df, #50d4bd); color: #103c35; box-shadow: 0 4px 0 #32a88e; }
 .public-back { min-height: 44px; margin-bottom: 20px; background: #e6d8ff; color: #422a6c; }
 .public-app :focus-visible { outline: 3px solid #6135bc; outline-offset: 3px; }
 .public-tools { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; margin-bottom: 16px; }
 .public-tools details { border: 1px solid #e7dafa; border-radius: 16px; padding: 12px; background: #f9f4ff; }
-.public-tools summary { color: #422a6c; font-weight: 700; cursor: pointer; }
+.public-tools summary { display: flex; align-items: center; gap: 10px; color: #422a6c; font-weight: 700; cursor: pointer; list-style: none; }
+.public-tools summary::-webkit-details-marker { display: none; }
+.public-tile-icon { display: inline-grid; place-items: center; width: 38px; height: 38px; border-radius: 12px; color: #fff; flex-shrink: 0; }
+.public-tile-pink { background: linear-gradient(#f9bdea, #ec7fd0); }
+.public-tile-peach { background: linear-gradient(#ffd6ad, #ffa95c); }
 .public-tools p { margin-top: 6px; color: #5d5170; font-size: .875rem; }
 .public-app .public-auth :is(p, label, input, .text-white) { color: #261c38; }
 .public-app .public-auth :is(input, select) { background: #f9f4ff; border: 1px solid #e7dafa; border-radius: 16px; }
@@ -51,3 +92,21 @@
 .public-app .public-auth .dustumi-btn { color: #103c35; background: linear-gradient(#a7f6df,#50d4bd); box-shadow: 0 4px 0 #32a88e; }
 .public-app .btn-primary { background: linear-gradient(#8651dc,#6135bc); color: white; }
 .public-app .btn-secondary { background: #e6d8ff; border-color: #cdb8f1; color: #422a6c; }
+
+/* Light palette for the signed-in panels: remap dark-theme leftovers (scoped to public flows only). */
+.public-app :is(h1, h2, h3):not([class*="text-"]) { color: #261c38; }
+.public-app :is([class*="from-["], .public-hero) :is(h1, h2, h3) { color: inherit; }
+.public-app .public-auth h1 { color: #6135bc; }
+.public-app [class*="text-white/"] { color: #5d5170; }
+.public-app :is([class*="text-[#e4e1e9]"], [class*="text-[#f8f3ff]"]) { color: #261c38; }
+.public-app :is([class*="text-[#ddb7ff]"], [class*="text-[#dfc7ff]"], [class*="text-[#c5b6dc]"]) { color: #6135bc; }
+.public-app :is([class*="text-[#ffb95f]"], [class*="text-[#FFB804]"]) { color: #8a5300; }
+.public-app [class*="text-[#3ddc84]"] { color: #137a4f; }
+.public-app [class*="text-[#ff8a80]"] { color: #a82144; }
+.public-app :is([class*="bg-[#1f1f24]"], [class*="bg-[#1A1A24]"], [class*="bg-[#1a1a24]"], [class*="bg-[#2a292f]"], [class*="bg-[#0e0e13]"], [class*="bg-[#121217]"], [class*="bg-black/"], [class*="bg-white/10"]) { background-color: #f9f4ff; color: #261c38; }
+.public-app :is([class*="border-white/"]) { border-color: #e7dafa; }
+.public-app input::placeholder, .public-app textarea::placeholder { color: #8a7d9e; }
+.public-app .card-surface { background: #fffcff; border: 1px solid #e7dafa; color: #261c38; box-shadow: 0 12px 30px #6135bc14; }
+.public-app :is([class*="from-[#A855F7]"], [class*="from-[#241b4a]"], [class*="from-[#8b7cf8]"], [class*="from-[#14163a]"]) { background-image: linear-gradient(135deg, #8651dc, #6135bc); color: #fff; }
+.public-app :is([class*="from-[#A855F7]"], [class*="from-[#241b4a]"], [class*="from-[#14163a]"]) [class*="text-white/"] { color: #f0e9ff; }
+.public-action-icon, .public-tile-icon { overflow: hidden; }

@@ -8,6 +8,7 @@ import { ApplyForm } from "@/components/go/ApplyForm";
 import { GoHub } from "@/components/go/GoHub";
 import { RideDetails } from "@/components/go/RideDetails";
 import { Icon } from "@/components/ui/Icon";
+import { Logo } from "@/components/ui/Logo";
 import { InsurancePanel } from "./InsurancePanel";
 import { useAuth } from "@/lib/auth-context";
 import "./public-app.css";
@@ -24,11 +25,20 @@ export function PublicApp() {
     return (
       <main className="public-app public-app-home">
         <div className="public-entry">
-          <Link className="public-action public-violet" href="/?flow=partner">
-            <Icon name="two_wheeler" size={24} /> Become a Partner
+          <div className="public-hero" aria-hidden="true">
+            <span className="public-hero-arch" />
+            <span className="public-hero-dot public-hero-dot-pink" />
+            <span className="public-hero-dot public-hero-dot-aqua" />
+            <Logo variant="lockup" tone="light" height={196} priority className="public-hero-logo" />
+          </div>
+          <h1 className="sr-only">SheRides</h1>
+          <Link className="public-action public-light" href="/?flow=partner">
+            <span className="public-action-icon public-icon-violet"><Icon name="two_wheeler" size={22} /></span>
+            Become a Partner
           </Link>
           <Link className="public-action public-mint" href="/?flow=ride">
-            <Icon name="location_on" size={24} /> Take a Ride
+            <span className="public-action-icon public-icon-mint"><Icon name="location_on" size={22} /></span>
+            Take a Ride
           </Link>
         </div>
       </main>
@@ -47,7 +57,10 @@ export function PublicApp() {
         {passengerOptions && (
           <div className="public-tools">
             <InsurancePanel />
-            <details><summary>Promotions</summary><p>Use a promo code in the ride form to see the discount before booking.</p></details>
+            <details>
+              <summary><span className="public-tile-icon public-tile-peach"><Icon name="sell" size={20} /></span>Promotions</summary>
+              <p>Use a promo code in the ride form to see the discount before booking.</p>
+            </details>
           </div>
         )}
         {loading ? <p role="status">Loading…</p> : !user ? (
