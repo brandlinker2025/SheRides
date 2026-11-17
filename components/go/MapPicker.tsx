@@ -6,7 +6,7 @@ import { createPortal } from "react-dom";
 import type * as Leaflet from "leaflet";
 import { Icon } from "@/components/ui/Icon";
 import { reversePlace, searchPlaces, type GoPlace } from "@/lib/go";
-import { DHAKA, loadLeaflet, tileLayer, type MapLayer } from "./leaflet-loader";
+import { DHAKA, baseLayer, loadLeaflet, type MapLayer } from "./leaflet-loader";
 
 /**
  * Full-screen "choose on map". Rendered into <body> so it always covers the whole screen
@@ -16,7 +16,7 @@ export function MapPicker({ start, title, onPick, onClose }: { start: GoPlace | 
   const box = useRef<HTMLDivElement>(null);
   const mapRef = useRef<Leaflet.Map | null>(null);
   const libRef = useRef<typeof Leaflet | null>(null);
-  const tilesRef = useRef<Leaflet.TileLayer | null>(null);
+  const tilesRef = useRef<Leaflet.Layer | null>(null);
   const [mounted, setMounted] = useState(false);
   const [busy, setBusy] = useState(false);
   const [ready, setReady] = useState(false);
@@ -42,7 +42,7 @@ export function MapPicker({ start, title, onPick, onClose }: { start: GoPlace | 
       libRef.current = L;
       const c = start ?? DHAKA;
       const map = L.map(box.current, { zoomControl: false, attributionControl: true }).setView([c.lat, c.lng], start ? 17 : 13);
-      tilesRef.current = tileLayer(L, "street").addTo(map);
+      map.attributionControl.setPrefix(false);
       L.control.zoom({ position: "bottomright" }).addTo(map);
       let timer: number | undefined;
       map.on("moveend", () => {
@@ -68,8 +68,15 @@ export function MapPicker({ start, title, onPick, onClose }: { start: GoPlace | 
     const L = libRef.current;
     const map = mapRef.current;
     if (!L || !map || !ready) return;
-    tilesRef.current?.remove();
-    tilesRef.current = tileLayer(L, layer).addTo(map);
+    let cancelled = false;
+    void baseLayer(L, layer).then((next) => {
+      if (cancelled) return;
+      tilesRef.current?.remove();
+      tilesRef.current = next.addTo(map);
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [layer, ready]);
 
   useEffect(() => {

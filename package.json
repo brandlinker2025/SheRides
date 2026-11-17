@@ -16,9 +16,11 @@
     "check": "npm run lint && npm run typecheck && npm run build && npm run audit:prod"
   },
   "dependencies": {
+    "@maplibre/maplibre-gl-leaflet": "0.1.4",
     "@supabase/ssr": "0.12.5",
     "@supabase/supabase-js": "2.112.4",
     "leaflet": "1.9.4",
+    "maplibre-gl": "5.24.1",
     "next": "16.4.5",
     "react": "19.2.8",
     "react-dom": "19.2.8"
