@@ -294,11 +294,6 @@ export function BookRide({ pickup, drop, onPickup, onDrop, autoLocate = true }: 
           <Icon name="electric_moped" size={22} />
           {busy ? "Request হচ্ছে…" : kind === "now" ? "Request ride" : kind === "hire" ? "Send hire request" : "Pre-book ride"}
         </button>
-        {!canSubmit && (
-          <p className="mt-1 text-center text-xs text-[#5e5276]">
-            {!pickup ? "পিকআপ দিন (লিখুন, ম্যাপে বাছুন বা current location)" : kind === "scheduled" && !when ? "তারিখ আর সময় দিন" : "কোথায় যাবেন সেটা দিন"}
-          </p>
-        )}
       </div>
     </div>
   );
