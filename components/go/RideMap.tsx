@@ -4,7 +4,7 @@ import "leaflet/dist/leaflet.css";
 import { useEffect, useRef, useState } from "react";
 import type * as Leaflet from "leaflet";
 import type { GoPlace } from "@/lib/go";
-import { DHAKA, OSM_ATTRIBUTION, OSM_TILES, loadLeaflet, pinIcon } from "./leaflet-loader";
+import { DHAKA, loadLeaflet, pinIcon, tileLayer } from "./leaflet-loader";
 
 /** Real street map for an active ride: pickup, drop-off and the captain's live position. */
 export function RideMap({ pickup, drop, rider = null }: { pickup: GoPlace | null; drop: GoPlace | null; rider?: GoPlace | null }) {
@@ -20,7 +20,7 @@ export function RideMap({ pickup, drop, rider = null }: { pickup: GoPlace | null
       if (cancelled || !box.current) return;
       libRef.current = L;
       const map = L.map(box.current, { zoomControl: false, attributionControl: true }).setView([DHAKA.lat, DHAKA.lng], 12);
-      L.tileLayer(OSM_TILES, { maxZoom: 19, attribution: OSM_ATTRIBUTION }).addTo(map);
+      tileLayer(L, "street").addTo(map);
       layerRef.current = L.layerGroup().addTo(map);
       mapRef.current = map;
       setReady(true);
