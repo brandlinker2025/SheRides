@@ -1,6 +1,6 @@
 .partner-root {
   min-height: 100vh;
-  background: #131318;
+  background: #07040B;
   color: #e4e1e9;
   font-family: var(--font-partner), var(--font-partner-bn), "Plus Jakarta Sans", "Hind Siliguri", sans-serif;
   color-scheme: dark;
@@ -8,7 +8,7 @@
 }
 
 body:has(.partner-root) {
-  background: #131318;
+  background: #07040B;
 }
 
 body:has(.partner-root) .panda-install-prompt {
@@ -17,18 +17,18 @@ body:has(.partner-root) .panda-install-prompt {
 
 .partner-root :is(button, a):focus-visible,
 .partner-root :is(input, textarea):focus-visible {
-  outline: 2px solid #f4b8d4;
+  outline: 2px solid #e2c9ff;
   outline-offset: 2px;
 }
 
 .partner-cta {
-  background: #FF6772;
-  color: #460377;
-  box-shadow: 0 0 24px rgba(255, 103, 114, 0.35);
+  background: linear-gradient(#e4cffd, #aa7bf3);
+  color: #201031;
+  box-shadow: 0 4px 0 #7047ae, 0 10px 24px rgba(157, 103, 242, 0.25);
 }
 
 .partner-cta:hover {
-  box-shadow: 0 0 32px rgba(244, 184, 212, 0.45);
+  box-shadow: 0 4px 0 #7047ae, 0 12px 30px rgba(181, 130, 255, 0.4);
 }
 
 .partner-cta:active {

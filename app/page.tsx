@@ -1,29 +1,28 @@
 import Link from "next/link";
+import { Icon } from "@/components/ui/Icon";
 import { Logo } from "@/components/ui/Logo";
+import { authBackdropClass, authCardClass, authPrimaryClass } from "@/components/auth/AuthScene";
 
 export default function EntryPage() {
   return (
-    <main className="relative flex min-h-dvh flex-col items-center justify-center overflow-hidden bg-[#07040B] px-6 py-16 text-[#F0EBF6]">
-      <div className="pointer-events-none absolute -left-24 top-0 h-80 w-80 rounded-full bg-[#a878ff]/30 blur-3xl" aria-hidden="true" />
-      <div className="pointer-events-none absolute right-0 top-1/3 h-72 w-72 rounded-full bg-[#460377]/55 blur-3xl" aria-hidden="true" />
-      <div className="pointer-events-none absolute bottom-0 right-1/4 h-48 w-48 rounded-full bg-[#23daf3]/20 blur-3xl" aria-hidden="true" />
-      <div className="relative flex w-full max-w-lg flex-col items-center rounded-[32px] border border-violet-300/25 bg-violet-300/10 p-6 text-center shadow-[0_24px_80px_rgba(118,59,222,0.28),inset_0_1px_0_rgba(255,255,255,0.15)] backdrop-blur-xl sm:p-10">
-        <h1 className="w-full">
-          <Logo variant="lockup" height={460} priority className="mx-auto max-w-full" />
+    <main className={`grid min-h-dvh place-items-center px-5 py-12 ${authBackdropClass}`}>
+      <div className={`max-w-lg text-center ${authCardClass}`}>
+        <h1>
+          <Logo variant="lockup" height={250} priority className="mx-auto max-w-full" />
         </h1>
-        <div className="mt-10 flex w-full flex-col gap-3">
-          <Link href="/go" className="btn btn-primary h-14 w-full text-lg">
-            Take a ride / রাইড নিন
+        <div className="mt-8 grid gap-4">
+          <Link href="/go" className={`gap-2 ${authPrimaryClass}`}>
+            <Icon name="two_wheeler" size={20} />
+            <span>Take a Ride <span className="block text-xs" lang="bn">রাইড নিন</span></span>
           </Link>
-          <Link href="/partner" className="btn btn-secondary h-14 w-full text-lg">
-            Become a SheRides Partner / পার্টনার হন
+          <Link href="/partner" className="flex min-h-12 items-center justify-center gap-2 rounded-full border border-[#c9a7ff]/50 bg-[#372450] px-4 py-2 font-semibold text-[#f3e7ff] hover:bg-[#493169]">
+            <Icon name="helmet" size={20} />
+            <span>Become a SheRides Partner <span className="block text-xs" lang="bn">পার্টনার হন</span></span>
           </Link>
         </div>
-        <p className="mt-10 text-sm text-white/60">
+        <p className="mt-7 text-sm text-[#d4c5e9]">
           Already have an account?{" "}
-          <Link href="/login" className="font-semibold text-[#FF6772] underline decoration-[#FF6772]/40 underline-offset-4">
-            Sign in
-          </Link>
+          <Link href="/login" className="font-semibold text-[#e2c9ff] underline underline-offset-4">Sign In</Link>
         </p>
       </div>
     </main>

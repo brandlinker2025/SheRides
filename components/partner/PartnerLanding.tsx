@@ -122,7 +122,7 @@ export function PartnerLanding() {
 
       <main id="content">
         <section className="relative overflow-hidden">
-          <div className="pointer-events-none absolute -left-20 top-10 h-64 w-64 rounded-full bg-[#f4b8d4]/15 blur-3xl" aria-hidden="true" />
+          <div className="pointer-events-none absolute -left-20 top-10 h-64 w-64 rounded-full bg-[#28b0c8]/10 blur-3xl" aria-hidden="true" />
           <div className="pointer-events-none absolute right-0 top-24 h-72 w-72 rounded-full bg-[#b76dff]/20 blur-3xl" aria-hidden="true" />
           <div className={`mx-auto flex flex-col items-center gap-10 px-4 py-14 md:py-20 ${ENABLE_CAR ? "max-w-6xl lg:grid lg:grid-cols-2 lg:items-center" : "max-w-3xl text-center"}`}>
             <div className={ENABLE_CAR ? "" : "flex flex-col items-center"}>
@@ -135,22 +135,12 @@ export function PartnerLanding() {
                 {t.hero.titleA}
                 <span className="mt-2 block text-[#F0EBF6]">{t.hero.titleB}</span>
               </h1>
-              <div className={`mt-8 grid gap-3 ${ENABLE_CAR ? "sm:grid-cols-2 lg:hidden" : "w-full max-w-sm"}`}>
-                {ENABLE_CAR && <HeroCard icon="directions_car" label={t.hero.car} alt={t.hero.carAlt} onClick={() => openForm("car")} />}
-                <HeroCard icon="two_wheeler" label={t.hero.bike} alt={t.hero.bikeAlt} onClick={() => openForm("bike_scooter")} />
-              </div>
-              <div className={`mt-8 flex flex-col gap-3 ${ENABLE_CAR ? "sm:flex-row" : "w-full max-w-md sm:flex-row sm:justify-center"}`}>
-                {ENABLE_CAR && (
-                <button type="button" onClick={() => openForm("car")} className="partner-cta inline-flex h-14 items-center justify-center gap-2 rounded-full px-6 text-base font-semibold">
-                  <Icon name="directions_car" size={20} />
-                  {t.hero.car}
-                </button>
-                )}
-                <button type="button" onClick={() => openForm("bike_scooter")} className="partner-cta inline-flex h-14 items-center justify-center gap-2 rounded-full px-6 text-base font-semibold">
-                  <Icon name="two_wheeler" size={20} />
-                  {t.hero.bike}
-                </button>
-              </div>
+              {ENABLE_CAR && (
+                <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:hidden">
+                  <HeroCard icon="directions_car" label={t.hero.car} alt={t.hero.carAlt} onClick={() => openForm("car")} />
+                  <HeroCard icon="two_wheeler" label={t.hero.bike} alt={t.hero.bikeAlt} onClick={() => openForm("bike_scooter")} />
+                </div>
+              )}
               <p className="mt-8 max-w-xl text-base leading-6 text-white/75">{t.hero.intro}</p>
               <ul className="mt-6 grid gap-2.5 sm:grid-cols-2">
                 {t.hero.bullets.map((item) => (
@@ -161,17 +151,20 @@ export function PartnerLanding() {
                 ))}
               </ul>
               <div className={`mt-8 flex flex-col gap-3 ${ENABLE_CAR ? "sm:flex-row" : "w-full max-w-md sm:flex-row sm:justify-center"}`}>
-                <button type="button" onClick={() => openForm(null)} className="partner-cta inline-flex h-14 items-center justify-center gap-2 rounded-full px-7 text-base font-semibold">
-                  {t.hero.partner}
+                <Link href="/go/apply?role=rider" className="partner-cta inline-flex min-h-14 items-center justify-center gap-2 rounded-full px-6 py-2 text-center text-base font-semibold">
+                  {lang === "bn" ? "ক্যাপ্টেন পরিচয় যাচাই শুরু করুন" : "Start captain identity verification"}
                   <Icon name="arrow_forward" size={18} />
-                </button>
+                </Link>
                 <Link href="/login?next=%2Fgo" className="inline-flex h-14 items-center justify-center rounded-full border border-white/20 bg-white/5 px-7 text-base font-semibold text-white">
                   {t.hero.book}
                 </Link>
               </div>
-              <Link href="/go/apply?role=rider" className="mt-4 inline-flex font-semibold text-[#ddb7ff] underline underline-offset-4">
-                {lang === "bn" ? "ক্যাপ্টেন পরিচয় যাচাই শুরু করুন" : "Start captain identity verification"}
-              </Link>
+              <button type="button" onClick={() => openForm(null)} className="mt-4 inline-flex font-semibold text-[#ddb7ff] underline underline-offset-4">
+                {lang === "bn" ? "প্রাথমিক আগ্রহ জানান" : "Register your interest"}
+              </button>
+              <p className="mt-2 text-sm text-white/70">
+                {lang === "bn" ? "পরিচয় যাচাইয়ের আগে SheRides অ্যাকাউন্ট খুলে সদস্যপদের অনুমোদন নিন।" : "Create a SheRides account and get membership approval before submitting identity documents."}
+              </p>
               <p className={`mt-8 max-w-xl border-l-2 border-[#FFB804] pl-4 text-left text-sm leading-6 text-white/70`}>{t.hero.note}</p>
             </div>
             {ENABLE_CAR && (

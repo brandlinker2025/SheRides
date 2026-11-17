@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { captainApplicationPath, captainPendingPath } from "./lib/captain-onboarding";
 import { isApprovedProfile } from "./lib/profile";
 
 const PUBLIC_PATHS = new Set([
@@ -92,7 +93,9 @@ export async function proxy(request: NextRequest) {
 
   if (pathname === "/pending-approval" || pathname === "/verify-phone") {
     if (isApprovedProfile(profile)) {
-      return NextResponse.redirect(new URL("/go", request.url));
+      const next = pathname === "/pending-approval" && request.nextUrl.searchParams.get("captain") === "1"
+        ? captainApplicationPath : "/go";
+      return NextResponse.redirect(new URL(next, request.url));
     }
     if (pathname === "/verify-phone") {
       return NextResponse.redirect(new URL("/pending-approval", request.url));
@@ -105,7 +108,9 @@ export async function proxy(request: NextRequest) {
   }
 
   if (!isApprovedProfile(profile)) {
-    return NextResponse.redirect(new URL("/pending-approval", request.url));
+    const next = pathname === "/go/apply" && request.nextUrl.searchParams.get("role") === "rider"
+      ? captainPendingPath : "/pending-approval";
+    return NextResponse.redirect(new URL(next, request.url));
   }
 
   // Admin APIs: non-admins get a hard 403 before the route even runs.

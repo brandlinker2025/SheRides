@@ -56,7 +56,7 @@ export default async function AdminDashboardPage() {
             <span className="block font-label-lg text-on-surface">
               {riders.pendingRiders === 1 ? "1 rider application needs review" : `${riders.pendingRiders} rider applications need review`}
             </span>
-            <span className="block font-body-sm text-secondary mt-1">Compare the live selfie with the NID, then check licence and bike papers.</span>
+            <span className="block font-body-sm text-secondary mt-1">Compare the selfie with the NID, then check licence and bike papers.</span>
           </span>
         </Link>
       )}

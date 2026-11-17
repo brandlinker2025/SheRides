@@ -76,7 +76,7 @@ export function validateGoApplication(draft: GoApplicationDraft): string | null 
   if (!draft.emergencyName.trim() || !/^(\+?88)?01[3-9]\d{8}$/.test(draft.emergencyPhone.trim())) {
     return "Add an emergency contact with a valid Bangladesh mobile number.";
   }
-  if (!draft.hasNidFront || !draft.hasSelfie) return "Step 1 live selfie and Step 2 NID front photo are both required.";
+  if (!draft.hasNidFront || !draft.hasSelfie) return "Step 1 selfie (camera or gallery) and Step 2 NID front photo are both required.";
   if (
     draft.role === "rider" &&
     (!draft.licenseNo.trim() || !draft.hasLicenseFile || !draft.bikeModel.trim() || !draft.bikePlate.trim() || !draft.hasBikePapers)

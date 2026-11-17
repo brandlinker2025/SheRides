@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
+import { captainApplicationPath, captainPendingPath } from "@/lib/captain-onboarding";
 import { useAuth } from "@/lib/auth-context";
 import { dobInputBounds, validateDateOfBirth } from "@/lib/birthday";
 import { parseMemberIdentifier } from "@/lib/phone";
@@ -15,6 +16,8 @@ function SignupForm() {
   const { signUp } = useAuth();
   const router = useRouter();
   const params = useSearchParams();
+  const captain = params.get("captain") === "1";
+  const loginHref = captain ? `/login?next=${encodeURIComponent(captainApplicationPath)}` : "/login";
   const [fullName, setFullName] = useState("");
   const [identifier, setIdentifier] = useState(() => params.get("phone") ?? "");
   const [password, setPassword] = useState("");
@@ -34,14 +37,8 @@ function SignupForm() {
   }
 
   return (
-    <AuthScene
-      mood={panda.mood}
-      track={panda.track}
-      speech={
-        panda.mood === "idle" ? "Hey Rider! ♥ Create your account and join the ride!" : undefined
-      }
-    >
-      <div className="w-full rounded-[28px] border border-[#6c5ce7]/50 bg-[rgba(12,10,14,0.82)] p-6 shadow-[0_20px_50px_rgba(0,0,0,0.35),0_0_0_1px_rgba(108,92,231,0.12)] backdrop-blur-xl sm:p-8">
+    <AuthScene>
+      <div className="w-full">
         <h1 className="mb-1 text-2xl font-bold leading-tight text-white sm:text-3xl">Welcome to SheRides!</h1>
         <p className="mb-6 text-sm text-white/70">
           Create your account with your email or mobile number. An administrator will approve you before you can ride.
@@ -102,7 +99,7 @@ function SignupForm() {
               return;
             }
             window.setTimeout(() => {
-              router.replace("/pending-approval");
+              router.replace(captain ? captainPendingPath : "/pending-approval");
               router.refresh();
             }, 900);
           }}
@@ -196,7 +193,7 @@ function SignupForm() {
                   return nextValue;
                 });
               }}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-white/55 transition-colors hover:text-[#6c5ce7]"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-white/55 transition-colors hover:text-[#dfc7ff]"
               aria-label={showPassword ? "Hide password" : "Show password"}
             >
               <Icon name={showPassword ? "visibility_off" : "visibility"} size={20} />
@@ -225,7 +222,7 @@ function SignupForm() {
         </form>}
         <p className="mt-6 text-sm text-white/70">
           Already a member?{" "}
-          <Link href="/login" className="font-label-lg text-[#6c5ce7]">
+          <Link href={loginHref} className="font-label-lg text-[#dfc7ff]">
             Sign In
           </Link>
         </p>
