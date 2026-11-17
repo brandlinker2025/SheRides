@@ -169,7 +169,7 @@ function VerificationRow({ app, rides }: { app: AdminGoApplication; rides: Admin
       <p className="text-xs text-white/55">Compare the selfie with the NID and review the required documents before approving.</p>
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <p className="mb-1 text-[10px] font-bold uppercase tracking-wider text-[#ffb95f]">Live selfie</p>
+          <p className="mb-1 text-[10px] font-bold uppercase tracking-wider text-[#ffb95f]">Selfie photo</p>
           <DocThumb doc={selfie} />
         </div>
         <div>
@@ -415,7 +415,7 @@ export function GoAdminBoard({
 
       <section id="captains" className="flex flex-col gap-3">
         <h2 className="text-lg font-bold">Captains — give rides ({pendingRiders.length})</h2>
-        <p className="text-sm text-white/60">Compare the live selfie with the NID, then approve only if the applicant is a woman and the face matches.</p>
+        <p className="text-sm text-white/60">Review the selfie, NID and driving licence. Approve only when the applicant meets the women-only policy and the identity documents match.</p>
         {pendingRiders.map((app) => (
           <VerificationRow key={app.id} app={app} rides={ridesByRider.get(app.user_id) ?? []} />
         ))}

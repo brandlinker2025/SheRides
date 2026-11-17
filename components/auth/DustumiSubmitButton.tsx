@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState, type ReactNode } from "react";
+import { authPrimaryClass } from "./AuthScene";
+import "./auth-panda.css";
 
 type DustumiSubmitButtonProps = {
   dodgeToken: number;
@@ -25,7 +27,7 @@ export function DustumiSubmitButton({ dodgeToken, busy = false, children }: Dust
       <button
         type="submit"
         disabled={busy}
-        className={`dustumi-btn absolute top-0 inline-flex h-[56px] items-center justify-center gap-2 rounded-full bg-[#6c5ce7] font-label-lg text-white shadow-magenta hover:bg-[#5b4bdb] disabled:pointer-events-none disabled:opacity-60 ${
+        className={`dustumi-btn absolute top-0 h-[56px] gap-2 font-label-lg ${authPrimaryClass} disabled:pointer-events-none disabled:opacity-60 ${
           pose.side === "right" ? "dustumi-btn--right" : pose.side === "left" ? "dustumi-btn--left" : "dustumi-btn--center"
         } ${dodging ? "dustumi-btn--away" : ""}`}
       >

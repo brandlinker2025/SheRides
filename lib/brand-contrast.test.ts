@@ -15,12 +15,14 @@ function contrast(a: string, b: string) {
   return (hi + 0.05) / (lo + 0.05);
 }
 
-test("coral buttons use deep purple text at WCAG AA", () => {
+test("coral and lavender buttons use dark purple text at WCAG AA", () => {
   const css = `${readFileSync("app/globals.css", "utf8")}\n${readFileSync("app/partner/partner.css", "utf8")}`;
   assert.match(css, /\.btn-primary,\s*\n\.sherides-btn-primary\s*\{[^}]*background:\s*#FF6772/i);
   assert.match(css, /\.btn-primary,\s*\n\.sherides-btn-primary\s*\{[^}]*color:\s*#460377/i);
-  assert.match(css, /\.partner-cta\s*\{[^}]*background:\s*#FF6772/i);
-  assert.match(css, /\.partner-cta\s*\{[^}]*color:\s*#460377/i);
+  assert.match(css, /\.partner-cta\s*\{[^}]*background:\s*linear-gradient\(#e4cffd, #aa7bf3\)/i);
+  assert.match(css, /\.partner-cta\s*\{[^}]*color:\s*#201031/i);
+  assert.ok(contrast("#201031", "#e4cffd") >= 4.5);
+  assert.ok(contrast("#201031", "#aa7bf3") >= 4.5);
   assert.ok(contrast("#460377", "#FF6772") >= 4.5);
   assert.ok(contrast("#FFFFFF", "#FF6772") < 3);
   assert.ok(contrast("#FF6772", "#1B1324") >= 4.5);

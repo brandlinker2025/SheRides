@@ -15,7 +15,8 @@ async function leaveAccount() {
   redirect("/");
 }
 
-export default async function PendingApprovalPage() {
+export default async function PendingApprovalPage({ searchParams }: { searchParams: Promise<{ captain?: string }> }) {
+  const captain = (await searchParams).captain === "1";
   const supabase = await createServerSupabase();
   if (!supabase) redirect("/login");
 
@@ -45,7 +46,9 @@ export default async function PendingApprovalPage() {
         </p>
         <div className="rounded-lg bg-soft-off-white border border-surface-border p-4 mb-6">
           <p className="font-body-sm text-secondary">
-            This is not an SMS check. Stay signed in — you will be able to ride once an admin approves your membership from the dashboard.
+            {captain
+              ? "After approval, reopen this page to submit your Captain selfie, NID and licence for review."
+              : "Once an admin approves your membership, you can continue to ride verification. No SMS code is needed."}
           </p>
         </div>
         <form action={leaveAccount}>

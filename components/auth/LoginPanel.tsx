@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, type FormEvent } from "react";
+import { captainApplicationPath, captainPendingPath } from "@/lib/captain-onboarding";
 import { useAuth } from "@/lib/auth-context";
 import { isEmailIdentifier, normalizeBdPhone } from "@/lib/phone";
 import { siteOrigin } from "@/lib/site";
@@ -27,7 +28,7 @@ function translateAuthError(message: string, member: boolean): string {
 }
 
 function safeUserNextPath(value: string | null) {
-  if (!value?.startsWith("/") || value.startsWith("//")) return "/go";
+  if (!value?.startsWith("/") || value.startsWith("//") || value.includes("\\")) return "/go";
   if (value === "/admin-login" || value.startsWith("/admin")) return "/go";
   return value;
 }
@@ -236,7 +237,9 @@ export function LoginPanel({ admin = false }: { admin?: boolean }) {
           .select("verified, role")
           .eq("id", authData.user.id)
           .maybeSingle();
-        if (profile && profile.role !== "admin" && !profile.verified) dest = "/pending-approval";
+        if (profile && profile.role !== "admin" && !profile.verified) {
+          dest = next === captainApplicationPath ? captainPendingPath : "/pending-approval";
+        }
       }
     }
     panda.onSuccess();
@@ -246,15 +249,16 @@ export function LoginPanel({ admin = false }: { admin?: boolean }) {
     }, 900);
   }
 
-  const joinHref = normalizeBdPhone(identifier)
-    ? `/signup?phone=${encodeURIComponent(identifier.trim())}`
-    : "/signup";
+  const joinParams = new URLSearchParams();
+  if (normalizeBdPhone(identifier)) joinParams.set("phone", identifier.trim());
+  if (next === captainApplicationPath) joinParams.set("captain", "1");
+  const joinHref = joinParams.size ? `/signup?${joinParams}` : "/signup";
 
   return (
-    <AuthScene admin={admin} mood={panda.mood} track={panda.track}>
-      <div className="w-full rounded-[28px] border border-[#6c5ce7]/50 bg-[rgba(12,10,14,0.82)] p-6 shadow-[0_20px_50px_rgba(0,0,0,0.35),0_0_0_1px_rgba(108,92,231,0.12)] backdrop-blur-xl sm:p-8">
+    <AuthScene admin={admin}>
+      <div className="w-full">
         <h1
-          className="mb-1 text-[34px] leading-none text-[#6c5ce7] sm:text-[42px]"
+          className="mb-1 text-[34px] leading-none text-[#dfc7ff] sm:text-[42px]"
           style={{ fontFamily: "var(--font-butterpop), Georgia, serif" }}
         >
           {admin ? "Admin Sign In" : "Welcome Back!"}
@@ -347,7 +351,7 @@ export function LoginPanel({ admin = false }: { admin?: boolean }) {
                       type="button"
                       disabled={busy}
                       onClick={() => void sendResetCode()}
-                      className="text-sm text-[#6c5ce7] hover:underline disabled:opacity-60"
+                      className="text-sm text-[#dfc7ff] hover:underline disabled:opacity-60"
                     >
                       Didn&apos;t get it? Send a new code
                     </button>
@@ -389,7 +393,7 @@ export function LoginPanel({ admin = false }: { admin?: boolean }) {
                     return nextValue;
                   });
                 }}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-white/55 transition-colors hover:text-[#6c5ce7]"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-white/55 transition-colors hover:text-[#dfc7ff]"
                 aria-label={showPassword ? "Hide password" : "Show password"}
               >
                 <Icon name={showPassword ? "visibility_off" : "visibility"} size={20} />
@@ -399,12 +403,12 @@ export function LoginPanel({ admin = false }: { admin?: boolean }) {
               <button
                 type="button"
                 onClick={() => void (admin ? handleAdminForgotPassword() : handleMemberForgotPassword())}
-                className="text-sm text-[#6c5ce7] hover:underline"
+                className="text-sm text-[#dfc7ff] hover:underline"
               >
                 Forgot password?
               </button>
             </div>
-            {resetMessage && <p className="text-sm text-[#6c5ce7]">{resetMessage}</p>}
+            {resetMessage && <p className="text-sm text-[#dfc7ff]">{resetMessage}</p>}
             {error && (
               <p className="text-sm text-[#ff8a80]" role="alert">
                 {error}
@@ -429,7 +433,7 @@ export function LoginPanel({ admin = false }: { admin?: boolean }) {
         {admin ? (
           <p className="mt-6 text-sm text-white/70">
             Rider or passenger?{" "}
-            <Link href="/login" className="font-label-lg text-[#6c5ce7]">
+            <Link href="/login" className="font-label-lg text-[#dfc7ff]">
               User Sign In
             </Link>
           </p>
@@ -437,13 +441,13 @@ export function LoginPanel({ admin = false }: { admin?: boolean }) {
           <>
             <p className="mt-6 text-sm text-white/70">
               New to SheRides?{" "}
-              <Link href={joinHref} className="font-label-lg text-[#6c5ce7]">
+              <Link href={joinHref} className="font-label-lg text-[#dfc7ff]">
                 Sign Up
               </Link>
             </p>
             <p className="mt-3 text-sm text-white/70">
               Drive or ride with us?{" "}
-              <Link href="/partner" className="font-label-lg text-[#6c5ce7]">
+              <Link href="/partner" className="font-label-lg text-[#dfc7ff]">
                 Become a Partner
               </Link>
             </p>
