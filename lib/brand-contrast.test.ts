@@ -16,13 +16,13 @@ function contrast(a: string, b: string) {
 }
 
 test("coral and lavender buttons use dark purple text at WCAG AA", () => {
-  const css = `${readFileSync("app/globals.css", "utf8")}\n${readFileSync("app/partner/partner.css", "utf8")}`;
+  const css = `${readFileSync("app/globals.css", "utf8")}\n${readFileSync("components/public-app/public-app.css", "utf8")}`;
   assert.match(css, /\.btn-primary,\s*\n\.sherides-btn-primary\s*\{[^}]*background:\s*#FF6772/i);
   assert.match(css, /\.btn-primary,\s*\n\.sherides-btn-primary\s*\{[^}]*color:\s*#460377/i);
-  assert.match(css, /\.partner-cta\s*\{[^}]*background:\s*linear-gradient\(#e4cffd, #aa7bf3\)/i);
-  assert.match(css, /\.partner-cta\s*\{[^}]*color:\s*#201031/i);
-  assert.ok(contrast("#201031", "#e4cffd") >= 4.5);
-  assert.ok(contrast("#201031", "#aa7bf3") >= 4.5);
+  assert.match(css, /\.public-mint\s*\{[^}]*background:\s*linear-gradient\(#a7f6df, #50d4bd\)/i);
+  assert.match(css, /\.public-mint\s*\{[^}]*color:\s*#103c35/i);
+  assert.ok(contrast("#103c35", "#a7f6df") >= 4.5);
+  assert.ok(contrast("#103c35", "#50d4bd") >= 4.5);
   assert.ok(contrast("#460377", "#FF6772") >= 4.5);
   assert.ok(contrast("#FFFFFF", "#FF6772") < 3);
   assert.ok(contrast("#FF6772", "#1B1324") >= 4.5);

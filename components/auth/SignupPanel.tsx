@@ -2,8 +2,7 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useState } from "react";
-import { captainApplicationPath, captainPendingPath } from "@/lib/captain-onboarding";
+import { useState } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { dobInputBounds, validateDateOfBirth } from "@/lib/birthday";
 import { parseMemberIdentifier } from "@/lib/phone";
@@ -12,12 +11,11 @@ import { AuthScene, authFieldClass } from "@/components/auth/AuthScene";
 import { DustumiSubmitButton } from "@/components/auth/DustumiSubmitButton";
 import { usePandaForm } from "@/components/auth/usePandaForm";
 
-function SignupForm() {
+export function SignupPanel({ flow }: { flow: "partner" | "ride" }) {
   const { signUp } = useAuth();
   const router = useRouter();
   const params = useSearchParams();
-  const captain = params.get("captain") === "1";
-  const loginHref = captain ? `/login?next=${encodeURIComponent(captainApplicationPath)}` : "/login";
+  const loginHref = `/?flow=${flow}`;
   const [fullName, setFullName] = useState("");
   const [identifier, setIdentifier] = useState(() => params.get("phone") ?? "");
   const [password, setPassword] = useState("");
@@ -37,7 +35,7 @@ function SignupForm() {
   }
 
   return (
-    <AuthScene>
+    <AuthScene embedded>
       <div className="w-full">
         <h1 className="mb-1 text-2xl font-bold leading-tight text-white sm:text-3xl">Welcome to SheRides!</h1>
         <p className="mb-6 text-sm text-white/70">
@@ -99,7 +97,7 @@ function SignupForm() {
               return;
             }
             window.setTimeout(() => {
-              router.replace(captain ? captainPendingPath : "/pending-approval");
+              router.replace(loginHref);
               router.refresh();
             }, 900);
           }}
@@ -228,13 +226,5 @@ function SignupForm() {
         </p>
       </div>
     </AuthScene>
-  );
-}
-
-export default function SignupPage() {
-  return (
-    <Suspense>
-      <SignupForm />
-    </Suspense>
   );
 }

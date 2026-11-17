@@ -2,7 +2,6 @@ import type { Metadata, Viewport } from "next";
 import { Inter, Montserrat } from "next/font/google";
 import localFont from "next/font/local";
 import { AppProviders } from "@/components/providers/AppProviders";
-import { InstallPrompt } from "@/components/pwa/InstallPrompt";
 import { RegisterSW } from "@/components/pwa/RegisterSW";
 import "./globals.css";
 
@@ -103,7 +102,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="bg-surface text-on-surface font-body-md antialiased">
         <AppProviders>
           {children}
-          <InstallPrompt />
         </AppProviders>
         <RegisterSW />
       </body>

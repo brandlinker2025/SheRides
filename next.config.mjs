@@ -42,6 +42,17 @@ const nextConfig = {
   async redirects() {
     // Social pages and the SOS center were removed. Old links land on ride booking or admin review.
     return [
+      { source: "/partner", destination: "/?flow=partner", permanent: false },
+      { source: "/signup", has: [{ type: "query", key: "captain", value: "1" }], destination: "/?flow=partner&step=signup", permanent: false },
+      { source: "/signup", destination: "/?flow=ride&step=signup", permanent: false },
+      { source: "/login", has: [{ type: "query", key: "next", value: "/go/apply\\?role=rider" }], destination: "/?flow=partner", permanent: false },
+      { source: "/login", destination: "/?flow=ride", permanent: false },
+      { source: "/go/apply", has: [{ type: "query", key: "role", value: "rider" }], destination: "/?flow=partner&step=apply", permanent: false },
+      { source: "/go/apply", destination: "/?flow=ride&step=apply", permanent: false },
+      { source: "/go/ride/:id", destination: "/?flow=ride&trip=:id", permanent: false },
+      { source: "/go", has: [{ type: "query", key: "tab", value: "rider" }], destination: "/?flow=partner", permanent: false },
+      { source: "/go", destination: "/?flow=ride", permanent: false },
+
       { source: "/safety", destination: "/go", permanent: false },
       { source: "/rider-benefits", destination: "/go", permanent: false },
       { source: "/admin/emergency-alerts", destination: "/admin/go", permanent: false },

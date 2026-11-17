@@ -119,7 +119,7 @@ export function RiderMode() {
       void load();
       return;
     }
-    router.push(`/go/ride/${ride.id}`);
+    router.push(`/?flow=partner&trip=${ride.id}`);
   }
 
   return (
@@ -149,7 +149,7 @@ export function RiderMode() {
           <h3 className="font-headline-md text-[18px] font-bold mb-3">Your active rides</h3>
           <div className="flex flex-col gap-3">
             {mine.map((ride) => (
-              <Link key={ride.id} href={`/go/ride/${ride.id}`} className="card-surface card-hover p-4 flex items-center gap-3">
+              <Link key={ride.id} href={`/?flow=partner&trip=${ride.id}`} className="card-surface card-hover p-4 flex items-center gap-3">
                 <Icon name="two_wheeler" className="text-accent-magenta" />
                 <div className="flex-1 min-w-0">
                   <p className="font-label-lg truncate">{ride.passenger?.full_name ?? "Passenger"} · {RIDE_STATUS_LABEL[ride.status]}</p>

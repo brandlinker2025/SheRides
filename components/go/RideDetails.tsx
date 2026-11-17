@@ -1,6 +1,6 @@
 "use client";
 
-import { useParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { Avatar } from "@/components/ui/Avatar";
 import { BackLink } from "@/components/ui/BackLink";
@@ -31,8 +31,7 @@ type Person = { full_name: string; avatar_url: string | null };
 
 const STEPS = ["requested", "accepted", "in_progress", "completed"] as const;
 
-export default function GoRidePage() {
-  const { id } = useParams<{ id: string }>();
+export function RideDetails({ id }: { id: string }) {
   const router = useRouter();
   const { user } = useAuth();
   const [ride, setRide] = useState<GoRide | null>(null);
@@ -146,7 +145,7 @@ export default function GoRidePage() {
   if (loadError) {
     return (
       <div className="max-w-xl mx-auto px-container-margin-mobile py-10">
-        <BackLink href="/go" label="Book a Ride" className="mb-4" />
+        <BackLink href="/?flow=ride" label="Book a Ride" className="mb-4" />
         <p className="card-surface p-6 font-body-sm text-error">{loadError}</p>
       </div>
     );
@@ -163,7 +162,7 @@ export default function GoRidePage() {
 
   return (
     <div className="w-full max-w-xl mx-auto px-container-margin-mobile lg:px-0 py-8 flex flex-col gap-5">
-      <BackLink href={isRider ? "/go?tab=rider" : "/go"} label="Book a Ride" />
+      <BackLink href={isRider ? "/?flow=partner" : "/?flow=ride"} label="Book a Ride" />
 
       <header className="rounded-[24px] p-6 text-white bg-gradient-to-br from-[#14163a] via-[#4c45c4] to-[#16708a] shadow-xl">
         <p className="font-label-caps text-label-caps opacity-80">{KIND_LABEL[ride.kind].toUpperCase()} · {ride.kind === "now" ? "NOW" : formatWhen(ride.scheduled_at)}</p>
@@ -339,7 +338,7 @@ export default function GoRidePage() {
           disabled={busy}
           onClick={async () => {
             const ok = await call("go_cancel_ride", { p_ride_id: ride.id, p_reason: isRider ? "Rider backed out" : "Passenger cancelled" });
-            if (ok && isRider) router.push("/go?tab=rider");
+            if (ok && isRider) router.push("/?flow=partner");
           }}
           className="btn btn-danger w-full"
         >
