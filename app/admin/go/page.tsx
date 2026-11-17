@@ -41,14 +41,22 @@ export default async function AdminGoPage() {
       .limit(200),
   ]);
 
+  // Sign every private document link in ONE storage call (was one network call per photo).
+  const rowsList = (appRows ?? []) as Record<string, unknown>[];
+  const allPaths = rowsList.flatMap((row) => DOC_FIELDS.map((field) => row[field] as string | null).filter((v): v is string => Boolean(v)));
+  const signedMap = new Map<string, string>();
+  if (allPaths.length) {
+    const { data: signedList } = await supabase.storage.from("verifications").createSignedUrls(allPaths, 600);
+    for (const item of signedList ?? []) if (item.path && item.signedUrl) signedMap.set(item.path, item.signedUrl);
+  }
+
   const applications: AdminGoApplication[] = await Promise.all(
-    (appRows ?? []).map(async (row: Record<string, unknown>) => {
+    rowsList.map(async (row: Record<string, unknown>) => {
       const docs: { label: string; url: string }[] = [];
       for (const field of DOC_FIELDS) {
         const path = row[field] as string | null;
-        if (!path) continue;
-        const signed = await supabase.storage.from("verifications").createSignedUrl(path, 600);
-        if (signed.data?.signedUrl) docs.push({ label: DOC_LABEL[field], url: signed.data.signedUrl });
+        const url = path ? signedMap.get(path) : undefined;
+        if (url) docs.push({ label: DOC_LABEL[field], url });
       }
       const profile = (Array.isArray(row.profile) ? row.profile[0] : row.profile) as
         | { full_name: string; username: string; avatar_url: string | null }

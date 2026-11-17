@@ -1,10 +1,12 @@
 import { redirect } from "next/navigation";
+import { cache } from "react";
 import { createAdminClient } from "./admin";
 import { createServerSupabase } from "./server";
 
 export type StaffRole = "admin" | "moderator";
 
-async function loadStaff() {
+// cache(): layout and page share one auth + profile lookup per request (faster admin pages).
+const loadStaff = cache(async function loadStaff() {
   const sessionClient = await createServerSupabase();
   if (!sessionClient) redirect("/admin-login");
 
@@ -22,7 +24,7 @@ async function loadStaff() {
     .maybeSingle();
 
   return { user, profile, supabase: dataClient };
-}
+});
 
 /**
  * Server-side guard for admin-only pages and actions (accounts, contacts, settings).
