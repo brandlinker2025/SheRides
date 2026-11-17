@@ -316,3 +316,16 @@ html[data-theme="light"] .btn-secondary {
     scroll-behavior: auto !important;
   }
 }
+
+/* One font (Inter) keeps the app light; old headline font variables point to it. */
+:root {
+  --font-montserrat: var(--font-inter);
+  --font-butterpop: var(--font-inter);
+}
+
+@keyframes sr-fade-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+.sr-fade-up { animation: sr-fade-up 0.25s ease both; }
+@media (prefers-reduced-motion: reduce) { .sr-fade-up { animation: none; } }

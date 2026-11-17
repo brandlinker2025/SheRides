@@ -1,6 +1,5 @@
 "use client";
 
-import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Icon } from "@/components/ui/Icon";
@@ -392,17 +391,14 @@ export function BookRide({ pickup, drop, onPickup, onDrop, autoLocate = true }: 
             const pickupMin = estimatePickupMinutes(item.id, km);
             const tripMin = estimateTripMinutes(item.id, km);
             return (
-              <motion.button
+              <button
                 key={item.id}
                 type="button"
                 role="option"
                 aria-selected={selected}
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.04, duration: 0.25 }}
-                whileTap={{ scale: 0.98 }}
+                style={{ animationDelay: `${index * 40}ms` }}
                 onClick={() => setService(item.id)}
-                className={`flex items-center gap-3 rounded-2xl px-3 py-3 text-left text-[#251b3a] ${
+                className={`sr-fade-up flex items-center transition-transform active:scale-[0.98] gap-3 rounded-2xl px-3 py-3 text-left text-[#251b3a] ${
                   selected ? "bg-[#e9dfff] ring-2 ring-[#7044f5]/50" : "bg-[#ffffff]"
                 }`}
               >
@@ -424,7 +420,7 @@ export function BookRide({ pickup, drop, onPickup, onDrop, autoLocate = true }: 
                 <span className="shrink-0 text-right">
                   <span className="block text-lg font-extrabold text-[#7044f5]">{fare != null ? formatTaka(fare) : "—"}</span>
                 </span>
-              </motion.button>
+              </button>
             );
           })}
         </div>

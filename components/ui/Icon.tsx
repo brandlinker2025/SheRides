@@ -5,6 +5,15 @@ type IconProps = {
   size?: number;
 };
 
+// Old Material Icons names mapped to their Material Symbols names, so the trimmed icon font covers them.
+const ALIASES: Record<string, string> = {
+  smartphone: "mobile",
+  phone_iphone: "mobile",
+  install_mobile: "mobile_arrow_down",
+  expand_more: "keyboard_arrow_down",
+  expand_less: "keyboard_arrow_up",
+};
+
 export function Icon({ name, filled = false, className = "", size }: IconProps) {
   return (
     <span
@@ -14,7 +23,7 @@ export function Icon({ name, filled = false, className = "", size }: IconProps) 
         fontSize: size,
       }}
     >
-      {name}
+      {ALIASES[name] ?? name}
     </span>
   );
 }

@@ -19,7 +19,7 @@ export function Logo({ variant = "mark", height = 48, tone = "dark", suffix, cla
   const sizes = `${width * 2}px`;
   const frame = "absolute inset-0 h-full w-full object-contain";
   const darkFrame = variant === "badge" ? frame : `${frame} rounded-lg bg-[#f0e9ff] p-1`;
-  const imageProps = { quality: 95 as const, priority };
+  const imageProps = { quality: 75 as const, priority };
 
   return (
     <span className={`inline-flex items-center gap-2 align-middle ${className}`}>

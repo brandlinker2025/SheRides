@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Montserrat } from "next/font/google";
-import localFont from "next/font/local";
+import { Inter } from "next/font/google";
+import { ICON_NAMES } from "@/lib/icon-names";
 import { AppProviders } from "@/components/providers/AppProviders";
 import { RegisterSW } from "@/components/pwa/RegisterSW";
 import { brandAssetPath } from "@/lib/brand-assets";
@@ -10,20 +10,6 @@ const inter = Inter({
   subsets: ["latin"],
   variable: "--font-inter",
   display: "swap",
-});
-
-const montserrat = Montserrat({
-  subsets: ["latin"],
-  weight: ["600", "700"],
-  variable: "--font-montserrat",
-  display: "swap",
-});
-
-const butterpop = localFont({
-  src: "./fonts/Butterpop.ttf",
-  variable: "--font-butterpop",
-  display: "swap",
-  weight: "400",
 });
 
 const siteUrl = "https://sherides.online";
@@ -82,11 +68,11 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${inter.variable} ${montserrat.variable} ${butterpop.variable}`}>
+    <html lang="en" className={inter.variable}>
       <head>
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <link
-          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0..1,0&display=swap"
+          href={`https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0..1,0&icon_names=${ICON_NAMES.join(",")}&display=block`}
           rel="stylesheet"
         />
         <script

@@ -258,8 +258,7 @@ export function LoginPanel({ admin = false, flow, returnTo }: { admin?: boolean;
     <AuthScene admin={admin} embedded={!!flow}>
       <div className="w-full">
         <h1
-          className="mb-1 text-[34px] leading-none text-[#dfc7ff] sm:text-[42px]"
-          style={{ fontFamily: "var(--font-butterpop), Georgia, serif" }}
+          className="mb-1 text-[32px] font-extrabold leading-none tracking-tight text-[#dfc7ff] sm:text-[38px]"
         >
           {admin ? "Admin Sign In" : "Welcome Back!"}
         </h1>

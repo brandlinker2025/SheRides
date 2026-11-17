@@ -1,7 +1,7 @@
 export const brandAssetPath = "/brand/violet-mint";
 
-const mark = { src: `${brandAssetPath}/mark.webp`, width: 620, height: 685 };
-const lockup = { src: `${brandAssetPath}/lockup.webp`, width: 742, height: 876 };
+const mark = { src: `${brandAssetPath}/mark.webp`, width: 360, height: 398 };
+const lockup = { src: `${brandAssetPath}/lockup.webp`, width: 480, height: 567 };
 const badge = { src: `${brandAssetPath}/icon-192.png`, width: 192, height: 192 };
 
 export const brandAssets = {
