@@ -2,11 +2,9 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import Image from "next/image";
 import { Icon } from "@/components/ui/Icon";
 import { Logo } from "@/components/ui/Logo";
 import { PandaNavBackdrop } from "@/components/brand/PandaNavBackdrop";
-import { PANDA_HERO_SRC } from "@/lib/brand-art";
 import { useScrollTopOnNavigate } from "@/hooks/useScrollTopOnNavigate";
 
 const nav = [
@@ -102,13 +100,6 @@ export function AdminShell({
       </div>
       {/* Background art stays put while only the content scrolls */}
       <div className="pointer-events-none fixed inset-0 md:left-64 overflow-hidden" aria-hidden="true">
-        <Image
-          src={PANDA_HERO_SRC}
-          alt=""
-          fill
-          sizes="(min-width: 768px) 70vw, 100vw"
-          className="object-cover object-[42%_40%] opacity-[0.22]"
-        />
         <div className="absolute inset-0 panda-app-veil" />
       </div>
       {/* Sidebar is fixed; this is the ONLY scrolling area */}

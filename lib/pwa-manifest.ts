@@ -10,8 +10,8 @@ const icons: NonNullable<MetadataRoute.Manifest["icons"]> = [
 ];
 
 const shared = {
-  background_color: "#1B1324",
-  theme_color: "#460377",
+  background_color: "#EFE7FF",
+  theme_color: "#7244F2",
   display: "standalone" as const,
   display_override: ["standalone", "minimal-ui"] as NonNullable<MetadataRoute.Manifest["display_override"]>,
   lang: "en",
@@ -30,7 +30,7 @@ export function riderAppManifest(): MetadataRoute.Manifest {
     name: "SheRides",
     short_name: "SheRides",
     description: "Women-only ride sharing in Bangladesh",
-    start_url: "/go",
+    start_url: "/",
   };
 }
 

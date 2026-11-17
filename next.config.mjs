@@ -42,6 +42,8 @@ const nextConfig = {
   async redirects() {
     // Social pages and the SOS center were removed. Old links land on ride booking or admin review.
     return [
+      // Short share links for installing the app on any phone.
+      ...["/install", "/app", "/get", "/apk"].map((source) => ({ source, destination: "/download", permanent: false })),
       { source: "/partner", destination: "/?flow=partner", permanent: false },
       { source: "/signup", has: [{ type: "query", key: "captain", value: "1" }], destination: "/?flow=partner&step=signup", permanent: false },
       { source: "/signup", destination: "/?flow=ride&step=signup", permanent: false },

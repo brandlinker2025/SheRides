@@ -210,3 +210,33 @@
 .public-app .card-surface { background: #ffffff; border: 1px solid #e4d8ff; color: #251b3a; box-shadow: 0 12px 30px #7044f514; }
 .public-app :is([class*="from-[#A855F7]"], [class*="from-[#241b4a]"], [class*="from-[#8b7cf8]"], [class*="from-[#14163a]"]) { background-image: linear-gradient(135deg, #9466f6, #7044f5); color: #fff; }
 .public-app :is([class*="from-[#A855F7]"], [class*="from-[#241b4a]"], [class*="from-[#14163a]"]) [class*="text-white/"] { color: #efe7ff; }
+
+/* ---------- Install page ---------- */
+.install-page { display: grid; place-items: start center; }
+.install-panel { display: grid; gap: 14px; }
+.install-hero { position: relative; display: grid; place-items: center; min-height: 220px; overflow: hidden; border-radius: 26px;
+  background: radial-gradient(70% 55% at 50% 0%, #c6a6ff 0, transparent 70%), linear-gradient(170deg, #a47cf7, #7a4bfd 60%, #6a3cf0);
+  box-shadow: 0 22px 40px -14px #7a4bfd88, inset 0 1px 0 #ffffff66; }
+.install-title { font-size: 1.5rem; line-height: 1.25; font-weight: 800; color: var(--sr-ink); }
+.install-sub { margin-top: -6px; color: var(--sr-muted); font-size: 0.92rem; }
+.install-main { width: 100%; min-height: 64px; font-size: 1.15rem; }
+.install-card { display: grid; gap: 8px; padding: 16px; border-radius: 22px; background: linear-gradient(180deg, #fff, #f8f4ff);
+  box-shadow: inset 0 0 0 1px var(--sr-line), 0 12px 26px -16px #7244f259; color: var(--sr-ink); }
+.install-card-title { display: flex; align-items: center; gap: 8px; font-weight: 800; color: var(--sr-lav-text); }
+.install-note { font-size: 0.9rem; color: var(--sr-muted); }
+.install-warn { background: linear-gradient(180deg, #fff7fd, #ffeefa); box-shadow: inset 0 0 0 1px #f8c4ec, 0 12px 26px -16px #ec7fd066; }
+.install-done { grid-template-columns: auto 1fr; align-items: center; color: #0a3f3a; background: linear-gradient(180deg, #effffc, #dcfaf5);
+  box-shadow: inset 0 0 0 1px #aeeee6; }
+.install-done > a { grid-column: 1 / -1; }
+.install-steps { display: grid; gap: 10px; }
+.install-step { display: flex; align-items: flex-start; gap: 10px; font-size: 0.95rem; line-height: 1.45; }
+.install-step-n { display: inline-grid; place-items: center; flex-shrink: 0; width: 26px; height: 26px; border-radius: 999px; font-size: 0.8rem; font-weight: 800;
+  color: #fff; background: linear-gradient(180deg, var(--sr-violet-1), var(--sr-violet-2)); box-shadow: 0 4px 10px -4px #7244f2aa; }
+.install-key { display: inline-grid; place-items: center; width: 24px; height: 24px; margin: 0 2px; vertical-align: middle; border-radius: 7px;
+  color: #2f6fe4; background: #eef3ff; box-shadow: inset 0 0 0 1px #d5e1ff; }
+.install-link { display: block; text-align: center; font-size: 0.9rem; font-weight: 700; color: var(--sr-violet-text); text-decoration: underline; text-underline-offset: 3px; }
+.install-qr { grid-template-columns: auto 1fr; align-items: center; gap: 16px; }
+.install-qr img { border-radius: 16px; box-shadow: inset 0 0 0 1px var(--sr-line); }
+.install-url { margin-top: 6px; font-weight: 800; color: var(--sr-violet-text); }
+.install-share { display: grid; gap: 10px; margin-top: 4px; padding-top: 14px; border-top: 1px dashed var(--sr-line); }
+@media (max-width: 380px) { .install-qr { grid-template-columns: 1fr; justify-items: center; text-align: center; } }
