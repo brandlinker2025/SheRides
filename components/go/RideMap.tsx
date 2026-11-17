@@ -1,101 +1,66 @@
 "use client";
 
-import { useMemo } from "react";
+import "leaflet/dist/leaflet.css";
+import { useEffect, useRef, useState } from "react";
+import type * as Leaflet from "leaflet";
 import type { GoPlace } from "@/lib/go";
+import { DHAKA, OSM_ATTRIBUTION, OSM_TILES, loadLeaflet, pinIcon } from "./leaflet-loader";
 
-type Pin = { place: GoPlace; kind: "pickup" | "drop" | "rider" };
-
-function project(place: GoPlace, bounds: { minLat: number; maxLat: number; minLng: number; maxLng: number }) {
-  const latSpan = Math.max(bounds.maxLat - bounds.minLat, 0.01);
-  const lngSpan = Math.max(bounds.maxLng - bounds.minLng, 0.01);
-  const x = ((place.lng - bounds.minLng) / lngSpan) * 76 + 12;
-  const y = (1 - (place.lat - bounds.minLat) / latSpan) * 70 + 12;
-  return { x, y };
-}
-
-/** Stylized live-map frame. Pins track pickup and drop without a third-party map key. */
+/** Real street map for an active ride: pickup, drop-off and the captain's live position. */
 export function RideMap({ pickup, drop, rider = null }: { pickup: GoPlace | null; drop: GoPlace | null; rider?: GoPlace | null }) {
-  const pins = useMemo(() => [pickup && { place: pickup, kind: "pickup" as const }, drop && { place: drop, kind: "drop" as const }, rider && { place: rider, kind: "rider" as const }].filter(Boolean) as Pin[], [pickup, drop, rider]);
-  const bounds = useMemo(() => {
-    const points = pins.length ? pins.map((pin) => pin.place) : [{ lat: 23.78, lng: 90.36 }, { lat: 23.86, lng: 90.44 }];
-    const lats = points.map((point) => point.lat);
-    const lngs = points.map((point) => point.lng);
-    const padLat = Math.max((Math.max(...lats) - Math.min(...lats)) * 0.35, 0.012);
-    const padLng = Math.max((Math.max(...lngs) - Math.min(...lngs)) * 0.35, 0.012);
-    return {
-      minLat: Math.min(...lats) - padLat,
-      maxLat: Math.max(...lats) + padLat,
-      minLng: Math.min(...lngs) - padLng,
-      maxLng: Math.max(...lngs) + padLng,
+  const box = useRef<HTMLDivElement>(null);
+  const mapRef = useRef<Leaflet.Map | null>(null);
+  const layerRef = useRef<Leaflet.LayerGroup | null>(null);
+  const libRef = useRef<typeof Leaflet | null>(null);
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    void loadLeaflet().then((L) => {
+      if (cancelled || !box.current) return;
+      libRef.current = L;
+      const map = L.map(box.current, { zoomControl: false, attributionControl: true }).setView([DHAKA.lat, DHAKA.lng], 12);
+      L.tileLayer(OSM_TILES, { maxZoom: 19, attribution: OSM_ATTRIBUTION }).addTo(map);
+      layerRef.current = L.layerGroup().addTo(map);
+      mapRef.current = map;
+      setReady(true);
+    });
+    return () => {
+      cancelled = true;
+      mapRef.current?.remove();
+      mapRef.current = null;
     };
-  }, [pins]);
-  const placed = pins.map((pin) => ({ ...pin, ...project(pin.place, bounds) }));
+  }, []);
+
+  useEffect(() => {
+    const L = libRef.current;
+    const map = mapRef.current;
+    const layer = layerRef.current;
+    if (!ready || !L || !map || !layer) return;
+    layer.clearLayers();
+    const points: [number, number][] = [];
+    const add = (place: GoPlace | null, kind: "pickup" | "drop" | "rider", label: string) => {
+      if (!place) return;
+      L.marker([place.lat, place.lng], { icon: pinIcon(L, kind), title: label }).bindTooltip(label).addTo(layer);
+      points.push([place.lat, place.lng]);
+    };
+    add(pickup, "pickup", "Pickup");
+    add(drop, "drop", "Drop-off");
+    add(rider, "rider", "Captain");
+    if (pickup && drop) {
+      L.polyline([[pickup.lat, pickup.lng], [drop.lat, drop.lng]], { color: "#7244f2", weight: 4, opacity: 0.7, dashArray: "8 8" }).addTo(layer);
+    }
+    if (points.length === 1) map.setView(points[0], 16);
+    else if (points.length > 1) map.fitBounds(L.latLngBounds(points), { padding: [36, 36], maxZoom: 16 });
+  }, [ready, pickup, drop, rider]);
 
   return (
     <div className="relative h-full min-h-[220px] overflow-hidden rounded-[28px] border border-[#e4d8ff] bg-[#efe7ff] shadow-[0_20px_50px_-24px_rgba(112,68,245,0.45)]">
-      <div
-        className="absolute inset-0 opacity-90"
-        style={{
-          backgroundImage:
-            "radial-gradient(circle at 20% 20%, rgba(134,81,220,0.22), transparent 34%), radial-gradient(circle at 80% 70%, rgba(80,212,189,0.28), transparent 38%), linear-gradient(160deg, #f7f2ff 0%, #ece2ff 55%, #e3f8f3 100%)",
-        }}
-      />
-      <svg className="absolute inset-0 h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-        {Array.from({ length: 8 }, (_, index) => (
-          <line key={`h-${index}`} x1="0" x2="100" y1={8 + index * 12} y2={4 + index * 12} stroke="rgba(112,68,245,0.08)" strokeWidth="0.35" />
-        ))}
-        {Array.from({ length: 7 }, (_, index) => (
-          <line key={`v-${index}`} y1="0" y2="100" x1={6 + index * 14} x2={10 + index * 13} stroke="rgba(112,68,245,0.07)" strokeWidth="0.35" />
-        ))}
-        <path d="M8 72 C 24 68, 30 40, 48 46 S 70 78, 94 30" fill="none" stroke="rgba(134,81,220,0.45)" strokeWidth="1.4" />
-        <path d="M4 28 C 22 36, 40 18, 58 32 S 78 20, 98 48" fill="none" stroke="rgba(80,212,189,0.6)" strokeWidth="1.1" />
-        <path d="M12 90 C 30 60, 46 84, 70 58 S 86 40, 96 62" fill="none" stroke="rgba(112,68,245,0.18)" strokeWidth="0.7" />
-        {(() => { const a = placed.find((p) => p.kind === "pickup"); const b = placed.find((p) => p.kind === "drop"); return a && b ? (
-          <line
-            x1={a.x}
-            y1={a.y}
-            x2={b.x}
-            y2={b.y}
-            stroke="url(#route)"
-            strokeWidth="0.9"
-            strokeDasharray="1.6 1.1"
-          />
-        ) : null; })()}
-        <defs>
-          <linearGradient id="route" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor="#3fd0c1" />
-            <stop offset="100%" stopColor="#7044f5" />
-          </linearGradient>
-        </defs>
-      </svg>
-      {placed.map((pin) => (
-        <span
-          key={pin.kind}
-          className="absolute -translate-x-1/2 -translate-y-full"
-          style={{ left: `${pin.x}%`, top: `${pin.y}%` }}
-        >
-          <span
-            className={`block h-3.5 w-3.5 rounded-full border-2 border-white shadow-lg ${pin.kind === "pickup" ? "bg-[#3fd0c1]" : pin.kind === "rider" ? "bg-[#ec7fd0] animate-pulse" : "bg-[#7044f5]"}`}
-          />
-          <span className="mt-1 block max-w-[140px] truncate rounded-full bg-black/55 px-2 py-0.5 text-[11px] font-semibold text-white backdrop-blur-md">
-            {pin.kind === "pickup" ? "Pickup" : pin.kind === "rider" ? "Captain" : "Drop-off"}
-          </span>
-        </span>
-      ))}
-      <div className="absolute left-3 top-3 flex max-w-[70%] items-center gap-2 rounded-full border border-[#e4d8ff] bg-[#ffffff]/90 px-3 py-1.5 text-[#251b3a] shadow-lg backdrop-blur-md">
-        <span className="h-2 w-2 shrink-0 rounded-full bg-[#3fd0c1]" />
-        <span className="truncate text-[10px] font-bold uppercase tracking-wider text-[#7044f5]">100% female captains · checked by an admin</span>
+      <div ref={box} className="absolute inset-0" />
+      {!ready && <p className="absolute inset-0 grid place-items-center text-sm text-[#5e5276]">Map লোড হচ্ছে…</p>}
+      <div className="pointer-events-none absolute left-3 top-3 z-[500] flex items-center gap-2 rounded-full border border-[#e4d8ff] bg-white/90 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-[#7044f5] shadow">
+        <span className="h-2 w-2 rounded-full bg-[#3fd0c1]" /> Live map
       </div>
-      <div className="absolute inset-x-3 bottom-3 rounded-2xl border border-[#e4d8ff] bg-[#ffffff]/92 px-4 py-3 text-[#251b3a] shadow-lg backdrop-blur-xl">
-        <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#7044f5]">Live map</p>
-        <p className="mt-1 truncate text-sm font-semibold">{pickup?.label ?? "Pickup not set"}</p>
-        <p className="truncate text-sm text-[#5e5276]">{drop ? drop.label : "Choose a destination"}</p>
-      </div>
-      {!pins.length && (
-        <p className="absolute left-4 top-4 rounded-full bg-[#ffffff]/90 px-3 py-1 text-xs font-semibold text-[#4a2e8a] backdrop-blur-md">
-          Dhaka · waiting for a route
-        </p>
-      )}
     </div>
   );
 }

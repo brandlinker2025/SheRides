@@ -140,8 +140,14 @@ export function GoHub({ flow }: { flow: "partner" | "ride" }) {
   // Live Ride: any approved member can book straight away (no separate passenger verification).
   return (
     <RideDeck showForm={apps !== null}>
-      <h1 className="mb-1 text-2xl font-bold">Live Ride</h1>
-      <p className="mb-3 text-sm text-[#5e5276]">Pickup আর গন্তব্য দিন → ভাড়া দেখুন → Request চাপুন। কাছের নারী captain খোঁজা শুরু হবে।</p>
+      <header className="sr-ride-hero">
+        <div className="min-w-0">
+          <p className="sr-ride-hero-chip"><Icon name="verified_user" size={14} /> 100% নারী captain</p>
+          <h1>Live Ride</h1>
+          <p>কোথায় যাবেন? ২ ধাপে বুক করুন।</p>
+        </div>
+        <span className="sr-ride-hero-icon" aria-hidden="true"><Icon name="electric_moped" size={34} /></span>
+      </header>
       {notices}
     </RideDeck>
   );
