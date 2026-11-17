@@ -363,3 +363,8 @@
 @media (min-width: 900px) { .sr-mappicker-bottom { width: min(560px, 100%); margin: 0 auto 16px; border-radius: 24px; } }
 .sr-map-chip { display: inline-flex; align-items: center; gap: 6px; width: fit-content; padding: 8px 12px; border-radius: 999px; font-size: 0.85rem; font-weight: 800; color: #4a2e8a; background: #fff; box-shadow: 0 8px 18px -8px #251b3a66; }
 .sr-pin-center > span { box-shadow: 0 0 0 6px #7244f233, 0 6px 14px rgba(37, 27, 58, 0.45); }
+
+/* MapLibre canvas inside Leaflet (only the rules it needs, not the full 70 KB stylesheet) */
+.maplibregl-map { position: relative; overflow: hidden; }
+.maplibregl-canvas { position: absolute; left: 0; top: 0; }
+.leaflet-control-attribution { font-size: 10px !important; background: #ffffffcc !important; border-radius: 8px 0 0 0; }
