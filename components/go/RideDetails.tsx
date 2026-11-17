@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { Avatar } from "@/components/ui/Avatar";
 import { RideMap } from "./RideMap";
+import { LandmarkPhoto } from "./LandmarkPhoto";
 import { BackLink } from "@/components/ui/BackLink";
 import { Icon } from "@/components/ui/Icon";
 import { useAuth } from "@/lib/auth-context";
@@ -268,6 +269,18 @@ export function RideDetails({ id }: { id: string }) {
           </p>
         )}
       </div>
+
+      {user && (isPassenger || isRider) && (
+        <LandmarkPhoto
+          rideId={ride.id}
+          myId={user.id}
+          isPassenger={isPassenger}
+          path={ride.landmark_photo_path}
+          sentAt={ride.landmark_photo_at}
+          active={ride.status === "requested" || active}
+          onSent={() => void load()}
+        />
+      )}
 
       {user && ride.rider_id && (isPassenger || isRider) && (
         <RideChat
