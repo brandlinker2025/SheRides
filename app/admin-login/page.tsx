@@ -1,5 +1,10 @@
+import { Suspense } from "react";
 import { StaffLoginPanel } from "@/components/auth/StaffLoginPanel";
 
 export default function AdminLoginPage() {
-  return <StaffLoginPanel />;
+  return (
+    <Suspense>
+      <StaffLoginPanel />
+    </Suspense>
+  );
 }

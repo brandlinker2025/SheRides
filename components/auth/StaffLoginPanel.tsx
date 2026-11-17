@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { Icon } from "@/components/ui/Icon";
 import { Logo } from "@/components/ui/Logo";
@@ -12,6 +13,8 @@ export function StaffLoginPanel() {
   const [busy, setBusy] = useState(false);
   const [sent, setSent] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [showEmail, setShowEmail] = useState(false);
+  const linkState = useSearchParams().get("link");
 
   async function submit(event: FormEvent) {
     event.preventDefault();
@@ -40,10 +43,21 @@ export function StaffLoginPanel() {
           <Logo variant="lockup" tone="light" height={110} priority suffix="Admin" />
         </div>
         <h1 className="text-2xl font-extrabold text-[#251b3a]">Admin &amp; Moderator</h1>
-        <p className="mt-1 mb-5 text-sm text-[#5e5276]">
-          শুধু আপনার ইমেইল দিন — পাসওয়ার্ড লাগবে না। ইমেইলে একটা login লিংক যাবে, সেটাতে চাপলেই ঢুকে যাবেন।
+        <p className="mt-1 mb-4 text-sm text-[#5e5276]">
+          আপনার <b>private staff login link</b> ফোনে একবার খুলুন — সরাসরি panel খুলে যাবে, পাসওয়ার্ড বা ইমেইল লাগবে না। এরপর ঐ ফোনে আর কিছু লাগবে না।
         </p>
-        {sent ? (
+        {linkState && (
+          <p className="install-card install-warn mb-4 text-sm" role="alert">
+            {linkState === "setup"
+              ? "Login এখন চালু করা যাচ্ছে না। একটু পরে আবার লিংকটা খুলুন।"
+              : "এই লিংকটা আর কাজ করছে না। Main admin-এর কাছে নতুন লিংক চান।"}
+          </p>
+        )}
+        {!showEmail && !sent ? (
+          <button type="button" className="install-link" onClick={() => setShowEmail(true)}>
+            লিংক নেই? ইমেইলে login পাঠান (শুধু main admin)
+          </button>
+        ) : sent ? (
           <div className="install-card" role="status">
             <p className="install-card-title"><Icon name="mark_email_read" size={22} /> ইমেইল চেক করুন</p>
             <p className="text-sm">{sent}</p>
