@@ -27,7 +27,7 @@ export type MemberIdentifier =
   | { kind: "email"; value: string }
   | { kind: "phone"; value: string };
 
-/** Login accepts a BD mobile or a legacy email. Signup is phone-only. */
+/** Login and signup accept a Bangladesh mobile number or email. */
 export function parseMemberIdentifier(input: string): MemberIdentifier | null {
   const trimmed = input.trim();
   if (!trimmed) return null;
