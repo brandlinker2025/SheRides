@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { adminCancelGoRide, reviewGoApplication, reviewPartnerApplication } from "@/app/admin/go/actions";
+import { adminAssignGoRide, adminCancelGoRide, reviewGoApplication, reviewPartnerApplication } from "@/app/admin/go/actions";
 import { Icon } from "@/components/ui/Icon";
 import { KIND_LABEL, RIDE_STATUS_LABEL, formatTaka, type GoRideKind, type GoRideStatus } from "@/lib/go";
 
@@ -150,9 +150,9 @@ function VerificationRow({ app, rides }: { app: AdminGoApplication; rides: Admin
     else router.refresh();
   }
 
-  const selfie = app.docs.find((d) => d.label === "Live selfie");
+  const selfie = app.docs.find((d) => d.label === "Selfie");
   const nidFront = app.docs.find((d) => d.label === "NID front");
-  const extraDocs = app.docs.filter((doc) => doc.label !== "Live selfie" && doc.label !== "NID front");
+  const extraDocs = app.docs.filter((doc) => doc.label !== "Selfie" && doc.label !== "NID front");
 
   return (
     <article className="flex flex-col gap-4 rounded-2xl border border-white/10 bg-[#1f1f24] p-4 text-[#e4e1e9]">
@@ -166,7 +166,7 @@ function VerificationRow({ app, rides }: { app: AdminGoApplication; rides: Admin
           <p className="font-mono text-sm text-[#ddb7ff]">#{app.id.slice(0, 8)}</p>
         </div>
       </div>
-      <p className="text-xs text-white/55">Compare the live selfie with the NID yourself. This card does not score liveness, gender, or a government match.</p>
+      <p className="text-xs text-white/55">Compare the selfie with the NID and review the required documents before approving.</p>
       <div className="grid grid-cols-2 gap-3">
         <div>
           <p className="mb-1 text-[10px] font-bold uppercase tracking-wider text-[#ffb95f]">Live selfie</p>
@@ -291,16 +291,61 @@ function PartnerLeadRow({ lead }: { lead: AdminPartnerLead }) {
   );
 }
 
+type QueuedRide = { id: string; pickup_text: string; drop_text: string | null; scheduled_at: string | null; passenger?: string };
+type ApprovedCaptain = { user_id: string; full_name: string };
+
+function RideAssignment({ ride, captains }: { ride: QueuedRide; captains: ApprovedCaptain[] }) {
+  const [captain, setCaptain] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string>();
+  return (
+    <form className="card-surface flex flex-wrap items-end gap-3 p-4" onSubmit={async (event) => {
+      event.preventDefault();
+      setBusy(true);
+      setError(undefined);
+      try {
+        const result = await adminAssignGoRide(ride.id, captain);
+        if (result.error) setError(result.error);
+      } catch {
+        setError("Could not assign this ride. Refresh the queue and try again.");
+      } finally {
+        setBusy(false);
+      }
+    }}>
+      <div className="min-w-48 flex-1">
+        <p className="font-semibold">{ride.passenger || "Passenger"}</p>
+        <p className="text-sm text-secondary">{ride.pickup_text}{ride.drop_text ? ` → ${ride.drop_text}` : ""}</p>
+        <p className="text-sm text-secondary">{ride.scheduled_at ? new Date(ride.scheduled_at).toLocaleString("en-BD", { timeZone: "Asia/Dhaka" }) : "Ride now"}</p>
+      </div>
+      <label className="flex flex-col gap-1 text-sm">
+        Approved captain
+        <select className="rounded-lg border border-surface-border bg-surface p-2" value={captain} onChange={(event) => setCaptain(event.target.value)} disabled={busy}>
+          <option value="">Select a captain</option>
+          {captains.map((candidate) => <option key={candidate.user_id} value={candidate.user_id}>{candidate.full_name}</option>)}
+        </select>
+      </label>
+      <button type="submit" className="btn btn-primary disabled:opacity-50" disabled={!captain || busy}>{busy ? "Assigning…" : "Assign ride"}</button>
+      {error && <p role="alert" className="w-full text-sm text-error">{error}</p>}
+    </form>
+  );
+}
+
 export function GoAdminBoard({
   applications,
   rides,
   partners,
   partnerNote,
+  queue,
+  captains,
+  assignmentError,
 }: {
   applications: AdminGoApplication[];
   rides: AdminGoRide[];
   partners: AdminPartnerLead[];
   partnerNote: string | null;
+  queue: QueuedRide[];
+  captains: ApprovedCaptain[];
+  assignmentError: string | null;
 }) {
   const router = useRouter();
   const [role, setRole] = useState<Role>("rider");
@@ -471,6 +516,13 @@ export function GoAdminBoard({
         ) : (
           reviewedPartners.map((lead) => <PartnerLeadRow key={lead.id} lead={lead} />)
         )}
+      </section>
+
+      <section className="flex flex-col gap-3">
+        <h2 className="text-lg font-bold">Unclaimed Ride Queue</h2>
+        {assignmentError ? <p role="alert" className="text-error">{assignmentError}</p> :
+          queue.length ? queue.map((ride) => <RideAssignment key={ride.id} ride={ride} captains={captains} />) :
+            <p className="card-surface p-4 text-secondary">No unclaimed rides.</p>}
       </section>
 
       <section className="flex flex-col gap-3">

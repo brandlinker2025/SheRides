@@ -68,3 +68,15 @@ export async function adminCancelGoRide(rideId: string) {
     return { error: err instanceof Error ? err.message : "Could not cancel this ride." };
   }
 }
+
+export async function adminAssignGoRide(rideId: string, riderId: string) {
+  if (!UUID.test(rideId) || !UUID.test(riderId)) return { error: "Select an approved captain." };
+  await requireAdmin();
+  const session = await createServerSupabase();
+  if (!session) return { error: "Supabase is not configured." };
+  const { error } = await session.rpc("go_admin_assign_ride", { p_ride_id: rideId, p_rider_id: riderId });
+  if (error) return { error: error.message };
+  revalidatePath("/admin/go");
+  revalidatePath("/admin");
+  return {};
+}

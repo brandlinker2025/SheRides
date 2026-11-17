@@ -13,9 +13,10 @@ import { FacebookMark, GoogleMark } from "./auth-marks";
 type AuthSocialButtonsProps = {
   onError: (message: string) => void;
   redirectTo?: string;
+  googleOnly?: boolean;
 };
 
-export function AuthSocialButtons({ onError, redirectTo }: AuthSocialButtonsProps) {
+export function AuthSocialButtons({ onError, redirectTo, googleOnly = false }: AuthSocialButtonsProps) {
   const [busy, setBusy] = useState<OAuthProvider | null>(null);
 
   async function startOAuth(provider: OAuthProvider) {
@@ -38,7 +39,7 @@ export function AuthSocialButtons({ onError, redirectTo }: AuthSocialButtonsProp
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider,
       options: {
-        redirectTo: redirectTo ?? `${siteOrigin()}/go`,
+        redirectTo: redirectTo ?? `${siteOrigin()}/auth/callback?flow=oauth`,
         skipBrowserRedirect: true,
       },
     });
@@ -53,7 +54,7 @@ export function AuthSocialButtons({ onError, redirectTo }: AuthSocialButtonsProp
   }
 
   return (
-    <div className="grid grid-cols-2 gap-3">
+    <div className={googleOnly ? "grid" : "grid grid-cols-2 gap-3"}>
       <button
         type="button"
         disabled={busy !== null}
@@ -61,9 +62,9 @@ export function AuthSocialButtons({ onError, redirectTo }: AuthSocialButtonsProp
         className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/5 text-sm font-semibold text-white transition-colors hover:border-white/30 hover:bg-white/10 disabled:opacity-60"
       >
         <GoogleMark className="h-5 w-5" />
-        {busy === "google" ? "Checking…" : "Google"}
+        {busy === "google" ? "Checking…" : "Continue with Google"}
       </button>
-      <button
+      {!googleOnly && <button
         type="button"
         disabled={busy !== null}
         onClick={() => void startOAuth("facebook")}
@@ -71,7 +72,7 @@ export function AuthSocialButtons({ onError, redirectTo }: AuthSocialButtonsProp
       >
         <FacebookMark className="h-5 w-5" />
         {busy === "facebook" ? "Checking…" : "Facebook"}
-      </button>
+      </button>}
     </div>
   );
 }

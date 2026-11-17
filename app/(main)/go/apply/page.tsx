@@ -25,7 +25,7 @@ function FilePick({
   hint: string;
   file: File | null;
   onPick: (file: File | null) => void;
-  /** "user" = live selfie (front camera only), "environment" = document (back camera + upload) */
+  /** "user" = selfie (front camera or gallery), "environment" = document (back camera + upload) */
   capture?: "user" | "environment";
   required?: boolean;
 }) {
@@ -69,6 +69,12 @@ function FilePick({
         )}
       </div>
 
+      {selfie && (
+        <button type="button" onClick={() => uploadRef.current?.click()} className="self-start text-sm font-semibold underline">
+          Having trouble with live camera? Upload photo from gallery
+        </button>
+      )}
+
       <input
         ref={uploadRef}
         type="file"
@@ -77,7 +83,8 @@ function FilePick({
         aria-hidden="true"
         accept={acceptsPdf ? "image/jpeg,image/png,image/webp,application/pdf" : "image/jpeg,image/png,image/webp"}
         onChange={(event) => {
-          onPick(event.target.files?.[0] ?? null);
+          const selected = event.target.files?.[0];
+          if (selected) onPick(selected);
           event.currentTarget.value = "";
         }}
       />
@@ -262,9 +269,9 @@ function ApplyForm() {
           <input value={nid} onChange={(e) => setNid(e.target.value.replace(/\D/g, "").slice(0, 17))} inputMode="numeric" placeholder="NID number" className={field} />
           <div className="space-y-6 pt-2">
             <div className="space-y-3">
-              <StepHeading n={1} title="Face photo" sub="Live selfie — front camera, your whole face inside the oval." />
+              <StepHeading n={1} title="Face photo" sub="Use the front camera with your face inside the oval, or upload a clear selfie." />
               <FilePick
-                label="Live selfie"
+                label="Selfie"
                 hint="Opens the front camera with a face guide."
                 file={selfie}
                 onPick={setSelfie}
