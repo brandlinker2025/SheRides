@@ -80,3 +80,15 @@ export async function adminAssignGoRide(rideId: string, riderId: string) {
   revalidatePath("/admin");
   return {};
 }
+
+/** Staff set the final fare (hire hours, extra km) before the ride starts. */
+export async function adminSetRideFare(rideId: string, fare: number) {
+  if (!UUID.test(rideId) || !Number.isInteger(fare) || fare < 0 || fare > 50000) return { error: "Enter a fare between ৳0 and ৳50,000." };
+  await requireStaff();
+  const session = await createServerSupabase();
+  if (!session) return { error: "Supabase is not configured." };
+  const { error } = await session.rpc("go_admin_set_fare", { p_ride_id: rideId, p_fare: fare });
+  if (error) return { error: /go_admin_set_fare|schema cache/i.test(error.message) ? "Run the latest SheRides database update first." : error.message };
+  revalidatePath("/admin/go");
+  return {};
+}

@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { adminAssignGoRide, adminCancelGoRide, reviewGoApplication, reviewPartnerApplication } from "@/app/admin/go/actions";
+import { adminAssignGoRide, adminSetRideFare, adminCancelGoRide, reviewGoApplication, reviewPartnerApplication } from "@/app/admin/go/actions";
 import { Icon } from "@/components/ui/Icon";
 import { KIND_LABEL, RIDE_STATUS_LABEL, formatTaka, type GoRideKind, type GoRideStatus } from "@/lib/go";
 
@@ -296,15 +296,24 @@ function PartnerLeadRow({ lead }: { lead: AdminPartnerLead }) {
   );
 }
 
-type QueuedRide = { id: string; pickup_text: string; drop_text: string | null; scheduled_at: string | null; passenger?: string };
+type QueuedRide = { id: string; pickup_text: string; drop_text: string | null; scheduled_at: string | null; passenger?: string; kind?: string; fare?: number | null; hire_hours?: number | null };
 type ApprovedCaptain = { user_id: string; full_name: string };
 
 function RideAssignment({ ride, captains }: { ride: QueuedRide; captains: ApprovedCaptain[] }) {
   const [captain, setCaptain] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string>();
+  const [fare, setFare] = useState(String(ride.fare ?? ""));
+  const [fareMsg, setFareMsg] = useState<string>();
+  const hire = ride.kind === "hire";
+  async function saveFare() {
+    setFareMsg(undefined);
+    const value = Number(fare);
+    const result = await adminSetRideFare(ride.id, Math.round(value));
+    setFareMsg(result.error ?? "Fare saved. The passenger is notified.");
+  }
   return (
-    <form className="card-surface flex flex-wrap items-end gap-3 p-4" onSubmit={async (event) => {
+    <form className={`card-surface flex flex-wrap items-end gap-3 p-4 ${hire ? "border-2 border-[#ffa95c]" : ""}`} onSubmit={async (event) => {
       event.preventDefault();
       setBusy(true);
       setError(undefined);
@@ -318,7 +327,12 @@ function RideAssignment({ ride, captains }: { ride: QueuedRide; captains: Approv
       }
     }}>
       <div className="min-w-48 flex-1">
-        <p className="font-semibold">{ride.passenger || "Passenger"}</p>
+        <p className="font-semibold">
+          {ride.passenger || "Passenger"}{" "}
+          <span className={`ml-1 rounded-full px-2 py-0.5 text-xs font-bold ${hire ? "bg-[#fff0e0] text-[#8a4a00]" : ride.scheduled_at ? "bg-[#efe7ff] text-[#4a2e8a]" : "bg-[#e3faf6] text-[#0a3f3a]"}`}>
+            {hire ? `Hire ${ride.hire_hours ?? ""}h · needs your approval` : ride.scheduled_at ? "Pre-book" : "Ride now"}
+          </span>
+        </p>
         <p className="text-sm text-secondary">{ride.pickup_text}{ride.drop_text ? ` → ${ride.drop_text}` : ""}</p>
         <p className="text-sm text-secondary">{ride.scheduled_at ? new Date(ride.scheduled_at).toLocaleString("en-BD", { timeZone: "Asia/Dhaka" }) : "Ride now"}</p>
       </div>
@@ -329,7 +343,15 @@ function RideAssignment({ ride, captains }: { ride: QueuedRide; captains: Approv
           {captains.map((candidate) => <option key={candidate.user_id} value={candidate.user_id}>{candidate.full_name}</option>)}
         </select>
       </label>
-      <button type="submit" className="btn btn-primary disabled:opacity-50" disabled={!captain || busy}>{busy ? "Assigning…" : "Assign ride"}</button>
+      <label className="flex flex-col gap-1 text-sm">
+        Fare (৳)
+        <span className="flex gap-2">
+          <input inputMode="numeric" value={fare} onChange={(event) => setFare(event.target.value.replace(/\D/g, "").slice(0, 5))} className="w-24 rounded-lg border border-surface-border bg-surface p-2" />
+          <button type="button" className="btn btn-secondary h-10 min-h-10 px-3 text-sm" onClick={() => void saveFare()}>Set</button>
+        </span>
+      </label>
+      <button type="submit" className="btn btn-primary disabled:opacity-50" disabled={!captain || busy}>{busy ? "Assigning…" : hire ? "Confirm hire" : "Assign ride"}</button>
+      {fareMsg && <p role="status" className="w-full text-sm text-secondary">{fareMsg}</p>}
       {error && <p role="alert" className="w-full text-sm text-error">{error}</p>}
     </form>
   );

@@ -42,7 +42,7 @@ export function RiderMode() {
       return;
     }
     const [openResult, mineResult, stateResult] = await Promise.all([
-      supabase.from("go_rides").select(SELECT).eq("status", "requested").is("rider_id", null).order("created_at", { ascending: false }).limit(30),
+      supabase.from("go_rides").select(SELECT).eq("status", "requested").is("rider_id", null).neq("kind", "hire").order("created_at", { ascending: false }).limit(30),
       supabase.from("go_rides").select(SELECT).eq("rider_id", user.id).in("status", ["accepted", "in_progress"]).order("scheduled_at", { ascending: true, nullsFirst: true }),
       supabase.from("go_rider_state").select("is_online").eq("user_id", user.id).maybeSingle(),
     ]);

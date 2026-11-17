@@ -59,7 +59,7 @@ export async function removeModerator(userId: string) {
 async function issueLink(admin: NonNullable<ReturnType<typeof createAdminClient>>, userId: string, label: string) {
   const token = newStaffToken();
   const now = new Date().toISOString();
-  await admin.from("staff_access_links").update({ revoked_at: now }).eq("user_id", userId).is("revoked_at", null);
+  await admin.from("staff_access_links").update({ revoked_at: now }).eq("user_id", userId).eq("kind", "link").is("revoked_at", null);
   const { error } = await admin
     .from("staff_access_links")
     .insert({ user_id: userId, token_hash: await sha256Hex(token), label: label.slice(0, 80) });
@@ -98,4 +98,32 @@ export async function revokeStaffLinks(userId: string) {
   if (error) return { error: error.message };
   revalidatePath("/admin/users");
   return { ok: "Login link cancelled. Create a new one when needed." };
+}
+
+/** Short link + 6-digit PIN for a staff member (e.g. sherides.online/rs/brandlinker). Her previous PIN stops working. */
+export async function setStaffPin(userId: string, slugInput: string) {
+  const slug = String(slugInput ?? "").trim().toLowerCase().replace(/[^a-z0-9-]/g, "");
+  if (!/^[0-9a-f-]{36}$/i.test(String(userId))) return { error: "Invalid request." };
+  if (!/^[a-z0-9-]{3,30}$/.test(slug)) return { error: "Short name: 3-30 English letters, numbers or -." };
+  await requireAdmin();
+  const admin = createAdminClient();
+  if (!admin) return { error: "Server key is missing (SUPABASE_SERVICE_ROLE_KEY)." };
+  const { data: profile } = await admin.from("profiles").select("role, full_name").eq("id", userId).maybeSingle();
+  if (profile?.role !== "admin" && profile?.role !== "moderator") return { error: "Only admins and moderators get a PIN." };
+  const { data: taken } = await admin.from("staff_access_links").select("user_id").eq("kind", "pin").eq("slug", slug).is("revoked_at", null).maybeSingle();
+  if (taken && taken.user_id !== userId) return { error: "This short name is used by another staff member." };
+  const now = new Date().toISOString();
+  await admin.from("staff_access_links").update({ revoked_at: now }).eq("user_id", userId).eq("kind", "pin").is("revoked_at", null);
+  const digits = crypto.getRandomValues(new Uint32Array(1))[0] % 1_000_000;
+  const pin = String(digits).padStart(6, "0");
+  const { error } = await admin.from("staff_access_links").insert({
+    user_id: userId,
+    kind: "pin",
+    slug,
+    token_hash: await sha256Hex(`pin:${slug}:${pin}`),
+    label: `${(profile.full_name as string | null) ?? "staff"} PIN`.slice(0, 80),
+  });
+  if (error) return { error: /kind|slug|fail_count/.test(error.message) ? "Run the latest SheRides database update first." : error.message };
+  revalidatePath("/admin/users");
+  return { ok: `Short link: ${SITE_URL}/rs/${slug}  ·  PIN: ${pin}  (PIN টা লিখে রাখুন, আর দেখানো হবে না)`, link: `${SITE_URL}/rs/${slug}` };
 }

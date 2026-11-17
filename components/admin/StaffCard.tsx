@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { Icon } from "@/components/ui/Icon";
-import { addModerator, createStaffLink, removeModerator, revokeStaffLinks } from "@/app/admin/staff-actions";
+import { addModerator, createStaffLink, removeModerator, revokeStaffLinks, setStaffPin } from "@/app/admin/staff-actions";
 
 type Staff = { id: string; name: string; role: "admin" | "moderator"; email: string };
 type Result = { ok?: string; error?: string; link?: string };
@@ -44,6 +44,18 @@ export function StaffCard({ staff }: { staff: Staff[] }) {
             <div className="flex flex-wrap gap-2">
               <button type="button" disabled={pending} className="btn btn-primary h-10 min-h-10 px-4 text-sm" onClick={() => run(() => createStaffLink(s.id))}>
                 <Icon name="key" size={18} /> Login link
+              </button>
+              <button
+                type="button"
+                disabled={pending}
+                className="btn btn-secondary h-10 min-h-10 px-4 text-sm"
+                onClick={() => {
+                  const fallback = (s.name || "staff").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 30) || "staff";
+                  const slug = window.prompt("Short link name (sherides.online/rs/…)", s.role === "admin" ? "brandlinker" : fallback);
+                  if (slug) run(() => setStaffPin(s.id, slug));
+                }}
+              >
+                <Icon name="pin" size={18} /> Short link + PIN
               </button>
               <button type="button" disabled={pending} className="btn btn-secondary h-10 min-h-10 px-4 text-sm" onClick={() => run(() => revokeStaffLinks(s.id))}>
                 Link বাতিল

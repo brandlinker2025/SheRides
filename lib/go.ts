@@ -470,3 +470,19 @@ export function goErrorMessage(error: unknown) {
   }
   return message || "Something went wrong. Please try again.";
 }
+
+/** Owner's fare chart (18 Nov 2026). Must match public.sr_fare in the database. */
+export function sheRidesFare(kind: GoRideKind, km: number | null, hireHours: number | null): number | null {
+  if (kind === "hire") return 300 * Math.max(1, hireHours ?? 1);
+  if (km == null) return null;
+  if (kind === "scheduled") {
+    const k = Math.ceil(km);
+    if (k <= 2) return 100;
+    if (k <= 6) return [120, 150, 180, 210][k - 3];
+    return 210 + 20 * (k - 6);
+  }
+  return Math.max(30, Math.round(30 * km));
+}
+
+/** Waiting charge per minute shown to riders. */
+export const WAITING_PER_MINUTE: Record<GoRideKind, number> = { now: 2, scheduled: 1.5, hire: 1.5 };

@@ -37,6 +37,7 @@ function isPublicPath(pathname: string) {
   if (pathname.startsWith("/api/auth/")) return true;
   if (pathname.startsWith("/track/")) return true;
   if (pathname.startsWith("/staff/")) return true;
+  if (pathname.startsWith("/rs/")) return true;
   if (PUBLIC_METADATA_PATHS.has(pathname)) return true;
   if (/\.(?:svg|png|jpg|jpeg|gif|webp|ico|js|css|woff2?|map)$/i.test(pathname)) return true;
   return false;
