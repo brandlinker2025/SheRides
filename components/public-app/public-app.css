@@ -76,14 +76,6 @@
 .public-mint { background: linear-gradient(#a7f6df, #50d4bd); color: #103c35; box-shadow: 0 4px 0 #32a88e; }
 .public-back { min-height: 44px; margin-bottom: 20px; background: #e6d8ff; color: #422a6c; }
 .public-app :focus-visible { outline: 3px solid #6135bc; outline-offset: 3px; }
-.public-tools { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; margin-bottom: 16px; }
-.public-tools details { border: 1px solid #e7dafa; border-radius: 16px; padding: 12px; background: #f9f4ff; }
-.public-tools summary { display: flex; align-items: center; gap: 10px; color: #422a6c; font-weight: 700; cursor: pointer; list-style: none; }
-.public-tools summary::-webkit-details-marker { display: none; }
-.public-tile-icon { display: inline-grid; place-items: center; width: 38px; height: 38px; border-radius: 12px; color: #fff; flex-shrink: 0; }
-.public-tile-pink { background: linear-gradient(#f9bdea, #ec7fd0); }
-.public-tile-peach { background: linear-gradient(#ffd6ad, #ffa95c); }
-.public-tools p { margin-top: 6px; color: #5d5170; font-size: .875rem; }
 .public-app .public-auth :is(p, label, input, .text-white) { color: #261c38; }
 .public-app .public-auth :is(input, select) { background: #f9f4ff; border: 1px solid #e7dafa; border-radius: 16px; }
 .public-app .public-auth input::placeholder { color: #5d5170; }
@@ -109,4 +101,4 @@
 .public-app .card-surface { background: #fffcff; border: 1px solid #e7dafa; color: #261c38; box-shadow: 0 12px 30px #6135bc14; }
 .public-app :is([class*="from-[#A855F7]"], [class*="from-[#241b4a]"], [class*="from-[#8b7cf8]"], [class*="from-[#14163a]"]) { background-image: linear-gradient(135deg, #8651dc, #6135bc); color: #fff; }
 .public-app :is([class*="from-[#A855F7]"], [class*="from-[#241b4a]"], [class*="from-[#14163a]"]) [class*="text-white/"] { color: #f0e9ff; }
-.public-action-icon, .public-tile-icon { overflow: hidden; }
+.public-action-icon { overflow: hidden; }

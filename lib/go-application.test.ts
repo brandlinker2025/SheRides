@@ -3,6 +3,8 @@ import { test } from "node:test";
 import {
   applicationSavedPath,
   createSubmitLock,
+  isValidChassis,
+  normalizeChassis,
   runGoApplicationSubmit,
   validateGoApplication,
   type GoApplicationDraft,
@@ -24,8 +26,10 @@ function draft(overrides: Partial<GoApplicationDraft> = {}): GoApplicationDraft 
     hasSelfie: true,
     licenseNo: "",
     hasLicenseFile: false,
+    bikeBrand: "",
     bikeModel: "",
     bikePlate: "",
+    bikeChassis: "",
     hasBikePapers: false,
     declared: true,
     ...overrides,
@@ -77,7 +81,7 @@ test("a failed mock save does not return a route, and a held lock blocks a secon
   const lock = createSubmitLock();
   let saves = 0;
   const failed = await runGoApplicationSubmit({
-    draft: draft({ role: "rider", licenseNo: "DH-1", hasLicenseFile: true, bikeModel: "Fascino", bikePlate: "HA-12-3456", hasBikePapers: true }),
+    draft: draft({ role: "rider", licenseNo: "DH-1", hasLicenseFile: true, bikeBrand: "Yamaha", bikeModel: "Fascino", bikePlate: "HA-12-3456", bikeChassis: "ME1SE12AB34567", hasBikePapers: true }),
     files: { nidFront: jpeg, nidBack: null, selfie: jpeg, licenseFile: jpeg, bikePapers: jpeg },
     lock,
     onProgress: () => {},
@@ -114,4 +118,13 @@ test("a failed mock save does not return a route, and a held lock blocks a secon
   });
   assert.deepEqual(blocked, { ok: false, duplicate: true, error: null });
   assert.equal(saves, 1);
+});
+
+test("rider applications need a brand and a valid chassis number", () => {
+  const rider = { role: "rider" as const, licenseNo: "DH-1", hasLicenseFile: true, bikeBrand: "Yamaha", bikeModel: "Fascino", bikePlate: "HA-12-3456", hasBikePapers: true, declared: true };
+  assert.match(validateGoApplication(draft({ ...rider, bikeChassis: "" })) ?? "", /chassis/);
+  assert.match(validateGoApplication(draft({ ...rider, bikeChassis: "12" })) ?? "", /chassis/);
+  assert.match(validateGoApplication(draft({ ...rider, bikeBrand: "", bikeChassis: "ME1SE12AB34567" })) ?? "", /brand/);
+  assert.equal(normalizeChassis(" me1-se12 ab34 "), "ME1-SE12AB34");
+  assert.equal(isValidChassis("me1se12ab34567"), true);
 });

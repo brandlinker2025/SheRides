@@ -13,8 +13,10 @@ export type GoApplicationDraft = {
   hasSelfie: boolean;
   licenseNo: string;
   hasLicenseFile: boolean;
+  bikeBrand: string;
   bikeModel: string;
   bikePlate: string;
+  bikeChassis: string;
   hasBikePapers: boolean;
   declared: boolean;
 };
@@ -34,7 +36,18 @@ export type GoApplicationPayload = {
   p_bike_plate: string | null;
   p_bike_papers_path: string | null;
   p_declared_female: true;
+  p_bike_brand: string | null;
+  p_bike_chassis: string | null;
 };
+
+/** Chassis / frame number as printed on the registration: letters, digits and dashes only. */
+export function normalizeChassis(value: string) {
+  return value.toUpperCase().replace(/[^A-Z0-9-]/g, "");
+}
+
+export function isValidChassis(value: string) {
+  return /^[A-Z0-9-]{6,25}$/.test(normalizeChassis(value));
+}
 
 export type GoApplicationTransport = {
   upload: (slot: "nid-front" | "nid-back" | "selfie" | "licence" | "bike-papers") => Promise<string>;
@@ -79,9 +92,12 @@ export function validateGoApplication(draft: GoApplicationDraft): string | null 
   if (!draft.hasNidFront || !draft.hasSelfie) return "Step 1 selfie (camera or gallery) and Step 2 NID front photo are both required.";
   if (
     draft.role === "rider" &&
-    (!draft.licenseNo.trim() || !draft.hasLicenseFile || !draft.bikeModel.trim() || !draft.bikePlate.trim() || !draft.hasBikePapers)
+    (!draft.licenseNo.trim() || !draft.hasLicenseFile || !draft.bikeBrand.trim() || !draft.bikeModel.trim() || !draft.bikePlate.trim() || !draft.hasBikePapers)
   ) {
-    return "Riders must add licence number + photo, bike model, number plate and bike papers.";
+    return "Riders must add licence number + photo, bike brand, model, number plate and bike papers.";
+  }
+  if (draft.role === "rider" && !isValidChassis(draft.bikeChassis)) {
+    return "Add the bike's chassis number (6 to 25 letters or digits, as on the registration paper).";
   }
   if (!draft.declared) return "Please confirm the declaration.";
   return null;
@@ -141,6 +157,8 @@ export async function runGoApplicationSubmit(options: {
       p_bike_plate: options.draft.role === "rider" ? options.draft.bikePlate.trim() : null,
       p_bike_papers_path: papersPath,
       p_declared_female: true,
+      p_bike_brand: options.draft.role === "rider" ? options.draft.bikeBrand.trim() : null,
+      p_bike_chassis: options.draft.role === "rider" ? normalizeChassis(options.draft.bikeChassis) : null,
     });
     saved = true;
     return { ok: true, href: applicationSavedPath(options.draft.role) };

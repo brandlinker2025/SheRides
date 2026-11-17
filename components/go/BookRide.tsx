@@ -26,9 +26,11 @@ import {
 } from "@/lib/go";
 import { createClient } from "@/lib/supabase/client";
 import { normalizePromoCode, rpcMissing } from "@/lib/ride-extras";
+
+/** Promotions are switched off in the passenger app for now (owner decision, Nov 2026). */
+const SHOW_PROMO_CODE = false;
 import { PickupSpot } from "./PickupSpot";
 import { PlaceInput } from "./PlaceInput";
-import { RideMap } from "./RideMap";
 
 const KINDS: { id: GoRideKind; label: string; bn: string }[] = [
   { id: "now", label: "Ride now", bn: "এখনই" },
@@ -447,6 +449,8 @@ export function BookRide({ pickup, drop, onPickup, onDrop, autoLocate = true }: 
         </div>
       </div>
 
+      {SHOW_PROMO_CODE && (
+        <>
       <div className="flex gap-2">
         <input
           value={promo}
@@ -461,6 +465,8 @@ export function BookRide({ pickup, drop, onPickup, onDrop, autoLocate = true }: 
         </button>
       </div>
       {promoNote && <p className="text-sm text-[#6135bc]" role="status">{promoNote}</p>}
+        </>
+      )}
 
       <FareBreakdown km={kind === "hire" ? null : km} rate={selectedRate} hireFare={hireFare} hours={hours} catalogLive={catalogLive} />
 
@@ -500,17 +506,12 @@ export function RideDeck({ children, below, showForm = true, initialPickup = nul
   const [drop, setDrop] = useState<GoPlace | null>(initialDrop);
 
   return (
-    <div className="relative flex h-[72dvh] w-full flex-col bg-[#f0e9ff] text-[#261c38] lg:grid lg:h-[min(70dvh,680px)] lg:grid-cols-[minmax(320px,420px)_1fr]">
-      <div className="absolute inset-0 z-0 lg:relative lg:order-2 lg:h-full">
-        <RideMap pickup={pickup} drop={drop} />
-      </div>
-      <div className="relative z-10 mt-auto max-h-[78%] overflow-y-auto rounded-t-3xl border border-[#e7dafa] bg-[#f0e9ff]/95 p-4 pb-4 shadow-2xl backdrop-blur-xl lg:order-1 lg:mt-0 lg:max-h-none lg:overflow-y-auto lg:rounded-none lg:border-0 lg:bg-transparent lg:p-6 lg:pb-6 lg:shadow-none">
-        {children}
-        {showForm ? (
-          <BookRide pickup={pickup} drop={drop} onPickup={setPickup} onDrop={setDrop} autoLocate={!initialPickup} />
-        ) : null}
-        {below}
-      </div>
+    <div className="mx-auto flex w-full max-w-xl flex-col bg-transparent p-1 text-[#261c38] sm:p-2">
+      {children}
+      {showForm ? (
+        <BookRide pickup={pickup} drop={drop} onPickup={setPickup} onDrop={setDrop} autoLocate={!initialPickup} />
+      ) : null}
+      {below}
     </div>
   );
 }
