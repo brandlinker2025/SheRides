@@ -3,7 +3,7 @@
 import "leaflet/dist/leaflet.css";
 import { useEffect, useRef, useState } from "react";
 import type * as Leaflet from "leaflet";
-import type { GoPlace } from "@/lib/go";
+import { roadRoute, type GoPlace, type RoadRoute } from "@/lib/go";
 import { DHAKA, baseLayer, loadLeaflet, pinIcon } from "./leaflet-loader";
 
 /** Real street map for an active ride: pickup, drop-off and the captain's live position. */
@@ -13,6 +13,18 @@ export function RideMap({ pickup, drop, rider = null }: { pickup: GoPlace | null
   const layerRef = useRef<Leaflet.LayerGroup | null>(null);
   const libRef = useRef<typeof Leaflet | null>(null);
   const [ready, setReady] = useState(false);
+  const [route, setRoute] = useState<RoadRoute | null>(null);
+  const routeKey = pickup && drop ? `${pickup.lat},${pickup.lng};${drop.lat},${drop.lng}` : "";
+
+  // Ask a road router for the real street path; until it answers (or if it fails) a dashed straight guide is shown.
+  useEffect(() => {
+    setRoute(null);
+    if (!pickup || !drop) return;
+    const ctrl = new AbortController();
+    void roadRoute(pickup, drop, ctrl.signal).then((r) => { if (!ctrl.signal.aborted) setRoute(r); });
+    return () => ctrl.abort();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [routeKey]);
 
   useEffect(() => {
     let cancelled = false;
@@ -49,11 +61,19 @@ export function RideMap({ pickup, drop, rider = null }: { pickup: GoPlace | null
     add(drop, "drop", "Drop-off");
     add(rider, "rider", "Captain");
     if (pickup && drop) {
-      L.polyline([[pickup.lat, pickup.lng], [drop.lat, drop.lng]], { color: "#7244f2", weight: 4, opacity: 0.7, dashArray: "8 8" }).addTo(layer);
+      if (route) {
+        L.polyline(route.points, { color: "#ffffff", weight: 9, opacity: 0.95, lineCap: "round", lineJoin: "round" }).addTo(layer);
+        L.polyline(route.points, { color: "#7244f2", weight: 5, opacity: 1, lineCap: "round", lineJoin: "round" }).addTo(layer);
+        points.push(...route.points);
+      } else {
+        L.polyline([[pickup.lat, pickup.lng], [drop.lat, drop.lng]], { color: "#7244f2", weight: 3, opacity: 0.45, dashArray: "6 10" }).addTo(layer);
+      }
     }
+    // Pins sit above the route line.
+    layer.eachLayer((l) => { if (l instanceof L.Marker) l.setZIndexOffset(1000); });
     if (points.length === 1) map.setView(points[0], 16);
-    else if (points.length > 1) map.fitBounds(L.latLngBounds(points), { padding: [36, 36], maxZoom: 16 });
-  }, [ready, pickup, drop, rider]);
+    else if (points.length > 1) map.fitBounds(L.latLngBounds(points), { padding: [40, 40], maxZoom: 16 });
+  }, [ready, pickup, drop, rider, route]);
 
   return (
     <div className="relative h-full min-h-[220px] overflow-hidden rounded-[28px] border border-[#e4d8ff] bg-[#efe7ff] shadow-[0_20px_50px_-24px_rgba(112,68,245,0.45)]">
@@ -61,6 +81,7 @@ export function RideMap({ pickup, drop, rider = null }: { pickup: GoPlace | null
       {!ready && <p className="absolute inset-0 grid place-items-center text-sm text-[#5e5276]">Map লোড হচ্ছে…</p>}
       <div className="pointer-events-none absolute left-3 top-3 z-[500] flex items-center gap-2 rounded-full border border-[#e4d8ff] bg-white/90 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-[#7044f5] shadow">
         <span className="h-2 w-2 rounded-full bg-[#3fd0c1]" /> Live map
+        {route && <span className="normal-case tracking-normal text-[#2f2347]">· {route.km} km · ~{route.minutes} min</span>}
       </div>
     </div>
   );

@@ -486,3 +486,36 @@ export function sheRidesFare(kind: GoRideKind, km: number | null, hireHours: num
 
 /** Waiting charge per minute shown to riders. */
 export const WAITING_PER_MINUTE: Record<GoRideKind, number> = { now: 2, scheduled: 1.5, hire: 1.5 };
+
+export type RoadRoute = { points: [number, number][]; km: number; minutes: number };
+
+const routeCache = new Map<string, RoadRoute | null>();
+
+/** Road-following route between two points (OSRM, no API key). Returns null when no router answers. */
+export async function roadRoute(from: { lat: number; lng: number }, to: { lat: number; lng: number }, signal?: AbortSignal): Promise<RoadRoute | null> {
+  const coords = `${from.lng.toFixed(6)},${from.lat.toFixed(6)};${to.lng.toFixed(6)},${to.lat.toFixed(6)}`;
+  if (routeCache.has(coords)) return routeCache.get(coords) ?? null;
+  const urls = [
+    `https://routing.openstreetmap.de/routed-car/route/v1/driving/${coords}?overview=full&geometries=geojson`,
+    `https://router.project-osrm.org/route/v1/driving/${coords}?overview=full&geometries=geojson`,
+  ];
+  for (const url of urls) {
+    try {
+      const res = await fetch(url, { signal });
+      if (!res.ok) continue;
+      const json = (await res.json()) as { routes?: { distance: number; duration: number; geometry: { coordinates: [number, number][] } }[] };
+      const r = json.routes?.[0];
+      if (!r || r.geometry.coordinates.length < 2) continue;
+      const route: RoadRoute = {
+        points: r.geometry.coordinates.map(([lng, lat]) => [lat, lng]),
+        km: Math.round((r.distance / 1000) * 10) / 10,
+        minutes: Math.max(1, Math.round(r.duration / 60)),
+      };
+      routeCache.set(coords, route);
+      return route;
+    } catch (error) {
+      if ((error as Error).name === "AbortError") return null;
+    }
+  }
+  return null;
+}
