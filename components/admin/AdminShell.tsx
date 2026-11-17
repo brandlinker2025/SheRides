@@ -8,6 +8,7 @@ import "@/components/public-app/public-app.css";
 
 const nav = [
   { href: "/admin/go", label: "Approvals", short: "Approvals", icon: "fact_check", moderator: true },
+  { href: "/admin/places", label: "Places", short: "Places", icon: "add_location_alt", moderator: true },
   { href: "/admin", label: "Dashboard", short: "Home", icon: "dashboard", exact: true },
   { href: "/admin/verifications", label: "New Joins", short: "Joins", icon: "verified_user" },
   { href: "/admin/users", label: "Accounts", short: "Accounts", icon: "group" },

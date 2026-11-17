@@ -300,38 +300,98 @@ function photonLabel(p: PhotonFeature["properties"]) {
 /** Bangladesh bounding box: keeps suggestions inside the country. */
 const BD_BBOX = "88.0,20.5,92.7,26.7";
 
+type SavedPlace = { name: string; area: string | null; lat: number; lng: number };
+let savedPlacesCache: { at: number; rows: SavedPlace[] } | null = null;
+
+/** SheRides' own places (staff-pinned shops/offices), cached for 5 minutes. */
+async function loadSheRidesPlaces(): Promise<SavedPlace[]> {
+  if (savedPlacesCache && Date.now() - savedPlacesCache.at < 5 * 60_000) return savedPlacesCache.rows;
+  try {
+    const { createClient } = await import("@/lib/supabase/client");
+    const supabase = createClient();
+    if (!supabase) return [];
+    const { data, error } = await supabase.from("go_places").select("name, area, lat, lng").eq("active", true).limit(1000);
+    const rows = error ? [] : ((data ?? []) as SavedPlace[]);
+    savedPlacesCache = { at: Date.now(), rows };
+    return rows;
+  } catch {
+    return [];
+  }
+}
+
+export function clearSheRidesPlacesCache() {
+  savedPlacesCache = null;
+}
+
+const norm = (v: string) => v.toLowerCase().replace(/[^\p{L}\p{N}\s]/gu, " ").replace(/\s+/g, " ").trim();
+
+/** Every typed word must start a word in the place's name or area ("yam tej" finds "Yamaha Flagship Center, Tejgaon"). */
+export function matchSaved(rows: SavedPlace[], query: string): GoPlace[] {
+  const words = norm(query).split(" ").filter(Boolean);
+  if (!words.length) return [];
+  return rows
+    .filter((row) => {
+      const hay = ` ${norm(`${row.name} ${row.area ?? ""}`)}`;
+      return words.every((w) => hay.includes(` ${w}`));
+    })
+    .slice(0, 4)
+    .map((row) => ({ label: [row.name, row.area].filter(Boolean).join(", "), lat: row.lat, lng: row.lng }));
+}
+
+async function photonSearch(q: string, center: { lat: number; lng: number }, signal?: AbortSignal): Promise<GoPlace[]> {
+  const url = `https://photon.komoot.io/api/?q=${encodeURIComponent(q)}&lat=${center.lat}&lon=${center.lng}&limit=8&bbox=${BD_BBOX}`;
+  const response = await fetch(url, { signal });
+  if (!response.ok) return [];
+  const data = (await response.json()) as { features?: PhotonFeature[] };
+  const seen = new Set<string>();
+  return (data.features ?? [])
+    .filter((f) => !f.properties.countrycode || f.properties.countrycode === "BD")
+    .map((f) => ({ label: photonLabel(f.properties), lat: f.geometry.coordinates[1], lng: f.geometry.coordinates[0] }))
+    .filter((row) => row.label && !seen.has(row.label) && seen.add(row.label));
+}
+
+async function nominatimSearch(q: string, signal?: AbortSignal): Promise<GoPlace[]> {
+  const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&countrycodes=bd&limit=6&accept-language=en,bn&q=${encodeURIComponent(q)}`;
+  const response = await fetch(url, { signal, headers: { Accept: "application/json" } });
+  if (!response.ok) return [];
+  const rows = (await response.json()) as Array<{ display_name: string; lat: string; lon: string }>;
+  return rows.map((row) => ({ label: row.display_name.split(", ").slice(0, 4).join(", "), lat: Number(row.lat), lng: Number(row.lon) }));
+}
+
 /**
- * Place search for pickup / destination. Photon (OpenStreetMap, typo-tolerant, works while typing)
- * biased to the rider's area, then Nominatim as a fallback. Both are free and need no key.
+ * Place search for pickup / destination:
+ *   1. SheRides places pinned by staff (shops and offices public maps miss)
+ *   2. Photon (OpenStreetMap, works while typing, typo-tolerant) biased to the pickup area
+ *   3. Nominatim
+ *   4. If nothing matches the full text, the last words alone (e.g. "... tejgaon" -> Tejgaon) as "near" results
  */
 export async function searchPlaces(query: string, signal?: AbortSignal, near?: { lat: number; lng: number } | null): Promise<GoPlace[]> {
   const q = query.trim();
   if (q.length < 2) return [];
   const center = near ?? { lat: 23.78, lng: 90.4 };
-  try {
-    const url = `https://photon.komoot.io/api/?q=${encodeURIComponent(q)}&lat=${center.lat}&lon=${center.lng}&limit=8&bbox=${BD_BBOX}`;
-    const response = await fetch(url, { signal });
-    if (response.ok) {
-      const data = (await response.json()) as { features?: PhotonFeature[] };
-      const seen = new Set<string>();
-      const rows = (data.features ?? [])
-        .filter((f) => !f.properties.countrycode || f.properties.countrycode === "BD")
-        .map((f) => ({ label: photonLabel(f.properties), lat: f.geometry.coordinates[1], lng: f.geometry.coordinates[0] }))
-        .filter((row) => row.label && !seen.has(row.label) && seen.add(row.label));
-      if (rows.length) return rows.slice(0, 6);
+  const [saved, photon] = await Promise.all([
+    loadSheRidesPlaces().then((rows) => matchSaved(rows, q)),
+    photonSearch(q, center, signal).catch((err) => {
+      if ((err as Error)?.name === "AbortError") throw err;
+      return [] as GoPlace[];
+    }),
+  ]);
+  let rows = [...saved, ...photon];
+  if (!rows.length) rows = await nominatimSearch(q, signal).catch(() => []);
+  if (!rows.length) {
+    const words = q.split(/\s+/).filter(Boolean);
+    for (const take of [2, 1]) {
+      if (words.length <= take) continue;
+      const tail = words.slice(-take).join(" ");
+      const loose = await photonSearch(tail, center, signal).catch(() => [] as GoPlace[]);
+      if (loose.length) {
+        rows = loose.slice(0, 4).map((row) => ({ ...row, label: `${row.label} (কাছাকাছি)` }));
+        break;
+      }
     }
-  } catch (err) {
-    if ((err as Error)?.name === "AbortError") throw err;
   }
-  const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&countrycodes=bd&limit=6&accept-language=en,bn&q=${encodeURIComponent(q)}`;
-  const response = await fetch(url, { signal, headers: { Accept: "application/json" } });
-  if (!response.ok) return [];
-  const rows = (await response.json()) as Array<{ display_name: string; lat: string; lon: string }>;
-  return rows.map((row) => ({
-    label: row.display_name.split(", ").slice(0, 4).join(", "),
-    lat: Number(row.lat),
-    lng: Number(row.lon),
-  }));
+  const seen = new Set<string>();
+  return rows.filter((row) => !seen.has(row.label) && seen.add(row.label)).slice(0, 7);
 }
 
 export async function reversePlace(lat: number, lng: number): Promise<string> {
