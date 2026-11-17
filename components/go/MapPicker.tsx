@@ -108,7 +108,7 @@ export function MapPicker({ start, title, onPick, onClose }: { start: GoPlace | 
 
   if (!mounted) return null;
   return createPortal(
-    <div className="sr-mappicker" role="dialog" aria-modal="true" aria-label={title}>
+    <div className="sr-mappicker admin-app" role="dialog" aria-modal="true" aria-label={title}>
       <div className="sr-mappicker-top">
         <button type="button" onClick={onClose} className="sr-mappicker-icon" aria-label="Close map">
           <Icon name="arrow_back" />

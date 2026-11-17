@@ -8,13 +8,13 @@ export async function loadLeaflet(): Promise<typeof Leaflet> {
   return (mod.default ?? mod) as typeof Leaflet;
 }
 
-/** Modern street style (CARTO Voyager, OpenStreetMap data) and satellite photos (Esri World Imagery). */
+/** Street map (Esri World Street Map) and satellite photos (Esri World Imagery). Neither needs an API key. */
 export const MAP_LAYERS = {
   street: {
-    url: "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
-    subdomains: "abcd",
-    maxZoom: 20,
+    url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}",
+    attribution: "Map &copy; Esri, HERE, Garmin, OpenStreetMap contributors",
+    subdomains: "",
+    maxZoom: 19,
   },
   satellite: {
     url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
@@ -32,7 +32,6 @@ export function tileLayer(L: typeof Leaflet, layer: MapLayer) {
     attribution: cfg.attribution,
     maxZoom: cfg.maxZoom,
     ...(cfg.subdomains ? { subdomains: cfg.subdomains } : {}),
-    detectRetina: layer === "street",
   });
 }
 
