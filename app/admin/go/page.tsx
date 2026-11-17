@@ -1,6 +1,6 @@
 import { GoAdminBoard, type AdminGoApplication, type AdminGoRide, type AdminPartnerLead } from "@/components/admin/GoAdminBoard";
 import { BackLink } from "@/components/ui/BackLink";
-import { requireAdmin } from "@/lib/supabase/require-admin";
+import { requireStaff } from "@/lib/supabase/require-admin";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -15,7 +15,7 @@ const DOC_LABEL: Record<(typeof DOC_FIELDS)[number], string> = {
 };
 
 export default async function AdminGoPage() {
-  const { supabase } = await requireAdmin();
+  const { supabase } = await requireStaff();
 
   const [{ data: appRows, error: appError }, { data: rideRows, error: rideError }, queueResult, captainResult, partnerResult] = await Promise.all([
     supabase

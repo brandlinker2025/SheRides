@@ -139,6 +139,7 @@ export function InstallSheRides() {
 
         <h1 className="install-title">SheRides ফোনে install করুন</h1>
         <p className="install-sub">Install SheRides on any phone — Samsung, Xiaomi, Vivo, Oppo, Realme, Walton, iPhone. Play Store লাগবে না, জায়গাও প্রায় লাগে না।</p>
+        <p className="install-note"><b>Install করার পর</b> SheRides app খুলে একবার Sign up করুন। এরপর আর কখনো sign in লাগবে না।</p>
 
         {!ready ? (
           <div className="skeleton h-16 rounded-full" />

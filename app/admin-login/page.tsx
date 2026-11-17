@@ -1,10 +1,5 @@
-import { Suspense } from "react";
-import { LoginPanel } from "@/components/auth/LoginPanel";
+import { StaffLoginPanel } from "@/components/auth/StaffLoginPanel";
 
 export default function AdminLoginPage() {
-  return (
-    <Suspense>
-      <LoginPanel admin />
-    </Suspense>
-  );
+  return <StaffLoginPanel />;
 }
