@@ -1,8 +1,7 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
-import { BackLink } from "@/components/ui/BackLink";
+import { useRouter } from "next/navigation";
+import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { CameraCapture } from "@/components/ui/CameraCapture";
 import { Icon } from "@/components/ui/Icon";
 import { useAuth } from "@/lib/auth-context";
@@ -127,11 +126,9 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
   );
 }
 
-function ApplyForm() {
-  const params = useSearchParams();
+export function ApplyForm({ role }: { role: GoRole }) {
   const router = useRouter();
   const { user } = useAuth();
-  const role: GoRole = params.get("role") === "rider" ? "rider" : "passenger";
 
   const [fullName, setFullName] = useState(user?.fullName ?? "");
   const [nid, setNid] = useState("");
@@ -240,7 +237,7 @@ function ApplyForm() {
     if (result.ok) {
       setSaved(true);
       setProgress(null);
-      router.replace(result.href);
+      router.replace(`/?flow=${role === "rider" ? "partner" : "ride"}&submitted=${role}`);
       router.refresh();
       return;
     }
@@ -253,7 +250,7 @@ function ApplyForm() {
 
   return (
     <div className="w-full max-w-2xl mx-auto px-container-margin-mobile lg:px-0 py-10">
-      <BackLink href="/go" label="Book a Ride" className="mb-4" />
+
       <p className="font-label-caps text-label-caps text-accent-magenta mb-2">WOMEN-ONLY VERIFICATION</p>
       <h1 className="font-headline-xl text-headline-xl mb-2">
         {role === "rider" ? "Become a SheRides rider" : "Get verified to book rides"}
@@ -317,7 +314,7 @@ function ApplyForm() {
           ref={barRef}
           className="go-apply-bar pointer-events-none fixed inset-x-0 z-40 px-3 bottom-[calc(5.25rem+env(safe-area-inset-bottom))] lg:bottom-4 lg:left-64 lg:right-0"
         >
-          <div className="pointer-events-auto mx-auto w-full max-w-2xl rounded-2xl border border-white/15 bg-[#0b0b1a]/88 px-3 py-3 shadow-[0_10px_40px_rgba(11,11,26,0.55),0_0_32px_rgba(108,92,231,0.38)] backdrop-blur-xl">
+          <div className="pointer-events-auto mx-auto w-full max-w-2xl rounded-2xl border border-white/15 bg-[#fffcff]/95 px-3 py-3 shadow-[0_10px_40px_#6135bc30] backdrop-blur-xl">
             {error && (
               <p id="go-apply-error" className="mb-2 text-center font-body-sm text-red-200" role="alert">
                 {error}
@@ -337,13 +334,5 @@ function ApplyForm() {
         </div>
       </form>
     </div>
-  );
-}
-
-export default function GoApplyPage() {
-  return (
-    <Suspense fallback={null}>
-      <ApplyForm />
-    </Suspense>
   );
 }

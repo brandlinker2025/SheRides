@@ -1,0 +1,53 @@
+.public-app {
+  color-scheme: light;
+  min-height: 100dvh;
+  padding: clamp(16px, 4vw, 40px);
+  background: radial-gradient(ellipse at 50% 45%, #ded0fc, transparent 65%), #f0e9ff;
+  color: #261c38;
+  --color-surface: 255 252 255;
+  --color-surface-border: 231 218 250;
+  --color-soft-off-white: 249 244 255;
+  --color-surface-container-lowest: 255 252 255;
+  --color-on-surface: 38 28 56;
+  --color-secondary: 93 81 112;
+  --color-tertiary: 93 81 112;
+  --color-accent: 97 53 188;
+}
+.public-app-home { display: grid; place-items: center; }
+.public-entry, .public-panel {
+  width: min(100%, 28rem);
+  margin-inline: auto;
+  padding: clamp(18px, 4vw, 32px);
+  border: 1px solid #e7dafa;
+  border-radius: 28px;
+  background: #fffcff;
+  box-shadow: 0 22px 52px #6135bc28, inset 0 2px 0 #fff;
+}
+.public-entry { display: grid; gap: 16px; }
+.public-panel-wide { width: min(100%, 68rem); }
+.public-action, .public-back {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 50px;
+  border-radius: 999px;
+  padding: 10px 20px;
+  font-weight: 700;
+}
+.public-violet { background: linear-gradient(#8651dc, #6135bc); color: white; box-shadow: 0 4px 0 #4f289e; }
+.public-mint { background: linear-gradient(#a7f6df, #50d4bd); color: #103c35; box-shadow: 0 4px 0 #32a88e; }
+.public-back { min-height: 44px; margin-bottom: 20px; background: #e6d8ff; color: #422a6c; }
+.public-app :focus-visible { outline: 3px solid #6135bc; outline-offset: 3px; }
+.public-tools { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; margin-bottom: 16px; }
+.public-tools details { border: 1px solid #e7dafa; border-radius: 16px; padding: 12px; background: #f9f4ff; }
+.public-tools summary { color: #422a6c; font-weight: 700; cursor: pointer; }
+.public-tools p { margin-top: 6px; color: #5d5170; font-size: .875rem; }
+.public-app .public-auth :is(p, label, input, .text-white) { color: #261c38; }
+.public-app .public-auth :is(input, select) { background: #f9f4ff; border: 1px solid #e7dafa; border-radius: 16px; }
+.public-app .public-auth input::placeholder { color: #5d5170; }
+.public-app .public-auth :is(a, .material-symbols-outlined) { color: #6135bc; }
+.public-app .public-auth [role="alert"] { color: #a82144; }
+.public-app .public-auth .dustumi-btn { color: #103c35; background: linear-gradient(#a7f6df,#50d4bd); box-shadow: 0 4px 0 #32a88e; }
+.public-app .btn-primary { background: linear-gradient(#8651dc,#6135bc); color: white; }
+.public-app .btn-secondary { background: #e6d8ff; border-color: #cdb8f1; color: #422a6c; }

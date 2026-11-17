@@ -33,11 +33,11 @@ function safeUserNextPath(value: string | null) {
   return value;
 }
 
-export function LoginPanel({ admin = false }: { admin?: boolean }) {
+export function LoginPanel({ admin = false, flow }: { admin?: boolean; flow?: "partner" | "ride" }) {
   const { signIn } = useAuth();
   const router = useRouter();
   const params = useSearchParams();
-  const next = admin ? "/admin" : safeUserNextPath(params.get("next"));
+  const next = admin ? "/admin" : flow ? `/?flow=${flow}` : safeUserNextPath(params.get("next"));
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -237,7 +237,7 @@ export function LoginPanel({ admin = false }: { admin?: boolean }) {
           .select("verified, role")
           .eq("id", authData.user.id)
           .maybeSingle();
-        if (profile && profile.role !== "admin" && !profile.verified) {
+        if (!flow && profile && profile.role !== "admin" && !profile.verified) {
           dest = next === captainApplicationPath ? captainPendingPath : "/pending-approval";
         }
       }
@@ -252,10 +252,10 @@ export function LoginPanel({ admin = false }: { admin?: boolean }) {
   const joinParams = new URLSearchParams();
   if (normalizeBdPhone(identifier)) joinParams.set("phone", identifier.trim());
   if (next === captainApplicationPath) joinParams.set("captain", "1");
-  const joinHref = joinParams.size ? `/signup?${joinParams}` : "/signup";
+  const joinHref = flow ? `/?flow=${flow}&step=signup` : joinParams.size ? `/signup?${joinParams}` : "/signup";
 
   return (
-    <AuthScene admin={admin}>
+    <AuthScene admin={admin} embedded={!!flow}>
       <div className="w-full">
         <h1
           className="mb-1 text-[34px] leading-none text-[#dfc7ff] sm:text-[42px]"
@@ -445,12 +445,7 @@ export function LoginPanel({ admin = false }: { admin?: boolean }) {
                 Sign Up
               </Link>
             </p>
-            <p className="mt-3 text-sm text-white/70">
-              Drive or ride with us?{" "}
-              <Link href="/partner" className="font-label-lg text-[#dfc7ff]">
-                Become a Partner
-              </Link>
-            </p>
+
           </>
         )}
       </div>
