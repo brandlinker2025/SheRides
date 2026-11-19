@@ -6,6 +6,9 @@ import { isApprovedProfile } from "./lib/profile";
 
 const PUBLIC_PATHS = new Set([
   "/",
+  "/about",
+  "/privacy",
+  "/contact",
   "/login",
   "/admin-login",
   "/signup",
