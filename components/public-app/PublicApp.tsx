@@ -46,6 +46,13 @@ export function PublicApp() {
             <span className="public-action-icon public-icon-mint"><Icon name="location_on" size={22} /></span>
             Take a Ride
           </Link>
+          <footer>
+            <nav aria-label="Site information" className="flex flex-wrap justify-center gap-x-4 gap-y-2 pt-1 text-center text-sm font-semibold">
+              <Link className="underline underline-offset-4" href="/about">About</Link>
+              <Link className="underline underline-offset-4" href="/privacy">Privacy Policy</Link>
+              <Link className="underline underline-offset-4" href="/contact">Contact</Link>
+            </nav>
+          </footer>
         </div>
       </main>
     );
