@@ -28,7 +28,9 @@ function translateAuthError(message: string, member: boolean): string {
 }
 
 function safeUserNextPath(value: string | null) {
-  if (!value?.startsWith("/") || value.startsWith("//") || value.includes("\\")) return "/go";
+  // Block "//evil.com", "/\evil.com" and "/<tab>/evil.com" (browsers strip
+  // tabs/newlines from URLs), all of which resolve to another origin.
+  if (!value?.startsWith("/") || value.startsWith("//") || /[\\\s]/.test(value)) return "/go";
   if (value === "/admin-login" || value.startsWith("/admin")) return "/go";
   return value;
 }
