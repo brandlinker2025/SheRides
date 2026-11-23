@@ -2,7 +2,7 @@ const OTP_COOKIE = "sr_otp";
 const VERIFIED_COOKIE = "sr_pv";
 const OTP_TTL_MS = 10 * 60 * 1000;
 const VERIFIED_TTL_MS = 30 * 24 * 60 * 60 * 1000;
-const MAX_ATTEMPTS = 5;
+export const MAX_ATTEMPTS = 5;
 
 export type OtpPurpose = "signup" | "reset";
 
@@ -26,11 +26,6 @@ export const verifiedCookieName = VERIFIED_COOKIE;
 
 export function otpPepper(): string | null {
   return process.env.SMS_NET_BD_API_KEY?.trim() || null;
-}
-
-function bytesToHex(bytes: ArrayBuffer | Uint8Array): string {
-  const view = bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes);
-  return Array.from(view, (b) => b.toString(16).padStart(2, "0")).join("");
 }
 
 function bytesToBase64Url(bytes: ArrayBuffer | Uint8Array): string {
@@ -57,19 +52,21 @@ async function hmacSha256(key: string, data: string): Promise<string> {
   return bytesToBase64Url(sig);
 }
 
-async function sha256Hex(value: string): Promise<string> {
-  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value));
-  return bytesToHex(digest);
-}
-
 export function generateOtpCode(): string {
   const bytes = new Uint32Array(1);
   crypto.getRandomValues(bytes);
   return String(bytes[0] % 1_000_000).padStart(6, "0");
 }
 
+/**
+ * Keyed hash of an OTP code. The hash travels in a signed (not encrypted) cookie the
+ * requester can read, so it must be an HMAC with the server secret — a plain SHA-256
+ * of a 6-digit code can be brute-forced offline in well under a second.
+ */
 export async function hashOtpCode(phone: string, purpose: OtpPurpose, code: string): Promise<string> {
-  return sha256Hex(`${purpose}:${phone}:${code.trim()}`);
+  const key = otpPepper();
+  if (!key) throw new Error("SMS is not configured.");
+  return hmacSha256(`otp:${key}`, `${purpose}:${phone}:${code.trim()}`);
 }
 
 export function timingSafeEqual(a: string, b: string): boolean {

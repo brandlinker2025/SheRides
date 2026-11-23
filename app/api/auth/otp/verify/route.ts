@@ -12,6 +12,7 @@ import {
   verifiedCookieName,
   type OtpPurpose,
 } from "@/lib/otp";
+import { checkServerOtp } from "@/lib/otp-store";
 import { normalizeBdPhone, phoneAuthEmail } from "@/lib/phone";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createServerSupabase } from "@/lib/supabase/server";
@@ -58,7 +59,17 @@ export async function POST(request: Request) {
   }
 
   const expected = await hashOtpCode(phone, body.purpose, code);
-  if (!timingSafeEqual(expected, pending.h)) {
+  const admin = createAdminClient();
+  if (admin) {
+    // Database is authoritative for attempts/expiry/reuse; the cookie can be replayed.
+    const result = await checkServerOtp(admin, phone, body.purpose, expected);
+    if (result === "locked") {
+      const response = jsonError("Too many attempts. Request a new code.", 429);
+      response.cookies.set(otpCookieName, "", { ...otpCookieOptions, maxAge: 0 });
+      return response;
+    }
+    if (result !== "ok") return jsonError("That code is incorrect.", 400);
+  } else if (!timingSafeEqual(expected, pending.h)) {
     const sealed = await sealOtpCookie({
       phone,
       purpose: body.purpose,
@@ -70,16 +81,6 @@ export async function POST(request: Request) {
     const response = jsonError("That code is incorrect.", 400);
     response.cookies.set(otpCookieName, sealed.value, { ...otpCookieOptions, maxAge: sealed.maxAge });
     return response;
-  }
-
-  const admin = createAdminClient();
-  if (admin) {
-    await admin
-      .from("phone_otps")
-      .update({ consumed_at: new Date().toISOString() })
-      .eq("phone", phone)
-      .eq("purpose", body.purpose)
-      .is("consumed_at", null);
   }
 
   const response = NextResponse.json({ ok: true });

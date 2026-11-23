@@ -10,6 +10,7 @@ import {
   sealOtpCookie,
   type OtpPurpose,
 } from "@/lib/otp";
+import { serverResendWaitMs, storeServerOtp } from "@/lib/otp-store";
 import { normalizeBdPhone } from "@/lib/phone";
 import { memberOtpMessage, sendSmsNetBd, smsNetBdConfigured } from "@/lib/sms-net-bd";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -74,19 +75,34 @@ export async function POST(request: Request) {
     return jsonError(`Please wait ${Math.ceil(wait / 1000)} seconds before requesting another code.`, 429);
   }
 
+  if (admin) {
+    // Cookie-based wait is trivially skipped by dropping the cookie; enforce it per number.
+    let serverWait = 0;
+    try {
+      serverWait = await serverResendWaitMs(admin, phone);
+    } catch {
+      return jsonError("We could not send a code right now. Please try again.", 503);
+    }
+    if (serverWait > 0) {
+      const minutes = Math.ceil(serverWait / 60_000);
+      const text =
+        serverWait > 60_000
+          ? `Too many codes requested for this number. Try again in about ${minutes} minutes.`
+          : `Please wait ${Math.ceil(serverWait / 1000)} seconds before requesting another code.`;
+      return jsonError(text, 429);
+    }
+  }
+
   const code = generateOtpCode();
   const codeHash = await hashOtpCode(phone, body.purpose, code);
   const sealed = await sealOtpCookie({ phone, purpose: body.purpose, codeHash });
 
   if (admin) {
-    const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString();
-    await admin.from("phone_otps").delete().eq("phone", phone).eq("purpose", body.purpose).is("consumed_at", null);
-    await admin.from("phone_otps").insert({
-      phone,
-      purpose: body.purpose,
-      code_hash: codeHash,
-      expires_at: expiresAt,
-    });
+    try {
+      await storeServerOtp(admin, phone, body.purpose, codeHash, new Date(Date.now() + 10 * 60 * 1000));
+    } catch {
+      return jsonError("We could not send a code right now. Please try again.", 503);
+    }
   }
 
   const sendError = await sendSmsNetBd(phone, memberOtpMessage(code));
