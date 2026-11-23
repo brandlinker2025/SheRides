@@ -6,9 +6,8 @@ import {
   otpCookieName,
   otpCookieOptions,
   readOtpCookie,
-  sealOtpCookie,
-  timingSafeEqual,
 } from "@/lib/otp";
+import { checkServerOtp } from "@/lib/otp-store";
 import { normalizeBdPhone } from "@/lib/phone";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -50,24 +49,22 @@ export async function POST(request: Request) {
     return response;
   }
 
-  const expected = await hashOtpCode(phone, "reset", code);
-  if (!timingSafeEqual(expected, pending.h)) {
-    const sealed = await sealOtpCookie({
-      phone,
-      purpose: "reset",
-      codeHash: pending.h,
-      attempts: pending.a + 1,
-      expiresAt: pending.e,
-      sentAt: pending.s,
-    });
-    const response = jsonError("That code is incorrect.", 400);
-    response.cookies.set(otpCookieName, sealed.value, { ...otpCookieOptions, maxAge: sealed.maxAge });
-    return response;
-  }
-
+  // Password reset needs the service role, and the database is the only place the
+  // attempt limit can be enforced (a client can replay an older cookie).
   const admin = createAdminClient();
   if (!admin) {
-    return jsonError("This server cannot update passwords yet. Your code was checked, but password reset is not fully configured.", 503);
+    return jsonError("This server cannot update passwords yet. Password reset is not fully configured.", 503);
+  }
+
+  const expected = await hashOtpCode(phone, "reset", code);
+  const result = await checkServerOtp(admin, phone, "reset", expected);
+  if (result === "locked") {
+    const response = jsonError("Too many attempts. Request a new code.", 429);
+    response.cookies.set(otpCookieName, "", { ...otpCookieOptions, maxAge: 0 });
+    return response;
+  }
+  if (result !== "ok") {
+    return jsonError("That code is incorrect or has expired.", 400);
   }
 
   const { data: row } = await admin.from("member_phones").select("user_id").eq("phone", phone).maybeSingle();
@@ -80,12 +77,6 @@ export async function POST(request: Request) {
     return jsonError(error.message, 400);
   }
 
-  await admin
-    .from("phone_otps")
-    .update({ consumed_at: new Date().toISOString() })
-    .eq("phone", phone)
-    .eq("purpose", "reset")
-    .is("consumed_at", null);
 
   const response = NextResponse.json({ ok: true });
   response.cookies.set(otpCookieName, "", { ...otpCookieOptions, maxAge: 0 });
