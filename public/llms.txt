@@ -1,16 +1,6 @@
-# SheRides
-
-> SheRides (https://sherides.online/) is a women-only ride-sharing service in Bangladesh: rides by women, for women. Passengers can book now, pre-book, or hire by the hour; women riders can apply to drive.
-
-## Key pages
-- [Home](https://sherides.online/)
-- [About](https://sherides.online/about)
-- [Contact](https://sherides.online/contact)
-- [Privacy](https://sherides.online/privacy)
 
 ## BrandLinker family
-This site is part of BrandLinker (https://brandlinkerbd.com/), founded by RS Lina in Dhaka, Bangladesh. Sister sites:
+This site is part of BrandLinker (https://www.brandlinkerbd.com/), founded by RS Lina in Dhaka, Bangladesh. Sister sites:
 - [Cheap Ticket Finder](https://cheapticketfinder.site/): Cheap flight search for travellers in Bangladesh
 - [BrandLinker Dubai](https://brandlinkerdubai.com/): Dubai off-plan property explained in Bangla and English
 - [BrandLinker Spark](https://www.brandlinkerspark.com/): Travel gear: adapters, power banks, luggage scales
-- [BrandLinker Studio](https://brandlinkerstudio.com/): Free online video editor in the browser
