@@ -1,6 +1,7 @@
 
 ## BrandLinker family
 This site is part of BrandLinker (https://www.brandlinkerbd.com/), founded by RS Lina in Dhaka, Bangladesh. Sister sites:
-- [Cheap Ticket Finder](https://cheapticketfinder.site/): Cheap flight search for travellers in Bangladesh
 - [BrandLinker Dubai](https://brandlinkerdubai.com/): Dubai off-plan property explained in Bangla and English
 - [BrandLinker Spark](https://www.brandlinkerspark.com/): Travel gear: adapters, power banks, luggage scales
+- [BrandLinker Studio](https://brandlinkerstudio.com/): Private video studio (PIN required)
+- [Cheap Ticket Finder](https://cheapticketfinder.site/): Cheap flight search for travellers in Bangladesh
