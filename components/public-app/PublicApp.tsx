@@ -58,7 +58,7 @@ export function PublicApp() {
                 <img src="/brand/brandlinker-mark.webp" alt="BrandLinker logo" width={40} height={40} loading="lazy" decoding="async" style={{ width: 40, height: 40, borderRadius: "50%", display: "block" }} />
                 <span>A BrandLinker company<small style={{ display: "block", fontWeight: 500, fontSize: 11, opacity: 0.85 }}>brandlinkerbd.com</small></span>
               </a>
-              <span>Also from BrandLinker: <a href="https://cheapticketfinder.site/" style={{ color: "#f6d27a", textDecoration: "underline", textUnderlineOffset: 2 }}>Cheap Ticket Finder</a>{" · "}<a href="https://brandlinkerdubai.com/" style={{ color: "#f6d27a", textDecoration: "underline", textUnderlineOffset: 2 }}>BrandLinker Dubai</a>{" · "}<a href="https://www.brandlinkerspark.com/" style={{ color: "#f6d27a", textDecoration: "underline", textUnderlineOffset: 2 }}>BrandLinker Spark</a></span>
+              <span>Also from BrandLinker: <a href="https://cheapticketfinder.site/" style={{ color: "#f6d27a", textDecoration: "underline", textUnderlineOffset: 2 }}>Cheap Ticket Finder</a>{" · "}<a href="https://brandlinkerdubai.com/" style={{ color: "#f6d27a", textDecoration: "underline", textUnderlineOffset: 2 }}>BrandLinker Dubai</a>{" · "}<a href="https://www.brandlinkerspark.com/" style={{ color: "#f6d27a", textDecoration: "underline", textUnderlineOffset: 2 }}>BrandLinker Spark</a>{" · "}<a href="https://brandlinkerstudio.com/" style={{ color: "#f6d27a", textDecoration: "underline", textUnderlineOffset: 2 }}>BrandLinker Studio</a></span>
             </div>
           </footer>
         </div>
