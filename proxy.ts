@@ -27,6 +27,7 @@ const PUBLIC_METADATA_PATHS = new Set([
   "/manifest.webmanifest",
   "/admin.webmanifest",
   "/robots.txt",
+  "/llms.txt",
   "/sitemap.xml",
   "/sw.js",
   "/apple-touch-icon",
