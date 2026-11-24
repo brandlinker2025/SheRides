@@ -87,7 +87,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           {children}
         </AppProviders>
         <RegisterSW />
-        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: "{\"@context\":\"https://schema.org\",\"@type\":\"Organization\",\"@id\":\"https://sherides.online/#organization\",\"name\":\"SheRides\",\"url\":\"https://sherides.online/\",\"description\":\"Women-only ride sharing in Bangladesh.\",\"parentOrganization\":{\"@type\":\"Organization\",\"@id\":\"https://brandlinkerbd.com/#organization\",\"name\":\"BrandLinker\",\"url\":\"https://brandlinkerbd.com/\",\"founder\":{\"@type\":\"Person\",\"name\":\"RS Lina\"}}}" }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: "{\"@context\":\"https://schema.org\",\"@type\":\"Organization\",\"@id\":\"https://sherides.online/#organization\",\"name\":\"SheRides\",\"url\":\"https://sherides.online/\",\"description\":\"Women-only ride sharing in Bangladesh.\",\"parentOrganization\":{\"@type\":\"Organization\",\"@id\":\"https://www.brandlinkerbd.com/#organization\",\"name\":\"BrandLinker\",\"url\":\"https://www.brandlinkerbd.com/\",\"founder\":{\"@type\":\"Person\",\"name\":\"RS Lina\"}}}" }} />
       </body>
     </html>
   );
