@@ -59,6 +59,7 @@ export function PublicApp() {
                 <span>A BrandLinker company<small style={{ display: "block", fontWeight: 500, fontSize: 11, opacity: 0.85 }}>brandlinkerbd.com</small></span>
               </a>
               <span>Also from BrandLinker: <a href="https://brandlinkerdubai.com/" style={{ color: "#f6d27a", textDecoration: "underline", textUnderlineOffset: 2 }}>BrandLinker Dubai</a>{" · "}<a href="https://www.brandlinkerspark.com/" style={{ color: "#f6d27a", textDecoration: "underline", textUnderlineOffset: 2 }}>BrandLinker Spark</a>{" · "}<a href="https://brandlinkerstudio.com/" style={{ color: "#f6d27a", textDecoration: "underline", textUnderlineOffset: 2 }}>BrandLinker Studio</a>{" · "}<a href="https://cheapticketfinder.site/" style={{ color: "#f6d27a", textDecoration: "underline", textUnderlineOffset: 2 }}>Cheap Ticket Finder</a></span>
+              <span>Founder &amp; owner: <a href="https://rslina.com/" style={{ color: "#f6d27a", textDecoration: "underline", textUnderlineOffset: 2 }}>RS Lina</a></span>
             </div>
           </footer>
         </div>
