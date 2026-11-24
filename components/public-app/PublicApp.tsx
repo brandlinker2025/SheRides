@@ -52,6 +52,7 @@ export function PublicApp() {
               <Link className="underline underline-offset-4" href="/privacy">Privacy Policy</Link>
               <Link className="underline underline-offset-4" href="/contact">Contact</Link>
             </nav>
+            <p className="pt-2 text-center text-xs opacity-80">A <a className="font-bold underline underline-offset-2" href="https://brandlinkerbd.com/">BrandLinker</a> company · Also from BrandLinker: <a className="underline underline-offset-2" href="https://cheapticketfinder.site/">Cheap Ticket Finder</a> · <a className="underline underline-offset-2" href="https://brandlinkerdubai.com/">BrandLinker Dubai</a> · <a className="underline underline-offset-2" href="https://www.brandlinkerspark.com/">BrandLinker Spark</a> · <a className="underline underline-offset-2" href="https://brandlinkerstudio.com/">BrandLinker Studio</a></p>
           </footer>
         </div>
       </main>
